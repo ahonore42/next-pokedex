@@ -425,3 +425,140 @@ body {
 .type-unknown {
   background-color: #68a090;
 }
+
+/* Media queries for responsive design */
+
+/* Large Screen Enhancements (>1280px) */
+@media (min-width: 1281px) {
+  /* Enhanced spacing for large screens */
+  .large-screen-enhancements {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  .large-screen-spacing {
+    margin-bottom: 3rem;
+  }
+
+  .large-screen-spacing .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 3rem;
+  }
+
+  /* Enhanced text sizing for better readability */
+  .large-screen-text h1 {
+    font-size: 3.5rem;
+    line-height: 1.1;
+  }
+
+  .large-screen-text p {
+    font-size: 1.25rem;
+    line-height: 1.7;
+  }
+
+  /* Enhanced grid spacing */
+  .large-screen-grid {
+    gap: 3rem;
+  }
+
+  /* Enhanced card designs */
+  .enhanced-card {
+    transition: all 0.3s ease;
+    border-radius: 0.75rem;
+  }
+
+  .enhanced-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Enhanced container max-width for very large screens */
+  .max-w-7xl {
+    max-width: 87.5rem; /* 1400px */
+  }
+}
+
+/* Enhanced hover states for all screen sizes */
+.hover-enhanced {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-enhanced:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Enhanced button and interactive element styles */
+.interactive-element {
+  transition: all 0.2s ease;
+}
+
+.interactive-element:hover {
+  transform: scale(1.02);
+}
+
+.interactive-element:active {
+  transform: scale(0.98);
+}
+
+/* Enhanced focus states for accessibility */
+.focus-enhanced:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+  border-color: #3b82f6;
+}
+
+/* Smooth animations for large screen transitions */
+@media (min-width: 1281px) {
+  * {
+    transition-property: transform, box-shadow, opacity;
+    transition-duration: 0.3s;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Enhanced gradients and backgrounds for large screens */
+  .bg-gradient-enhanced {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  /* Better spacing for large screen typography */
+  .typography-enhanced h1 {
+    letter-spacing: -0.025em;
+  }
+
+  .typography-enhanced h2 {
+    letter-spacing: -0.015em;
+  }
+
+  /* Enhanced grid layouts for large screens */
+  .grid-enhanced {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+}
+
+/* Ultra-large screen optimizations (>1600px) */
+@media (min-width: 1601px) {
+  .large-screen-enhancements {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+
+  .large-screen-spacing {
+    margin-bottom: 4rem;
+  }
+
+  .large-screen-text h1 {
+    font-size: 4rem;
+  }
+
+  .large-screen-text p {
+    font-size: 1.375rem;
+    line-height: 1.8;
+  }
+
+  .large-screen-grid {
+    gap: 4rem;
+  }
+}
