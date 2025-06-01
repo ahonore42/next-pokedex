@@ -1,8 +1,9 @@
 export default function Footer() {
   return (
-    <footer className="bg-gray-100 border-t border-gray-200 mt-12">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="bg-gray-100 border-t border-gray-200 mt-12 w-full">
+      <div className="mx-auto px-4 py-8 flex flex-col items-center w-full gap-y-8">
+        {/* <div className="grid grid-cols-2 md:grid-cols-4 self-center gap-x-8 md:gap-x-32 py-8"> */}
+        <div className="flex justify-around max-w-7xl w-full">
           <div>
             <h3 className="font-semibold text-gray-900 mb-3">Database</h3>
             <ul className="space-y-2 text-sm text-gray-600">
@@ -104,7 +105,7 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-        <div className="border-t border-gray-300 mt-8 pt-8 text-center text-sm text-gray-600">
+        <div className="border-t border-gray-300 m-8 pt-8 text-center text-sm text-gray-600">
           <p>© 2025 Pokédex Database. Built with Next.js and the PokéAPI.</p>
           <p>
             Pokémon and all related characters are trademarks of Nintendo, Game
