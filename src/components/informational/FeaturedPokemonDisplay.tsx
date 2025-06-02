@@ -9,17 +9,37 @@ export default function FeaturedPokemonDisplay({
 }) {
   return (
     <SectionCard
-      title="Featured Pokemon"
+      title="Featured Pokémon"
       tag="Daily Rotation"
-      className="bg-white border-gray-200"
+
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-4">
         {pokemon.map((pkmn) => (
-          <div
+          <a
             key={pkmn.id}
-            className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:bg-blue-50 hover:-translate-y-1 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer transition-all duration-300 group"
-            tabIndex={0}
-            role="button"
+            href={`/pokemon/${pkmn.id}`}
+            className="
+              group block p-4 border rounded-lg
+              hover:shadow-md hover:-translate-y-1
+              transition-all duration-300
+              active:scale-95
+            "
+            style={{
+              backgroundColor: "var(--color-pokemon-card-bg)",
+              borderColor: "var(--color-pokemon-card-border)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor =
+                "var(--color-pokemon-card-hover-bg)";
+              e.currentTarget.style.borderColor =
+                "var(--color-pokemon-card-hover-border)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor =
+                "var(--color-pokemon-card-bg)";
+              e.currentTarget.style.borderColor =
+                "var(--color-pokemon-card-border)";
+            }}
             aria-label={`View details for ${capitalizeName(pkmn.name)}`}
           >
             <div className="flex items-start gap-3">
@@ -30,10 +50,18 @@ export default function FeaturedPokemonDisplay({
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-medium text-gray-600">
+                  <span
+                    className="text-sm font-medium"
+                    style={{
+                      color: "var(--color-pokemon-card-text-secondary)",
+                    }}
+                  >
                     #{pkmn.id.toString().padStart(3, "0")}
                   </span>
-                  <span className="font-semibold text-gray-900">
+                  <span
+                    className="font-semibold"
+                    style={{ color: "var(--color-pokemon-card-text)" }}
+                  >
                     {capitalizeName(pkmn.name)}
                   </span>
                 </div>
@@ -48,12 +76,15 @@ export default function FeaturedPokemonDisplay({
                     </span>
                   ))}
                 </div>
-                <p className="text-xs text-gray-600 line-clamp-2">
+                <p
+                  className="text-xs line-clamp-2"
+                  style={{ color: "var(--color-pokemon-card-text-secondary)" }}
+                >
                   {pkmn.description}
                 </p>
               </div>
             </div>
-          </div>
+          </a>
         ))}
       </div>
     </SectionCard>
