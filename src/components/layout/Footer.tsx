@@ -2,7 +2,6 @@ export default function Footer() {
   return (
     <footer className="bg-gray-100 border-t border-gray-200 mt-12 w-full">
       <div className="mx-auto px-4 py-8 flex flex-col items-center w-full gap-y-8">
-        {/* <div className="grid grid-cols-2 md:grid-cols-4 self-center gap-x-8 md:gap-x-32 py-8"> */}
         <div className="flex justify-around max-w-7xl w-full">
           <div>
             <h3 className="font-semibold text-gray-900 mb-3">Database</h3>
