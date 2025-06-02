@@ -1,5 +1,5 @@
 import { FeaturedPokemon } from "@/lib/types/pokemon";
-import { getTypeColor, capitalizeName } from "@/lib/api/pokemon";
+import { getTypeColor, capitalizeName } from "@/lib/services/pokemon";
 import SectionCard from "../ui/SectionCard";
 
 export default function FeaturedPokemonDisplay({
@@ -8,7 +8,11 @@ export default function FeaturedPokemonDisplay({
   pokemon: FeaturedPokemon[];
 }) {
   return (
-    <SectionCard title="Featured Pokemon" tag="Daily Rotation" className="bg-white border-gray-200">
+    <SectionCard
+      title="Featured Pokemon"
+      tag="Daily Rotation"
+      className="bg-white border-gray-200"
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-4">
         {pokemon.map((pkmn) => (
           <div

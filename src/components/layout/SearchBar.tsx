@@ -2,7 +2,11 @@
 
 import React, { useState } from "react";
 import { PokemonCard } from "@/lib/types/pokemon";
-import { searchPokemon, capitalizeName, getTypeColor } from "@/lib/api/pokemon";
+import {
+  searchPokemon,
+  capitalizeName,
+  getTypeColor,
+} from "@/lib/services/pokemon";
 
 export default function SearchBar() {
   const [query, setQuery] = useState("");

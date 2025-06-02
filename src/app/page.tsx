@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getFeaturedPokemon, getAppStats } from "../lib/api/pokemon";
+import { getFeaturedPokemon, getAppStats } from "../lib/services/pokemon";
 import type { FeaturedPokemon, AppStats } from "../lib/types/pokemon";
 import Header from "@/components/layout/Header";
 import SearchBar from "@/components/layout/SearchBar";
