@@ -10,6 +10,7 @@ import QuickAccess from "@/components/layout/QuickAccess";
 import FeaturedPokemonDisplay from "@/components/informational/FeaturedPokemonDisplay";
 import LatestUpdates from "@/components/informational/LatestUpdates";
 import Footer from "@/components/layout/Footer";
+import Pokeball from "@/components/ui/Pokeball";
 
 export default function Home() {
   const [featuredPokemon, setFeaturedPokemon] = useState<FeaturedPokemon[]>([]);
@@ -37,57 +38,45 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-between">
+      <Header />
 
-        <Header />
-
-        <main className="mx-auto px-4 py-8 max-w-[1400px] self-center" >
+      {isLoading ? (
+        <div className="flex justify-center items-center">
+          <Pokeball size="xl" endlessSpin spinSpeed={1.5} />
+        </div>
+      ) : (
+        <main className="mb-4 mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-8 md:py-12 xl:py-16 2xl:py-20 max-w-7xl 2xl:max-w-[1400px] self-center">
           {/* Welcome Section */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Evolve Pokédex
-            </h1>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-6">
-              Your comprehensive resource for Pokémon information. Search through
-              our complete database of Pokémon species, moves, abilities, and
-              more.
-            </p>
-            <div className="w-96 lg:w-2xl">
-              <SearchBar />
+          <div className="sm:flex sm:items-start sm:gap-4 sm:py-8 mb-4">
+            <div className="px-4 sm:px-0">
+              <h1 className="text-3xl md:text-4xl xl:text-5xl 2xl:text-6xl font-bold text-gray-900 tracking-tight xl:tracking-tighter mb-4">
+                Evolve Pokédex
+              </h1>
+              <div className="w-full max-w-md sm:max-w-lg lg:max-w-2xl xl:max-w-3xl mx-auto px-4">
+                <p className="text-lg xl:text-xl 2xl:text-2xl text-gray-600 mx-auto text-left">
+                  Your comprehensive resource for Pokémon information. Search
+                  through our complete database of Pokémon species, moves,
+                  abilities, and more.
+                </p>
+              </div>
             </div>
+            {stats && <DatabaseStats stats={stats} />}
           </div>
 
-          {/* Stats Section */}
-          {stats && (
-            <div className="mb-8">
-              <DatabaseStats stats={stats} />
-            </div>
-          )}
+          <div className="mb-4">
+            <SearchBar />
+          </div>
 
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Quick Access */}
-            <div className="lg:col-span-1">
-              <QuickAccess />
-            </div>
-
-            {/* Right Column - Featured Pokemon and Updates */}
-            <div className="lg:col-span-2 space-y-8">
-              {isLoading ? (
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <div className="flex justify-center">
-                    <div className="animate-spin w-8 h-8 border-2 border-gray-300 border-t-blue-500 rounded-full"></div>
-                  </div>
-                </div>
-              ) : (
-                <FeaturedPokemonDisplay pokemon={featuredPokemon} />
-              )}
-
-              <LatestUpdates />
-            </div>
+          {/* Main Content */}
+          <div className="flex flex-col col-span-1 gap-4">
+            <QuickAccess />
+            <FeaturedPokemonDisplay pokemon={featuredPokemon} />
+            <LatestUpdates />
           </div>
         </main>
+      )}
 
-        <Footer />
+      <Footer />
     </div>
   );
 }
