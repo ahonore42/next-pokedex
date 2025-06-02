@@ -1,13 +1,14 @@
+import SectionCard from "../ui/SectionCard";
 export default function QuickAccess() {
   const sections = [
     {
-      name: "Pokémon Database",
+      name: "Pokédex",
       desc: "Complete species information",
       href: "/pokemon",
       icon: "📚",
     },
     {
-      name: "Move Database",
+      name: "Movedex",
       desc: "All moves and their effects",
       href: "/moves",
       icon: "⚔️",
@@ -16,31 +17,31 @@ export default function QuickAccess() {
       name: "Type Chart",
       desc: "Effectiveness and resistances",
       href: "/types",
-      icon: "🔥",
+      icon: "♻",
     },
     {
-      name: "Ability List",
+      name: "Abilitydex",
       desc: "All abilities and descriptions",
       href: "/abilities",
-      icon: "⭐",
+      icon: "✨",
     },
     {
-      name: "Item Database",
+      name: "Itemdex",
       desc: "Complete item information",
       href: "/items",
-      icon: "🎒",
+      icon: "🍬",
     },
     {
       name: "Location Guide",
       desc: "Where to find Pokémon",
       href: "/locations",
-      icon: "🗺️",
+      icon: "📍",
     },
     {
       name: "Evolution Trees",
       desc: "Evolution chains and methods",
       href: "/evolution",
-      icon: "🔄",
+      icon: "🧬",
     },
     {
       name: "Random Pokémon",
@@ -51,23 +52,25 @@ export default function QuickAccess() {
   ];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Access</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {sections.map((section) => (
-          <a
-            key={section.name}
-            href={section.href}
-            className="p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors"
-          >
-            <div className="text-lg mb-1">{section.icon}</div>
-            <div className="font-medium text-gray-900 text-sm">
-              {section.name}
-            </div>
-            <div className="text-xs text-gray-600">{section.desc}</div>
-          </a>
-        ))}
-      </div>
-    </div>
+      <SectionCard title="Quick Access" className="bg-white border-gray-200">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 m-4">
+          {sections.map((section) => (
+            <a
+              key={section.name}
+              href={section.href}
+              className="p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 hover:-translate-y-1 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 active:scale-95 transition-all duration-300 group"
+              aria-label={`Navigate to ${section.name}: ${section.desc}`}
+            >
+              <div className="font-medium text-gray-900 text-sm mb-1">
+                <span className="text-lg inline-block">
+                  {section.icon}
+                </span>
+                {" "}{section.name}
+              </div>
+              <div className="text-xs text-gray-600">{section.desc}</div>
+            </a>
+          ))}
+        </div>
+      </SectionCard>
   );
 }

@@ -1,3 +1,5 @@
+import SectionCard from "../ui/SectionCard";
+
 export default function LatestUpdates() {
   const updates = [
     {
@@ -13,19 +15,19 @@ export default function LatestUpdates() {
   ];
 
   return (
-    <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">
-        Latest Updates
-      </h2>
+    <SectionCard
+      title="Latest Updates"
+      className="bg-emerald-50 border-emerald-200"
+    >
       <div className="space-y-3">
         {updates.map((update, index) => (
-          <div key={index} className="border-l-4 border-green-500 pl-4">
+          <div key={index} className="border-l-4 border-emerald-500 pl-4">
             <div className="text-sm text-gray-600">{update.date}</div>
             <div className="font-medium text-gray-900">{update.title}</div>
             <div className="text-sm text-gray-700">{update.desc}</div>
           </div>
         ))}
       </div>
-    </div>
+    </SectionCard>
   );
 }
