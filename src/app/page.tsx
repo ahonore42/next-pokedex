@@ -37,11 +37,14 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-between">
+    <div
+      className="min-h-screen transition-colors duration-300"
+      style={{ backgroundColor: "var(--color-background)" }}
+    >
       <Header />
 
       {isLoading ? (
-        <div className="flex justify-center items-center">
+        <div className="flex justify-center items-center py-20">
           <Pokeball size="xl" endlessSpin spinSpeed={1.5} />
         </div>
       ) : (
@@ -49,11 +52,11 @@ export default function Home() {
           {/* Welcome Section */}
           <div className="sm:flex sm:items-start sm:gap-4 sm:py-8 mb-4">
             <div className="px-4 sm:px-0">
-              <h1 className="text-3xl md:text-4xl xl:text-5xl 2xl:text-6xl font-bold text-gray-900 tracking-tight xl:tracking-tighter mb-4">
+              <h1 className="text-3xl md:text-4xl xl:text-5xl 2xl:text-6xl font-bold text-primary tracking-tight xl:tracking-tighter mb-4 text-gradient">
                 Evolve Pokédex
               </h1>
               <div className="w-full max-w-md sm:max-w-lg lg:max-w-2xl xl:max-w-3xl mx-auto px-4">
-                <p className="text-lg xl:text-xl 2xl:text-2xl text-gray-600 mx-auto text-left">
+                <p className="text-lg xl:text-xl 2xl:text-2xl text-secondary mx-auto text-left">
                   Your comprehensive resource for Pokémon information. Search
                   through our complete database of Pokémon species, moves,
                   abilities, and more.
