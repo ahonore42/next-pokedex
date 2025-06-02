@@ -155,21 +155,29 @@ export default function Pokeball({
         className="absolute inset-0 pointer-events-none"
         style={gradientTransformStyle}
       >
+        {/* Independent lighting overlay when spinning */}
+        {endlessSpin && (
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white via-transparent to-black opacity-30"></div>
+        )}
         {/* Red highlight for 3D effect */}
-        <div className={`absolute ${config.highlight.top} bg-gradient-to-br from-red-200 to-transparent rounded-full opacity-60`}></div>
+        <div
+          className={`absolute ${config.highlight.top} bg-gradient-to-br from-red-200 to-transparent rounded-full opacity-60`}
+        ></div>
         {/* Bottom metallic highlight */}
-        <div className={`absolute ${config.highlight.bottom} bg-gradient-to-bl from-white to-transparent rounded-full opacity-80`}></div>
+        <div
+          className={`absolute ${config.highlight.bottom} bg-gradient-to-bl from-white to-transparent rounded-full opacity-80`}
+        ></div>
         {/* Center gray ring gradient overlay */}
         {endlessSpin && (
           <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${config.blackCircle} pointer-events-none`}>
             <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${config.grayRing} bg-gradient-to-br from-gray-100 via-gray-300 to-gray-400 rounded-full`}>
-              {/* Center button gradient overlay */}
+              {/* Center button gradient overlay - turns red on hover */}
               <div
                 className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${
                   config.centerButton
                 } ${
                   endlessSpin
-                    ? "bg-gray-300 group-hover:bg-red-400"
+                    ? "bg-gray-300 group-hover:bg-red-400 transition-all duration-200 delay-300"
                     : "bg-gradient-to-br from-gray-100 via-gray-300 to-gray-400 group-hover:from-red-300 group-hover:via-red-400 group-hover:to-red-600"
                 } rounded-full transition-all duration-200 delay-300`}
               ></div>
