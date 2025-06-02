@@ -55,12 +55,14 @@ export default function RootLayout({
       <head>
         <meta name="color-scheme" content="light dark" />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-w-[320px]`}
-        suppressHydrationWarning
-      >
-        <ThemeProvider defaultTheme="light">{children}</ThemeProvider>
-      </body>
+      <ThemeProvider defaultTheme="light">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased min-w-[320px] bg-background`}
+          suppressHydrationWarning
+        >
+          {children}
+        </body>
+      </ThemeProvider>
     </html>
   );
 }

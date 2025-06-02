@@ -44,7 +44,7 @@ export default function Home() {
       <Header />
 
       {isLoading ? (
-        <div className="flex justify-center items-center py-20">
+        <div className="flex justify-center items-center h-screen">
           <Pokeball size="xl" endlessSpin spinSpeed={1.5} />
         </div>
       ) : (
