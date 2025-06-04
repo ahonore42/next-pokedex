@@ -54,10 +54,8 @@ model Language {
   locationAreaNames               LocationAreaName[]
   locationNames                   LocationName[]
   machineVersionGroupNames        MachineVersionGroupName[]
-  moveAttributeDescriptions       MoveAttributeDescription[]
-  moveAttributeNames              MoveAttributeName[]
   moveBattleStyleNames            MoveBattleStyleName[]
-  moveEffectProse                 MoveEffectProse[]
+  moveEffectEntries               MoveEffectEntry[]  // New relation
   moveFlavorTexts                 MoveFlavorText[]
   moveLearnMethodDescriptions     MoveLearnMethodDescription[]
   moveLearnMethodNames            MoveLearnMethodName[]
@@ -292,7 +290,7 @@ model TypeName {
 model TypeEfficacy {
   damageTypeId Int @map("damage_type_id")
   targetTypeId Int @map("target_type_id")
-  damageFactor Int @map("damage_factor")
+  damageFactor Float @map("damage_factor")
 
   // Relations
   damageType Type @relation("DamageType", fields: [damageTypeId], references: [id], onDelete: Cascade)
@@ -306,7 +304,7 @@ model TypeEfficacyPast {
   id           Int @id @default(autoincrement())
   damageTypeId Int @map("damage_type_id")
   targetTypeId Int @map("target_type_id")
-  damageFactor Int @map("damage_factor")
+  damageFactor Float @map("damage_factor")
   generationId Int @map("generation_id")
 
   // Relations
@@ -398,56 +396,6 @@ model AbilityChangeLog {
 // =================
 // MOVE MODELS
 // =================
-model MoveAttribute {
-  id   Int    @id
-  name String @unique
-
-  // Relations
-  names       MoveAttributeName[]
-  descriptions MoveAttributeDescription[]
-  moveAttributeMap MoveAttributeMap[]
-
-  @@map("move_attributes")
-}
-
-model MoveAttributeName {
-  moveAttributeId Int @map("move_attribute_id")
-  languageId      Int @map("language_id")
-  name            String
-
-  // Relations
-  moveAttribute MoveAttribute @relation(fields: [moveAttributeId], references: [id], onDelete: Cascade)
-  language      Language      @relation(fields: [languageId], references: [id], onDelete: Cascade)
-
-  @@id([moveAttributeId, languageId])
-  @@map("move_attribute_names")
-}
-
-model MoveAttributeDescription {
-  moveAttributeId Int @map("move_attribute_id")
-  languageId      Int @map("language_id")
-  description     String @db.Text
-
-  // Relations
-  moveAttribute MoveAttribute @relation(fields: [moveAttributeId], references: [id], onDelete: Cascade)
-  language      Language      @relation(fields: [languageId], references: [id], onDelete: Cascade)
-
-  @@id([moveAttributeId, languageId])
-  @@map("move_attribute_descriptions")
-}
-
-model MoveAttributeMap {
-  moveId          Int @map("move_id")
-  moveAttributeId Int @map("move_attribute_id")
-
-  // Relations
-  move          Move          @relation(fields: [moveId], references: [id], onDelete: Cascade)
-  moveAttribute MoveAttribute @relation(fields: [moveAttributeId], references: [id], onDelete: Cascade)
-
-  @@id([moveId, moveAttributeId])
-  @@map("move_attribute_map")
-}
-
 model MoveBattleStyle {
   id   Int    @id
   name String @unique
@@ -497,29 +445,18 @@ model MoveDamageClassName {
   @@map("move_damage_class_names")
 }
 
-model MoveEffect {
-  id Int @id
+model MoveEffectEntry {
+  moveId      Int     @map("move_id")
+  languageId  Int     @map("language_id")
+  effect      String? @db.Text
+  shortEffect String? @map("short_effect") @db.Text
 
   // Relations
-  prose     MoveEffectProse[]
-  moves     Move[]
+  move     Move     @relation(fields: [moveId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
 
-  @@map("move_effects")
-}
-
-
-model MoveEffectProse {
-  moveEffectId Int     @map("move_effect_id")
-  languageId   Int     @map("language_id")
-  shortEffect  String? @map("short_effect") @db.Text
-  effect       String? @db.Text
-
-  // Relations
-  moveEffect MoveEffect @relation(fields: [moveEffectId], references: [id], onDelete: Cascade)
-  language   Language   @relation(fields: [languageId], references: [id], onDelete: Cascade)
-
-  @@id([moveEffectId, languageId])
-  @@map("move_effect_prose")
+  @@id([moveId, languageId])
+  @@map("move_effect_entries")
 }
 
 model MoveLearnMethod {
@@ -610,7 +547,6 @@ model Move {
   priority          Int  @default(0)
   moveTargetId      Int  @map("move_target_id")
   moveDamageClassId Int  @map("move_damage_class_id")
-  moveEffectId      Int  @map("move_effect_id")
   effectChance      Int? @map("effect_chance")
   contestTypeId     Int? @map("contest_type_id")
   contestEffectId   Int? @map("contest_effect_id")
@@ -624,20 +560,20 @@ model Move {
   type               Type             @relation(fields: [typeId], references: [id])
   moveTarget         MoveTarget       @relation(fields: [moveTargetId], references: [id])
   moveDamageClass    MoveDamageClass  @relation(fields: [moveDamageClassId], references: [id])
-  moveEffect         MoveEffect       @relation(fields: [moveEffectId], references: [id])
   contestType        ContestType?     @relation(fields: [contestTypeId], references: [id])
   contestEffect      ContestEffect?   @relation(fields: [contestEffectId], references: [id])
   superContestEffect SuperContestEffect? @relation(fields: [superContestEffectId], references: [id])
 
-  names             MoveName[]
-  flavorTexts       MoveFlavorText[]
-  pokemonMoves      PokemonMove[]
+  names                MoveName[]
+  flavorTexts          MoveFlavorText[]
+  pokemonMoves         PokemonMove[]
   pokemonEvolutionKnownMove PokemonEvolution[] @relation("KnownMove")
-  machines          Machine[]
-  moveAttributeMap  MoveAttributeMap[]
-  moveMetaData      MoveMetaData?
-  pastValues        MovePastValue[]
-  statChanges       MoveStatChange[]
+  machines             Machine[]
+  moveMetaData         MoveMetaData?
+  pastValues           MovePastValue[]
+  statChanges          MoveStatChange[]
+  effectEntries        MoveEffectEntry[]  // New relation for effect text
+  learnedByPokemon     MoveLearnedByPokemon[]
 
   @@map("moves")
 }
@@ -770,6 +706,25 @@ model MovePastValue {
 
   @@id([moveId, versionGroupId])
   @@map("move_past_values")
+}
+
+// =================
+// LEARNED BY POKEMON MODEL
+// =================
+
+model MoveLearnedByPokemon {
+  moveId    Int @map("move_id")
+  pokemonId Int @map("pokemon_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  move    Move    @relation(fields: [moveId], references: [id], onDelete: Cascade)
+  pokemon Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+
+  @@id([moveId, pokemonId])
+  @@map("move_learned_by_pokemon")
 }
 
 // =================
@@ -1265,6 +1220,8 @@ model Pokemon {
   typePast          PokemonTypePast[]
   abilityPast       PokemonAbilityPast[]
   encounters        PokemonEncounter[]
+  learnableMoves    MoveLearnedByPokemon[]
+
 
   @@map("pokemon")
 }
