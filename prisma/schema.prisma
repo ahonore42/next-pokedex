@@ -1,0 +1,2325 @@
+// prisma/schema.prisma
+// 100% aligned with PokeAPI v2 structure
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =================
+// LANGUAGE MODELS
+// =================
+model Language {
+  id       Int     @id
+  name     String  @unique
+  iso639   String?
+  iso3166  String?
+  official Boolean @default(false)
+  order    Int?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  languageNames                   LanguageName[]
+  localLanguageNames              LanguageName[] @relation("LocalLanguage")
+  abilityNames                    AbilityName[]
+  abilityEffectTexts              AbilityEffectText[]
+  abilityFlavorTexts              AbilityFlavorText[]
+  berryFirmnessNames              BerryFirmnessName[]
+  berryFlavorNames                BerryFlavorName[]
+  characteristicDescriptions      CharacteristicDescription[]
+  contestEffectEntries            ContestEffectEntry[]
+  contestEffectFlavorTexts        ContestEffectFlavorText[]
+  contestTypeNames                ContestTypeName[]
+  eggGroupNames                   EggGroupName[]
+  encounterConditionNames         EncounterConditionName[]
+  encounterConditionValueNames    EncounterConditionValueName[]
+  encounterMethodNames            EncounterMethodName[]
+  evolutionTriggerNames           EvolutionTriggerName[]
+  genderNames                     GenderName[]
+  generationNames                 GenerationName[]
+  growthRateDescriptions          GrowthRateDescription[]
+  itemAttributeDescriptions       ItemAttributeDescription[]
+  itemAttributeNames              ItemAttributeName[]
+  itemCategoryNames               ItemCategoryName[]
+  itemEffectTexts                 ItemEffectText[]
+  itemFlavorTexts                 ItemFlavorText[]
+  itemFlingEffectEffectTexts      ItemFlingEffectEffectText[]
+  itemNames                       ItemName[]
+  itemPocketNames                 ItemPocketName[]
+  locationAreaNames               LocationAreaName[]
+  locationNames                   LocationName[]
+  machineVersionGroupNames        MachineVersionGroupName[]
+  moveAttributeDescriptions       MoveAttributeDescription[]
+  moveAttributeNames              MoveAttributeName[]
+  moveBattleStyleNames            MoveBattleStyleName[]
+  moveEffectProse                 MoveEffectProse[]
+  moveFlavorTexts                 MoveFlavorText[]
+  moveLearnMethodDescriptions     MoveLearnMethodDescription[]
+  moveLearnMethodNames            MoveLearnMethodName[]
+  moveNames                       MoveName[]
+  moveTargetDescriptions          MoveTargetDescription[]
+  moveTargetNames                 MoveTargetName[]
+  moveDamageClassNames            MoveDamageClassName[]
+  moveMetaAilmentNames            MoveMetaAilmentName[]
+  moveMetaCategoryDescriptions    MoveMetaCategoryDescription[]
+  natureNames                     NatureName[]
+  palParkAreaNames                PalParkAreaName[]
+  pokeathlonStatNames             PokeathlonStatName[]
+  pokedexDescriptions             PokedexDescription[]
+  pokedexNames                    PokedexName[]
+  pokemonColorNames               PokemonColorName[]
+  pokemonFormNames                PokemonFormName[]
+  pokemonHabitatNames             PokemonHabitatName[]
+  pokemonShapeAwesomeNames        PokemonShapeAwesomeName[]
+  pokemonShapeNames               PokemonShapeName[]
+  pokemonSpeciesDescriptions      PokemonSpeciesDescription[]
+  pokemonSpeciesFlavorTexts       PokemonSpeciesFlavorText[]
+  pokemonSpeciesNames             PokemonSpeciesName[]
+  regionNames                     RegionName[]
+  statNames                       StatName[]
+  superContestEffectFlavorTexts   SuperContestEffectFlavorText[]
+  typeNames                       TypeName[]
+  versionNames                    VersionName[]
+  versionGroupNames               VersionGroupName[]
+
+  @@map("languages")
+}
+
+model LanguageName {
+  languageId      Int @map("language_id")
+  localLanguageId Int @map("local_language_id")
+  name            String
+
+  // Relations
+  language      Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  localLanguage Language @relation("LocalLanguage", fields: [localLanguageId], references: [id], onDelete: Cascade)
+
+  @@id([languageId, localLanguageId])
+  @@map("language_names")
+}
+
+// =================
+// GENERATION MODELS
+// =================
+model Generation {
+  id           Int  @id
+  name         String @unique
+  mainRegionId Int? @map("main_region_id")
+  order        Int?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  mainRegion        Region?               @relation(fields: [mainRegionId], references: [id])
+  names             GenerationName[]
+  abilities         Ability[]
+  items             Item[]
+  moves             Move[]
+  pokemonSpecies    PokemonSpecies[]
+  types             Type[]
+  versionGroups     VersionGroup[]
+  typeEfficacyPast  TypeEfficacyPast[]
+  itemGameIndices   ItemGameIndex[]
+  pokemonAbilityPast PokemonAbilityPast[]
+  pokemonTypePast   PokemonTypePast[]
+
+  @@map("generations")
+}
+
+model GenerationName {
+  generationId Int @map("generation_id")
+  languageId   Int @map("language_id")
+  name         String
+
+  // Relations
+  generation Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  language   Language   @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([generationId, languageId])
+  @@map("generation_names")
+}
+
+// =================
+// REGION MODELS
+// =================
+model Region {
+  id   Int    @id
+  name String @unique
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  names       RegionName[]
+  generations Generation[]
+  locations   Location[]
+  pokedexes   Pokedex[]
+  versionGroupRegions VersionGroupRegion[]
+
+  @@map("regions")
+}
+
+model RegionName {
+  regionId   Int @map("region_id")
+  languageId Int @map("language_id")
+  name       String
+
+  // Relations
+  region   Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([regionId, languageId])
+  @@map("region_names")
+}
+
+// =================
+// LOCATION MODELS
+// =================
+model Location {
+  id       Int @id
+  name     String
+  regionId Int @map("region_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  region           Region                @relation(fields: [regionId], references: [id])
+  names            LocationName[]
+  areas            LocationArea[]
+  pokemonEvolution PokemonEvolution[]
+
+  @@map("locations")
+}
+
+model LocationName {
+  locationId Int @map("location_id")
+  languageId Int @map("language_id")
+  name       String
+
+  // Relations
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([locationId, languageId])
+  @@map("location_names")
+}
+
+model LocationArea {
+  id         Int @id
+  name       String
+  locationId Int @map("location_id")
+  gameIndex  Int? @map("game_index")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  location          Location               @relation(fields: [locationId], references: [id])
+  names             LocationAreaName[]
+  pokemonEncounters PokemonEncounter[]
+
+  @@map("location_areas")
+}
+
+model LocationAreaName {
+  locationAreaId Int @map("location_area_id")
+  languageId     Int @map("language_id")
+  name           String
+
+  // Relations
+  locationArea LocationArea @relation(fields: [locationAreaId], references: [id], onDelete: Cascade)
+  language     Language     @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([locationAreaId, languageId])
+  @@map("location_area_names")
+}
+
+// =================
+// TYPE MODELS
+// =================
+model Type {
+  id           Int @id
+  name         String @unique
+  generationId Int @map("generation_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  generation        Generation?     @relation(fields: [generationId], references: [id])
+  names             TypeName[]
+  pokemonTypes      PokemonType[]
+  moves             Move[]
+  
+  // Type effectiveness
+  damageRelationsTo   TypeEfficacy[] @relation("DamageType")
+  damageRelationsFrom TypeEfficacy[] @relation("TargetType")
+
+  // Past relations
+  pastDamageRelationsTo   TypeEfficacyPast[] @relation("PastDamageType")
+  pastDamageRelationsFrom TypeEfficacyPast[] @relation("PastTargetType")
+
+  berryNaturalGiftType     Berry[]
+  pokemonEvolutionKnownMoveType PokemonEvolution[] @relation("KnownMoveType")
+  pokemonEvolutionPartyType PokemonEvolution[] @relation("PartyType")
+  movePastValues           MovePastValue[]
+  pokemonTypePast          PokemonTypePast[]
+  pokemonFormTypes         PokemonFormType[]
+
+  @@map("types")
+}
+
+model TypeName {
+  typeId     Int @map("type_id")
+  languageId Int @map("language_id")
+  name       String
+
+  // Relations
+  type     Type     @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([typeId, languageId])
+  @@map("type_names")
+}
+
+model TypeEfficacy {
+  damageTypeId Int @map("damage_type_id")
+  targetTypeId Int @map("target_type_id")
+  damageFactor Int @map("damage_factor")
+
+  // Relations
+  damageType Type @relation("DamageType", fields: [damageTypeId], references: [id], onDelete: Cascade)
+  targetType Type @relation("TargetType", fields: [targetTypeId], references: [id], onDelete: Cascade)
+
+  @@id([damageTypeId, targetTypeId])
+  @@map("type_efficacy")
+}
+
+model TypeEfficacyPast {
+  id           Int @id @default(autoincrement())
+  damageTypeId Int @map("damage_type_id")
+  targetTypeId Int @map("target_type_id")
+  damageFactor Int @map("damage_factor")
+  generationId Int @map("generation_id")
+
+  // Relations
+  damageType Type       @relation("PastDamageType", fields: [damageTypeId], references: [id], onDelete: Cascade)
+  targetType Type       @relation("PastTargetType", fields: [targetTypeId], references: [id], onDelete: Cascade)
+  generation Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  @@map("type_efficacy_past")
+}
+
+// =================
+// ABILITY MODELS
+// =================
+model Ability {
+  id           Int     @id
+  name         String  @unique
+  generationId Int     @map("generation_id")
+  isMainSeries Boolean @default(true) @map("is_main_series")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  generation        Generation?         @relation(fields: [generationId], references: [id])
+  names             AbilityName[]
+  effectTexts       AbilityEffectText[]
+  flavorTexts       AbilityFlavorText[]
+  pokemonAbilities  PokemonAbility[]
+  changeLog         AbilityChangeLog[]
+  pokemonAbilityPast PokemonAbilityPast[]
+
+  @@map("abilities")
+}
+
+model AbilityName {
+  abilityId  Int @map("ability_id")
+  languageId Int @map("language_id")
+  name       String
+
+  // Relations
+  ability  Ability  @relation(fields: [abilityId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([abilityId, languageId])
+  @@map("ability_names")
+}
+
+model AbilityEffectText {
+  abilityId   Int     @map("ability_id")
+  languageId  Int     @map("language_id")
+  shortEffect String? @map("short_effect") @db.Text
+  effect      String? @db.Text
+
+  // Relations
+  ability  Ability  @relation(fields: [abilityId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([abilityId, languageId])
+  @@map("ability_effect_text")
+}
+
+model AbilityFlavorText {
+  abilityId      Int    @map("ability_id")
+  versionGroupId Int    @map("version_group_id")
+  languageId     Int    @map("language_id")
+  flavorText     String @map("flavor_text") @db.Text
+
+  // Relations
+  ability      Ability      @relation(fields: [abilityId], references: [id], onDelete: Cascade)
+  versionGroup VersionGroup @relation(fields: [versionGroupId], references: [id], onDelete: Cascade)
+  language     Language     @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([abilityId, versionGroupId, languageId])
+  @@map("ability_flavor_text")
+}
+
+model AbilityChangeLog {
+  id         Int @id @default(autoincrement())
+  abilityId  Int @map("ability_id")
+  changedIn  Int @map("changed_in_version_group_id")
+
+  // Relations
+  ability        Ability      @relation(fields: [abilityId], references: [id], onDelete: Cascade)
+  versionGroup   VersionGroup @relation(fields: [changedIn], references: [id], onDelete: Cascade)
+
+  @@map("ability_change_log")
+}
+
+// =================
+// MOVE MODELS
+// =================
+model MoveAttribute {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names       MoveAttributeName[]
+  descriptions MoveAttributeDescription[]
+  moveAttributeMap MoveAttributeMap[]
+
+  @@map("move_attributes")
+}
+
+model MoveAttributeName {
+  moveAttributeId Int @map("move_attribute_id")
+  languageId      Int @map("language_id")
+  name            String
+
+  // Relations
+  moveAttribute MoveAttribute @relation(fields: [moveAttributeId], references: [id], onDelete: Cascade)
+  language      Language      @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([moveAttributeId, languageId])
+  @@map("move_attribute_names")
+}
+
+model MoveAttributeDescription {
+  moveAttributeId Int @map("move_attribute_id")
+  languageId      Int @map("language_id")
+  description     String @db.Text
+
+  // Relations
+  moveAttribute MoveAttribute @relation(fields: [moveAttributeId], references: [id], onDelete: Cascade)
+  language      Language      @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([moveAttributeId, languageId])
+  @@map("move_attribute_descriptions")
+}
+
+model MoveAttributeMap {
+  moveId          Int @map("move_id")
+  moveAttributeId Int @map("move_attribute_id")
+
+  // Relations
+  move          Move          @relation(fields: [moveId], references: [id], onDelete: Cascade)
+  moveAttribute MoveAttribute @relation(fields: [moveAttributeId], references: [id], onDelete: Cascade)
+
+  @@id([moveId, moveAttributeId])
+  @@map("move_attribute_map")
+}
+
+model MoveBattleStyle {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names MoveBattleStyleName[]
+  natureBattleStylePreferences NatureBattleStylePreference[]
+
+  @@map("move_battle_styles")
+}
+
+model MoveBattleStyleName {
+  moveBattleStyleId Int @map("move_battle_style_id")
+  languageId        Int @map("language_id")
+  name              String
+
+  // Relations
+  moveBattleStyle MoveBattleStyle @relation(fields: [moveBattleStyleId], references: [id], onDelete: Cascade)
+  language        Language        @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([moveBattleStyleId, languageId])
+  @@map("move_battle_style_names")
+}
+
+model MoveDamageClass {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names MoveDamageClassName[]
+  moves Move[]
+
+  @@map("move_damage_classes")
+}
+
+model MoveDamageClassName {
+  moveDamageClassId Int @map("move_damage_class_id")
+  languageId        Int @map("language_id")
+  name              String
+  description       String? @db.Text
+
+  // Relations
+  moveDamageClass MoveDamageClass @relation(fields: [moveDamageClassId], references: [id], onDelete: Cascade)
+  language        Language        @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([moveDamageClassId, languageId])
+  @@map("move_damage_class_names")
+}
+
+model MoveEffect {
+  id Int @id
+
+  // Relations
+  prose     MoveEffectProse[]
+  moves     Move[]
+
+  @@map("move_effects")
+}
+
+
+model MoveEffectProse {
+  moveEffectId Int     @map("move_effect_id")
+  languageId   Int     @map("language_id")
+  shortEffect  String? @map("short_effect") @db.Text
+  effect       String? @db.Text
+
+  // Relations
+  moveEffect MoveEffect @relation(fields: [moveEffectId], references: [id], onDelete: Cascade)
+  language   Language   @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([moveEffectId, languageId])
+  @@map("move_effect_prose")
+}
+
+model MoveLearnMethod {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names        MoveLearnMethodName[]
+  descriptions MoveLearnMethodDescription[]
+  pokemonMoves PokemonMove[]
+  versionGroups VersionGroupMoveLearnMethod[]
+
+  @@map("move_learn_methods")
+}
+
+model MoveLearnMethodName {
+  moveLearnMethodId Int @map("move_learn_method_id")
+  languageId        Int @map("language_id")
+  name              String
+
+  // Relations
+  moveLearnMethod MoveLearnMethod @relation(fields: [moveLearnMethodId], references: [id], onDelete: Cascade)
+  language        Language        @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([moveLearnMethodId, languageId])
+  @@map("move_learn_method_names")
+}
+
+model MoveLearnMethodDescription {
+  moveLearnMethodId Int @map("move_learn_method_id")
+  languageId        Int @map("language_id")
+  description       String @db.Text
+
+  // Relations
+  moveLearnMethod MoveLearnMethod @relation(fields: [moveLearnMethodId], references: [id], onDelete: Cascade)
+  language        Language        @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([moveLearnMethodId, languageId])
+  @@map("move_learn_method_descriptions")
+}
+
+model MoveTarget {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names        MoveTargetName[]
+  descriptions MoveTargetDescription[]
+  moves        Move[]
+
+  @@map("move_targets")
+}
+
+model MoveTargetName {
+  moveTargetId Int @map("move_target_id")
+  languageId   Int @map("language_id")
+  name         String
+
+  // Relations
+  moveTarget MoveTarget @relation(fields: [moveTargetId], references: [id], onDelete: Cascade)
+  language   Language   @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([moveTargetId, languageId])
+  @@map("move_target_names")
+}
+
+model MoveTargetDescription {
+  moveTargetId Int @map("move_target_id")
+  languageId   Int @map("language_id")
+  description  String @db.Text
+
+  // Relations
+  moveTarget MoveTarget @relation(fields: [moveTargetId], references: [id], onDelete: Cascade)
+  language   Language   @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([moveTargetId, languageId])
+  @@map("move_target_descriptions")
+}
+
+model Move {
+  id                Int  @id
+  name              String @unique
+  generationId      Int  @map("generation_id")
+  typeId            Int  @map("type_id")
+  power             Int?
+  pp                Int?
+  accuracy          Int?
+  priority          Int  @default(0)
+  moveTargetId      Int  @map("move_target_id")
+  moveDamageClassId Int  @map("move_damage_class_id")
+  moveEffectId      Int  @map("move_effect_id")
+  effectChance      Int? @map("effect_chance")
+  contestTypeId     Int? @map("contest_type_id")
+  contestEffectId   Int? @map("contest_effect_id")
+  superContestEffectId Int? @map("super_contest_effect_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  generation         Generation       @relation(fields: [generationId], references: [id])
+  type               Type             @relation(fields: [typeId], references: [id])
+  moveTarget         MoveTarget       @relation(fields: [moveTargetId], references: [id])
+  moveDamageClass    MoveDamageClass  @relation(fields: [moveDamageClassId], references: [id])
+  moveEffect         MoveEffect       @relation(fields: [moveEffectId], references: [id])
+  contestType        ContestType?     @relation(fields: [contestTypeId], references: [id])
+  contestEffect      ContestEffect?   @relation(fields: [contestEffectId], references: [id])
+  superContestEffect SuperContestEffect? @relation(fields: [superContestEffectId], references: [id])
+
+  names             MoveName[]
+  flavorTexts       MoveFlavorText[]
+  pokemonMoves      PokemonMove[]
+  pokemonEvolutionKnownMove PokemonEvolution[] @relation("KnownMove")
+  machines          Machine[]
+  moveAttributeMap  MoveAttributeMap[]
+  moveMetaData      MoveMetaData?
+  pastValues        MovePastValue[]
+  statChanges       MoveStatChange[]
+
+  @@map("moves")
+}
+
+model MoveName {
+  moveId     Int @map("move_id")
+  languageId Int @map("language_id")
+  name       String
+
+  // Relations
+  move     Move     @relation(fields: [moveId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([moveId, languageId])
+  @@map("move_names")
+}
+
+model MoveFlavorText {
+  moveId         Int    @map("move_id")
+  versionGroupId Int    @map("version_group_id")
+  languageId     Int    @map("language_id")
+  flavorText     String @map("flavor_text") @db.Text
+
+  // Relations
+  move         Move         @relation(fields: [moveId], references: [id], onDelete: Cascade)
+  versionGroup VersionGroup @relation(fields: [versionGroupId], references: [id], onDelete: Cascade)
+  language     Language     @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([moveId, versionGroupId, languageId])
+  @@map("move_flavor_text")
+}
+
+model MoveMetaAilment {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names    MoveMetaAilmentName[]
+  metadata MoveMetaData[]
+
+  @@map("move_meta_ailments")
+}
+
+model MoveMetaAilmentName {
+  moveMetaAilmentId Int @map("move_meta_ailment_id")
+  languageId        Int @map("language_id")
+  name              String
+
+  // Relations
+  moveMetaAilment MoveMetaAilment @relation(fields: [moveMetaAilmentId], references: [id], onDelete: Cascade)
+  language        Language        @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([moveMetaAilmentId, languageId])
+  @@map("move_meta_ailment_names")
+}
+
+model MoveMetaCategory {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  descriptions MoveMetaCategoryDescription[]
+  metadata     MoveMetaData[]
+
+  @@map("move_meta_categories")
+}
+
+model MoveMetaCategoryDescription {
+  moveMetaCategoryId Int @map("move_meta_category_id")
+  languageId         Int @map("language_id")
+  description        String @db.Text
+
+  // Relations
+  moveMetaCategory MoveMetaCategory @relation(fields: [moveMetaCategoryId], references: [id], onDelete: Cascade)
+  language         Language         @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([moveMetaCategoryId, languageId])
+  @@map("move_meta_category_descriptions")
+}
+
+model MoveMetaData {
+  moveId                Int  @id @map("move_id")
+  moveMetaAilmentId     Int  @map("move_meta_ailment_id")
+  moveMetaCategoryId    Int  @map("move_meta_category_id")
+  minHits               Int? @map("min_hits")
+  maxHits               Int? @map("max_hits")
+  minTurns              Int? @map("min_turns")
+  maxTurns              Int? @map("max_turns")
+  drain                 Int  @default(0)
+  healing               Int  @default(0)
+  critRate              Int  @default(0) @map("crit_rate")
+  ailmentChance         Int  @default(0) @map("ailment_chance")
+  flinchChance          Int  @default(0) @map("flinch_chance")
+  statChance            Int  @default(0) @map("stat_chance")
+
+  // Relations
+  move             Move             @relation(fields: [moveId], references: [id], onDelete: Cascade)
+  moveMetaAilment  MoveMetaAilment  @relation(fields: [moveMetaAilmentId], references: [id])
+  moveMetaCategory MoveMetaCategory @relation(fields: [moveMetaCategoryId], references: [id])
+
+  @@map("move_meta_data")
+}
+
+model MoveStatChange {
+  moveId   Int @map("move_id")
+  statId   Int @map("stat_id")
+  change   Int
+
+  // Relations
+  move Move @relation(fields: [moveId], references: [id], onDelete: Cascade)
+  stat Stat @relation(fields: [statId], references: [id], onDelete: Cascade)
+
+  @@id([moveId, statId])
+  @@map("move_stat_changes")
+}
+
+model MovePastValue {
+  moveId         Int  @map("move_id")
+  versionGroupId Int  @map("version_group_id")
+  typeId         Int? @map("type_id")
+  power          Int?
+  pp             Int?
+  accuracy       Int?
+  effectChance   Int? @map("effect_chance")
+
+  // Relations
+  move         Move         @relation(fields: [moveId], references: [id], onDelete: Cascade)
+  versionGroup VersionGroup @relation(fields: [versionGroupId], references: [id], onDelete: Cascade)
+  type         Type?        @relation(fields: [typeId], references: [id])
+
+  @@id([moveId, versionGroupId])
+  @@map("move_past_values")
+}
+
+// =================
+// ITEM MODELS
+// =================
+model ItemAttribute {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names        ItemAttributeName[]
+  descriptions ItemAttributeDescription[]
+  itemAttributeMap ItemItemAttributeMap[]
+
+  @@map("item_attributes")
+}
+
+model ItemAttributeName {
+  itemAttributeId Int @map("item_attribute_id")
+  languageId      Int @map("language_id")
+  name            String
+
+  // Relations
+  itemAttribute ItemAttribute @relation(fields: [itemAttributeId], references: [id], onDelete: Cascade)
+  language      Language      @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([itemAttributeId, languageId])
+  @@map("item_attribute_names")
+}
+
+model ItemAttributeDescription {
+  itemAttributeId Int @map("item_attribute_id")
+  languageId      Int @map("language_id")
+  description     String @db.Text
+
+  // Relations
+  itemAttribute ItemAttribute @relation(fields: [itemAttributeId], references: [id], onDelete: Cascade)
+  language      Language      @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([itemAttributeId, languageId])
+  @@map("item_attribute_descriptions")
+}
+
+model ItemCategory {
+  id       Int @id
+  name     String @unique
+  pocketId Int @map("pocket_id")
+
+  // Relations
+  pocket ItemPocket @relation(fields: [pocketId], references: [id])
+  names  ItemCategoryName[]
+  items  Item[]
+
+  @@map("item_categories")
+}
+
+
+model ItemCategoryName {
+  itemCategoryId Int @map("item_category_id")
+  languageId     Int @map("language_id")
+  name           String
+
+  // Relations
+  itemCategory ItemCategory @relation(fields: [itemCategoryId], references: [id], onDelete: Cascade)
+  language     Language     @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([itemCategoryId, languageId])
+  @@map("item_category_names")
+}
+
+model ItemFlingEffect {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  effectTexts ItemFlingEffectEffectText[]
+  items       Item[]
+
+  @@map("item_fling_effects")
+}
+
+model ItemFlingEffectEffectText {
+  itemFlingEffectId Int @map("item_fling_effect_id")
+  languageId        Int @map("language_id")
+  effect            String @db.Text
+
+  // Relations
+  itemFlingEffect ItemFlingEffect @relation(fields: [itemFlingEffectId], references: [id], onDelete: Cascade)
+  language        Language        @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([itemFlingEffectId, languageId])
+  @@map("item_fling_effect_effect_text")
+}
+
+model ItemPocket {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names      ItemPocketName[]
+  categories ItemCategory[]
+
+  @@map("item_pockets")
+}
+
+model ItemPocketName {
+  itemPocketId Int @map("item_pocket_id")
+  languageId   Int @map("language_id")
+  name         String
+
+  // Relations
+  itemPocket ItemPocket @relation(fields: [itemPocketId], references: [id], onDelete: Cascade)
+  language   Language   @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([itemPocketId, languageId])
+  @@map("item_pocket_names")
+}
+
+model Item {
+  id             Int  @id
+  name           String @unique
+  itemCategoryId Int  @map("item_category_id")
+  cost           Int  @default(0)
+  flingPower     Int? @map("fling_power")
+  flingEffectId  Int? @map("fling_effect_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  itemCategory     ItemCategory          @relation(fields: [itemCategoryId], references: [id])
+  flingEffect      ItemFlingEffect?      @relation(fields: [flingEffectId], references: [id])
+  names            ItemName[]
+  effectTexts      ItemEffectText[]
+  flavorTexts      ItemFlavorText[]
+  gameIndices      ItemGameIndex[]
+  itemAttributeMap ItemItemAttributeMap[]
+  evolutionChains  EvolutionChain[]
+  pokemonEvolutions PokemonEvolution[] @relation("EvolutionItem")
+  pokemonEvolutionsHeld PokemonEvolution[] @relation("HeldItem")
+  pokemonItems     PokemonItem[]
+  berries          Berry[]
+  machines         Machine[]
+  generationId     Int? @map("generation_id")
+  generation       Generation? @relation(fields: [generationId], references: [id])
+
+  @@map("items")
+}
+
+model ItemName {
+  itemId     Int @map("item_id")
+  languageId Int @map("language_id")
+  name       String
+
+  // Relations
+  item     Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, languageId])
+  @@map("item_names")
+}
+
+model ItemEffectText {
+  itemId      Int     @map("item_id")
+  languageId  Int     @map("language_id")
+  shortEffect String? @map("short_effect") @db.Text
+  effect      String? @db.Text
+
+  // Relations
+  item     Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, languageId])
+  @@map("item_effect_text")
+}
+
+model ItemFlavorText {
+  itemId         Int    @map("item_id")
+  versionGroupId Int    @map("version_group_id")
+  languageId     Int    @map("language_id")
+  flavorText     String @map("flavor_text") @db.Text
+
+  // Relations
+  item         Item         @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  versionGroup VersionGroup @relation(fields: [versionGroupId], references: [id], onDelete: Cascade)
+  language     Language     @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, versionGroupId, languageId])
+  @@map("item_flavor_text")
+}
+
+model ItemGameIndex {
+  itemId       Int @map("item_id")
+  generationId Int @map("generation_id")
+  gameIndex    Int @map("game_index")
+
+  // Relations
+  item       Item       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  generation Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, generationId])
+  @@map("item_game_indices")
+}
+
+model ItemItemAttributeMap {
+  itemId          Int @map("item_id")
+  itemAttributeId Int @map("item_attribute_id")
+
+  // Relations
+  item          Item          @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemAttribute ItemAttribute @relation(fields: [itemAttributeId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, itemAttributeId])
+  @@map("item_item_attribute_map")
+}
+
+// =================
+// POKEMON SPECIES MODELS
+// =================
+model EggGroup {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names                   EggGroupName[]
+  pokemonSpeciesEggGroups PokemonSpeciesEggGroup[]
+
+  @@map("egg_groups")
+}
+
+model EggGroupName {
+  eggGroupId Int @map("egg_group_id")
+  languageId Int @map("language_id")
+  name       String
+
+  // Relations
+  eggGroup EggGroup @relation(fields: [eggGroupId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([eggGroupId, languageId])
+  @@map("egg_group_names")
+}
+
+model GrowthRate {
+  id      Int     @id
+  name    String  @unique
+  formula String? @db.Text
+
+  // Relations
+  descriptions   GrowthRateDescription[]
+  levels         GrowthRateExperienceLevel[]
+  pokemonSpecies PokemonSpecies[]
+
+  @@map("growth_rates")
+}
+
+model GrowthRateDescription {
+  growthRateId Int @map("growth_rate_id")
+  languageId   Int @map("language_id")
+  description  String @db.Text
+
+  // Relations
+  growthRate GrowthRate @relation(fields: [growthRateId], references: [id], onDelete: Cascade)
+  language   Language   @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([growthRateId, languageId])
+  @@map("growth_rate_descriptions")
+}
+
+model GrowthRateExperienceLevel {
+  growthRateId Int @map("growth_rate_id")
+  level        Int
+  experience   Int
+
+  // Relations
+  growthRate GrowthRate @relation(fields: [growthRateId], references: [id], onDelete: Cascade)
+
+  @@id([growthRateId, level])
+  @@map("growth_rate_experience_levels")
+}
+
+model PokemonColor {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names          PokemonColorName[]
+  pokemonSpecies PokemonSpecies[]
+
+  @@map("pokemon_colors")
+}
+
+model PokemonColorName {
+  pokemonColorId Int @map("pokemon_color_id")
+  languageId     Int @map("language_id")
+  name           String
+
+  // Relations
+  pokemonColor PokemonColor @relation(fields: [pokemonColorId], references: [id], onDelete: Cascade)
+  language     Language     @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonColorId, languageId])
+  @@map("pokemon_color_names")
+}
+
+model PokemonHabitat {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names          PokemonHabitatName[]
+  pokemonSpecies PokemonSpecies[]
+
+  @@map("pokemon_habitats")
+}
+
+model PokemonHabitatName {
+  pokemonHabitatId Int @map("pokemon_habitat_id")
+  languageId       Int @map("language_id")
+  name             String
+
+  // Relations
+  pokemonHabitat PokemonHabitat @relation(fields: [pokemonHabitatId], references: [id], onDelete: Cascade)
+  language       Language       @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonHabitatId, languageId])
+  @@map("pokemon_habitat_names")
+}
+
+model PokemonShape {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names          PokemonShapeName[]
+  awesomeNames   PokemonShapeAwesomeName[]
+  pokemonSpecies PokemonSpecies[]
+
+  @@map("pokemon_shapes")
+}
+
+model PokemonShapeName {
+  pokemonShapeId Int @map("pokemon_shape_id")
+  languageId     Int @map("language_id")
+  name           String
+
+  // Relations
+  pokemonShape PokemonShape @relation(fields: [pokemonShapeId], references: [id], onDelete: Cascade)
+  language     Language     @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonShapeId, languageId])
+  @@map("pokemon_shape_names")
+}
+
+model PokemonShapeAwesomeName {
+  pokemonShapeId Int @map("pokemon_shape_id")
+  languageId     Int @map("language_id")
+  awesomeName    String @map("awesome_name")
+
+  // Relations
+  pokemonShape PokemonShape @relation(fields: [pokemonShapeId], references: [id], onDelete: Cascade)
+  language     Language     @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonShapeId, languageId])
+  @@map("pokemon_shape_awesome_names")
+}
+
+model PokemonSpecies {
+  id                    Int     @id
+  name                  String  @unique
+  generationId          Int     @map("generation_id")
+  evolvesFromSpeciesId  Int?    @map("evolves_from_species_id")
+  evolutionChainId      Int?    @map("evolution_chain_id")
+  colorId               Int     @map("color_id")
+  shapeId               Int     @map("shape_id")
+  habitatId             Int?    @map("habitat_id")
+  genderRate            Int     @map("gender_rate")
+  captureRate           Int     @map("capture_rate")
+  baseHappiness         Int     @map("base_happiness")
+  isBaby                Boolean @default(false) @map("is_baby")
+  hatchCounter          Int     @map("hatch_counter")
+  hasGenderDifferences  Boolean @default(false) @map("has_gender_differences")
+  growthRateId          Int     @map("growth_rate_id")
+  formsSwitchable       Boolean @default(false) @map("forms_switchable")
+  isLegendary           Boolean @default(false) @map("is_legendary")
+  isMythical            Boolean @default(false) @map("is_mythical")
+  order                 Int?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  generation           Generation              @relation(fields: [generationId], references: [id])
+  evolvesFromSpecies   PokemonSpecies?         @relation("Evolution", fields: [evolvesFromSpeciesId], references: [id])
+  evolvesToSpecies     PokemonSpecies[]        @relation("Evolution")
+  evolutionChain       EvolutionChain?         @relation(fields: [evolutionChainId], references: [id])
+  pokemonColor         PokemonColor            @relation(fields: [colorId], references: [id])
+  pokemonShape         PokemonShape            @relation(fields: [shapeId], references: [id])
+  pokemonHabitat       PokemonHabitat?         @relation(fields: [habitatId], references: [id])
+  growthRate           GrowthRate              @relation(fields: [growthRateId], references: [id])
+  pokemon              Pokemon[]
+  names                PokemonSpeciesName[]
+  descriptions         PokemonSpeciesDescription[]
+  flavorTexts          PokemonSpeciesFlavorText[]
+  eggGroups            PokemonSpeciesEggGroup[]
+  pokemonEvolutions    PokemonEvolution[]
+  pokedexNumbers       PokemonSpeciesPokedexNumber[]
+  palParkEncounters    PalParkEncounter[]
+
+  @@map("pokemon_species")
+}
+
+model PokemonSpeciesName {
+  pokemonSpeciesId Int     @map("pokemon_species_id")
+  languageId       Int     @map("language_id")
+  name             String
+  genus            String?
+
+  // Relations
+  pokemonSpecies PokemonSpecies @relation(fields: [pokemonSpeciesId], references: [id], onDelete: Cascade)
+  language       Language       @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonSpeciesId, languageId])
+  @@map("pokemon_species_names")
+}
+
+model PokemonSpeciesDescription {
+  pokemonSpeciesId Int @map("pokemon_species_id")
+  languageId       Int @map("language_id")
+  description      String @db.Text
+
+  // Relations
+  pokemonSpecies PokemonSpecies @relation(fields: [pokemonSpeciesId], references: [id], onDelete: Cascade)
+  language       Language       @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonSpeciesId, languageId])
+  @@map("pokemon_species_descriptions")
+}
+
+model PokemonSpeciesFlavorText {
+  pokemonSpeciesId Int    @map("pokemon_species_id")
+  versionId        Int    @map("version_id")
+  languageId       Int    @map("language_id")
+  flavorText       String @map("flavor_text") @db.Text
+
+  // Relations
+  pokemonSpecies PokemonSpecies @relation(fields: [pokemonSpeciesId], references: [id], onDelete: Cascade)
+  version        Version        @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  language       Language       @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonSpeciesId, versionId, languageId])
+  @@map("pokemon_species_flavor_text")
+}
+
+model PokemonSpeciesEggGroup {
+  pokemonSpeciesId Int @map("pokemon_species_id")
+  eggGroupId       Int @map("egg_group_id")
+
+  // Relations
+  pokemonSpecies PokemonSpecies @relation(fields: [pokemonSpeciesId], references: [id], onDelete: Cascade)
+  eggGroup       EggGroup       @relation(fields: [eggGroupId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonSpeciesId, eggGroupId])
+  @@map("pokemon_species_egg_groups")
+}
+
+// =================
+// POKEMON MODELS
+// =================
+model Pokemon {
+  id                Int     @id
+  name              String  @unique
+  pokemonSpeciesId  Int     @map("pokemon_species_id")
+  height            Int
+  weight            Int
+  baseExperience    Int     @map("base_experience")
+  order             Int
+  isDefault         Boolean @default(false) @map("is_default")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  pokemonSpecies    PokemonSpecies      @relation(fields: [pokemonSpeciesId], references: [id])
+  abilities         PokemonAbility[]
+  forms             PokemonForm[]
+  gameIndices       PokemonGameIndex[]
+  heldItems         PokemonItem[]
+  moves             PokemonMove[]
+  sprites           PokemonSprites?
+  stats             PokemonStat[]
+  types             PokemonType[]
+  typePast          PokemonTypePast[]
+  abilityPast       PokemonAbilityPast[]
+  encounters        PokemonEncounter[]
+
+  @@map("pokemon")
+}
+
+model PokemonAbility {
+  pokemonId Int     @map("pokemon_id")
+  abilityId Int     @map("ability_id")
+  isHidden  Boolean @default(false) @map("is_hidden")
+  slot      Int
+
+  // Relations
+  pokemon Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  ability Ability @relation(fields: [abilityId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonId, slot])
+  @@map("pokemon_abilities")
+}
+
+model PokemonAbilityPast {
+  pokemonId    Int  @map("pokemon_id")
+  generationId Int  @map("generation_id")
+  abilityId    Int? @map("ability_id")
+  isHidden     Boolean @default(false) @map("is_hidden")
+  slot         Int
+
+  // Relations
+  pokemon    Pokemon     @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  generation Generation  @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  ability    Ability?    @relation(fields: [abilityId], references: [id])
+
+  @@id([pokemonId, generationId, slot])
+  @@map("pokemon_ability_past")
+}
+
+model PokemonType {
+  pokemonId Int @map("pokemon_id")
+  typeId    Int @map("type_id")
+  slot      Int
+
+  // Relations
+  pokemon Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  type    Type    @relation(fields: [typeId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonId, slot])
+  @@map("pokemon_types")
+}
+
+model PokemonTypePast {
+  pokemonId    Int @map("pokemon_id")
+  generationId Int @map("generation_id")
+  typeId       Int @map("type_id")
+  slot         Int
+
+  // Relations
+  pokemon    Pokemon    @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  generation Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
+  type       Type       @relation(fields: [typeId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonId, generationId, slot])
+  @@map("pokemon_type_past")
+}
+
+model Stat {
+  id           Int     @id
+  name         String  @unique
+  isBattleOnly Boolean @default(false) @map("is_battle_only")
+  gameIndex    Int     @map("game_index")
+
+  // Relations
+  names                StatName[]
+  pokemonStats         PokemonStat[]
+  characteristics      Characteristic[]
+  moveStatChanges      MoveStatChange[]
+  natureIncreasedStats Nature[]         @relation("IncreasedStat")
+  natureDecreasedStats Nature[]         @relation("DecreasedStat")
+
+  @@map("stats")
+}
+
+model StatName {
+  statId     Int @map("stat_id")
+  languageId Int @map("language_id")
+  name       String
+
+  // Relations
+  stat     Stat     @relation(fields: [statId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([statId, languageId])
+  @@map("stat_names")
+}
+
+model PokemonStat {
+  pokemonId Int @map("pokemon_id")
+  statId    Int @map("stat_id")
+  baseStat  Int @map("base_stat")
+  effort    Int @default(0)
+
+  // Relations
+  pokemon Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  stat    Stat    @relation(fields: [statId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonId, statId])
+  @@map("pokemon_stats")
+}
+
+model PokemonMove {
+  pokemonId         Int @map("pokemon_id")
+  versionGroupId    Int @map("version_group_id")
+  moveId            Int @map("move_id")
+  moveLearnMethodId Int @map("move_learn_method_id")
+  levelLearnedAt    Int @default(0) @map("level_learned_at")
+  order             Int?
+
+  // Relations
+  pokemon         Pokemon         @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  versionGroup    VersionGroup    @relation(fields: [versionGroupId], references: [id], onDelete: Cascade)
+  move            Move            @relation(fields: [moveId], references: [id], onDelete: Cascade)
+  moveLearnMethod MoveLearnMethod @relation(fields: [moveLearnMethodId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonId, versionGroupId, moveId, moveLearnMethodId])
+  @@map("pokemon_moves")
+}
+
+model PokemonGameIndex {
+  pokemonId Int @map("pokemon_id")
+  versionId Int @map("version_id")
+  gameIndex Int @map("game_index")
+
+  // Relations
+  pokemon Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  version Version @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonId, versionId])
+  @@map("pokemon_game_indices")
+}
+
+model PokemonItem {
+  pokemonId Int @map("pokemon_id")
+  versionId Int @map("version_id")
+  itemId    Int @map("item_id")
+  rarity    Int
+
+  // Relations
+  pokemon Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  version Version @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  item    Item    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonId, versionId, itemId])
+  @@map("pokemon_items")
+}
+
+model PokemonSprites {
+  pokemonId        Int     @id @map("pokemon_id")
+  frontDefault     String? @map("front_default")
+  frontShiny       String? @map("front_shiny")
+  frontFemale      String? @map("front_female")
+  frontShinyFemale String? @map("front_shiny_female")
+  backDefault      String? @map("back_default")
+  backShiny        String? @map("back_shiny")
+  backFemale       String? @map("back_female")
+  backShinyFemale  String? @map("back_shiny_female")
+
+  // Relations
+  pokemon Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+
+  @@map("pokemon_sprites")
+}
+
+// =================
+// POKEMON FORM MODELS  
+// =================
+model PokemonForm {
+  id             Int     @id
+  name           String  @unique
+  pokemonId      Int     @map("pokemon_id")
+  order          Int
+  formOrder      Int     @map("form_order")
+  isDefault      Boolean @default(false) @map("is_default")
+  isBattleOnly   Boolean @default(false) @map("is_battle_only")
+  isMega         Boolean @default(false) @map("is_mega")
+  formName       String? @map("form_name")
+  versionGroupId Int?    @map("version_group_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  pokemon      Pokemon       @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  versionGroup VersionGroup? @relation(fields: [versionGroupId], references: [id])
+  names        PokemonFormName[]
+  types        PokemonFormType[]
+  sprites      PokemonFormSprites?
+
+  @@map("pokemon_forms")
+}
+
+model PokemonFormName {
+  pokemonFormId Int @map("pokemon_form_id")
+  languageId    Int @map("language_id")
+  name          String
+  pokemonName   String? @map("pokemon_name")
+
+  // Relations
+  pokemonForm PokemonForm @relation(fields: [pokemonFormId], references: [id], onDelete: Cascade)
+  language    Language    @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonFormId, languageId])
+  @@map("pokemon_form_names")
+}
+
+model PokemonFormType {
+  pokemonFormId Int @map("pokemon_form_id")
+  typeId        Int @map("type_id")
+  slot          Int
+
+  // Relations
+  pokemonForm PokemonForm @relation(fields: [pokemonFormId], references: [id], onDelete: Cascade)
+  type        Type        @relation(fields: [typeId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonFormId, slot])
+  @@map("pokemon_form_types")
+}
+
+model PokemonFormSprites {
+  pokemonFormId    Int     @id @map("pokemon_form_id")
+  frontDefault     String? @map("front_default")
+  frontShiny       String? @map("front_shiny")
+  backDefault      String? @map("back_default")
+  backShiny        String? @map("back_shiny")
+
+  // Relations
+  pokemonForm PokemonForm @relation(fields: [pokemonFormId], references: [id], onDelete: Cascade)
+
+  @@map("pokemon_form_sprites")
+}
+
+// =================
+// EVOLUTION MODELS
+// =================
+model EvolutionChain {
+  id                Int  @id
+  babyTriggerItemId Int? @map("baby_trigger_item_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  babyTriggerItem Item?             @relation(fields: [babyTriggerItemId], references: [id])
+  pokemonSpecies  PokemonSpecies[]
+
+  @@map("evolution_chains")
+}
+
+model EvolutionTrigger {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names             EvolutionTriggerName[]
+  pokemonEvolutions PokemonEvolution[]
+
+  @@map("evolution_triggers")
+}
+
+model EvolutionTriggerName {
+  evolutionTriggerId Int @map("evolution_trigger_id")
+  languageId         Int @map("language_id")
+  name               String
+
+  // Relations
+  evolutionTrigger EvolutionTrigger @relation(fields: [evolutionTriggerId], references: [id], onDelete: Cascade)
+  language         Language         @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([evolutionTriggerId, languageId])
+  @@map("evolution_trigger_names")
+}
+
+model PokemonEvolution {
+  id                     Int     @id @default(autoincrement())
+  pokemonSpeciesId       Int     @map("pokemon_species_id")
+  evolutionTriggerId     Int     @map("evolution_trigger_id")
+  evolutionItemId        Int?    @map("evolution_item_id")
+  minLevel               Int?    @map("min_level")
+  genderId               Int?    @map("gender_id")
+  locationId             Int?    @map("location_id")
+  heldItemId             Int?    @map("held_item_id")
+  timeOfDay              String? @map("time_of_day")
+  knownMoveId            Int?    @map("known_move_id")
+  knownMoveTypeId        Int?    @map("known_move_type_id")
+  minHappiness           Int?    @map("min_happiness")
+  minBeauty              Int?    @map("min_beauty")
+  minAffection           Int?    @map("min_affection")
+  needsOverworldRain     Boolean @default(false) @map("needs_overworld_rain")
+  partySpeciesId         Int?    @map("party_species_id")
+  partyTypeId            Int?    @map("party_type_id")
+  relativePhysicalStats  Int?    @map("relative_physical_stats")
+  tradeSpeciesId         Int?    @map("trade_species_id")
+  turnUpsideDown         Boolean @default(false) @map("turn_upside_down")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  pokemonSpecies    PokemonSpecies    @relation(fields: [pokemonSpeciesId], references: [id], onDelete: Cascade)
+  evolutionTrigger  EvolutionTrigger  @relation(fields: [evolutionTriggerId], references: [id], onDelete: Cascade)
+  evolutionItem     Item?             @relation("EvolutionItem", fields: [evolutionItemId], references: [id])
+  gender            Gender?           @relation(fields: [genderId], references: [id])
+  location          Location?         @relation(fields: [locationId], references: [id])
+  heldItem          Item?             @relation("HeldItem", fields: [heldItemId], references: [id])
+  knownMove         Move?             @relation("KnownMove", fields: [knownMoveId], references: [id])
+  knownMoveType     Type?             @relation("KnownMoveType", fields: [knownMoveTypeId], references: [id])
+  partyType         Type?             @relation("PartyType", fields: [partyTypeId], references: [id])
+
+  @@map("pokemon_evolution")
+}
+
+// =================
+// ENCOUNTER MODELS
+// =================
+model EncounterMethod {
+  id   Int    @id
+  name String @unique
+  order Int?
+
+  // Relations
+  names             EncounterMethodName[]
+  pokemonEncounters PokemonEncounter[]
+
+  @@map("encounter_methods")
+}
+
+model EncounterMethodName {
+  encounterMethodId Int @map("encounter_method_id")
+  languageId        Int @map("language_id")
+  name              String
+
+  // Relations
+  encounterMethod EncounterMethod @relation(fields: [encounterMethodId], references: [id], onDelete: Cascade)
+  language        Language        @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([encounterMethodId, languageId])
+  @@map("encounter_method_names")
+}
+
+model EncounterCondition {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names  EncounterConditionName[]
+  values EncounterConditionValue[]
+
+  @@map("encounter_conditions")
+}
+
+model EncounterConditionName {
+  encounterConditionId Int @map("encounter_condition_id")
+  languageId           Int @map("language_id")
+  name                 String
+
+  // Relations
+  encounterCondition EncounterCondition @relation(fields: [encounterConditionId], references: [id], onDelete: Cascade)
+  language           Language           @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([encounterConditionId, languageId])
+  @@map("encounter_condition_names")
+}
+
+model EncounterConditionValue {
+  id                   Int     @id
+  name                 String
+  encounterConditionId Int     @map("encounter_condition_id")
+  isDefault            Boolean @default(false) @map("is_default")
+
+  // Relations
+  encounterCondition EncounterCondition                @relation(fields: [encounterConditionId], references: [id], onDelete: Cascade)
+  names              EncounterConditionValueName[]
+  encounterConditionValueMap EncounterConditionValueMap[]
+
+  @@map("encounter_condition_values")
+}
+
+model EncounterConditionValueName {
+  encounterConditionValueId Int @map("encounter_condition_value_id")
+  languageId                Int @map("language_id")
+  name                      String
+
+  // Relations
+  encounterConditionValue EncounterConditionValue @relation(fields: [encounterConditionValueId], references: [id], onDelete: Cascade)
+  language                Language                @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([encounterConditionValueId, languageId])
+  @@map("encounter_condition_value_names")
+}
+
+model PokemonEncounter {
+  id                Int @id @default(autoincrement())
+  pokemonId         Int @map("pokemon_id")
+  versionId         Int @map("version_id")
+  locationAreaId    Int @map("location_area_id")
+  encounterMethodId Int @map("encounter_method_id")
+  minLevel          Int @map("min_level")
+  maxLevel          Int @map("max_level")
+  chance            Int
+
+  // Relations
+  pokemon         Pokemon         @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+  version         Version         @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  locationArea    LocationArea    @relation(fields: [locationAreaId], references: [id], onDelete: Cascade)
+  encounterMethod EncounterMethod @relation(fields: [encounterMethodId], references: [id], onDelete: Cascade)
+  conditionValueMap EncounterConditionValueMap[]
+
+  @@map("pokemon_encounters")
+}
+
+model EncounterConditionValueMap {
+  pokemonEncounterId        Int @map("pokemon_encounter_id")
+  encounterConditionValueId Int @map("encounter_condition_value_id")
+
+  // Relations
+  pokemonEncounter        PokemonEncounter        @relation(fields: [pokemonEncounterId], references: [id], onDelete: Cascade)
+  encounterConditionValue EncounterConditionValue @relation(fields: [encounterConditionValueId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonEncounterId, encounterConditionValueId])
+  @@map("encounter_condition_value_map")
+}
+
+// =================
+// GAME VERSION MODELS
+// =================
+model VersionGroup {
+  id           Int @id
+  name         String @unique
+  order        Int
+  generationId Int @map("generation_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  generation         Generation                   @relation(fields: [generationId], references: [id])
+  names              VersionGroupName[]
+  versions           Version[]
+  pokemonMoves       PokemonMove[]
+  abilityFlavorTexts AbilityFlavorText[]
+  itemFlavorTexts    ItemFlavorText[]
+  moveFlavorTexts    MoveFlavorText[]
+  pokemonForms       PokemonForm[]
+  machines           Machine[]
+  movePastValues     MovePastValue[]
+  moveLearnMethods   VersionGroupMoveLearnMethod[]
+  regions            VersionGroupRegion[]
+  pokedexes          VersionGroupPokedex[]
+  abilityChangeLogs  AbilityChangeLog[]
+
+  @@map("version_groups")
+}
+
+model VersionGroupName {
+  versionGroupId Int @map("version_group_id")
+  languageId     Int @map("language_id")
+  name           String
+
+  // Relations
+  versionGroup VersionGroup @relation(fields: [versionGroupId], references: [id], onDelete: Cascade)
+  language     Language     @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([versionGroupId, languageId])
+  @@map("version_group_names")
+}
+
+model Version {
+  id             Int @id
+  name           String @unique
+  versionGroupId Int @map("version_group_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  versionGroup              VersionGroup               @relation(fields: [versionGroupId], references: [id])
+  names                     VersionName[]
+  pokemonGameIndices        PokemonGameIndex[]
+  pokemonItems              PokemonItem[]
+  pokemonSpeciesFlavorTexts PokemonSpeciesFlavorText[]
+  pokemonEncounters         PokemonEncounter[]
+
+  @@map("versions")
+}
+
+model VersionName {
+  versionId  Int @map("version_id")
+  languageId Int @map("language_id")
+  name       String
+
+  // Relations
+  version  Version  @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([versionId, languageId])
+  @@map("version_names")
+}
+
+model VersionGroupMoveLearnMethod {
+  versionGroupId    Int @map("version_group_id")
+  moveLearnMethodId Int @map("move_learn_method_id")
+
+  // Relations
+  versionGroup    VersionGroup    @relation(fields: [versionGroupId], references: [id], onDelete: Cascade)
+  moveLearnMethod MoveLearnMethod @relation(fields: [moveLearnMethodId], references: [id], onDelete: Cascade)
+
+  @@id([versionGroupId, moveLearnMethodId])
+  @@map("version_group_move_learn_methods")
+}
+
+model VersionGroupRegion {
+  versionGroupId Int @map("version_group_id")
+  regionId       Int @map("region_id")
+
+  // Relations
+  versionGroup VersionGroup @relation(fields: [versionGroupId], references: [id], onDelete: Cascade)
+  region       Region       @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  @@id([versionGroupId, regionId])
+  @@map("version_group_regions")
+}
+
+// =================
+// MACHINE MODELS
+// =================
+model Machine {
+  id             Int @id
+  itemId         Int @map("item_id")
+  moveId         Int @map("move_id")
+  versionGroupId Int @map("version_group_id")
+  machineNumber  Int @map("machine_number")
+
+  // Relations
+  item         Item         @relation(fields: [itemId], references: [id])
+  move         Move         @relation(fields: [moveId], references: [id])
+  versionGroup VersionGroup @relation(fields: [versionGroupId], references: [id])
+
+  @@unique([itemId, versionGroupId])
+  @@map("machines")
+}
+
+model MachineVersionGroupName {
+  machineId  Int @map("machine_id")
+  languageId Int @map("language_id")
+  name       String
+
+  // Relations
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([machineId, languageId])
+  @@map("machine_version_group_names")
+}
+
+// =================
+// BERRY MODELS
+// =================
+model BerryFirmness {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names   BerryFirmnessName[]
+  berries Berry[]
+
+  @@map("berry_firmnesses")
+}
+
+model BerryFirmnessName {
+  berryFirmnessId Int @map("berry_firmness_id")
+  languageId      Int @map("language_id")
+  name            String
+
+  // Relations
+  berryFirmness BerryFirmness @relation(fields: [berryFirmnessId], references: [id], onDelete: Cascade)
+  language      Language      @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([berryFirmnessId, languageId])
+  @@map("berry_firmness_names")
+}
+
+model BerryFlavor {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names               BerryFlavorName[]
+  berryFlavorMap      BerryFlavorMap[]
+  contestType         ContestType?
+  natureHatedFlavor   Nature[]         @relation("HatedFlavor")
+  natureLikedFlavor   Nature[]         @relation("LikedFlavor")
+
+  @@map("berry_flavors")
+}
+
+model BerryFlavorName {
+  berryFlavorId Int @map("berry_flavor_id")
+  languageId    Int @map("language_id")
+  name          String
+
+  // Relations
+  berryFlavor BerryFlavor @relation(fields: [berryFlavorId], references: [id], onDelete: Cascade)
+  language    Language    @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([berryFlavorId, languageId])
+  @@map("berry_flavor_names")
+}
+
+model Berry {
+  id                   Int @id
+  name                 String @unique
+  berryFirmnessId      Int @map("berry_firmness_id")
+  naturalGiftPower     Int @map("natural_gift_power")
+  naturalGiftTypeId    Int @map("natural_gift_type_id")
+  size                 Int
+  maxHarvest           Int @map("max_harvest")
+  growthTime           Int @map("growth_time")
+  soilDryness          Int @map("soil_dryness")
+  smoothness           Int
+  itemId               Int @map("item_id")
+
+  // Relations
+  berryFirmness     BerryFirmness    @relation(fields: [berryFirmnessId], references: [id])
+  naturalGiftType   Type             @relation(fields: [naturalGiftTypeId], references: [id])
+  item              Item             @relation(fields: [itemId], references: [id])
+  flavors           BerryFlavorMap[]
+
+  @@map("berries")
+}
+
+model BerryFlavorMap {
+  berryId       Int @map("berry_id")
+  berryFlavorId Int @map("berry_flavor_id")
+  potency       Int
+
+  // Relations
+  berry       Berry       @relation(fields: [berryId], references: [id], onDelete: Cascade)
+  berryFlavor BerryFlavor @relation(fields: [berryFlavorId], references: [id], onDelete: Cascade)
+
+  @@id([berryId, berryFlavorId])
+  @@map("berry_flavor_map")
+}
+
+// =================
+// CONTEST MODELS
+// =================
+model ContestType {
+  id            Int  @id
+  name          String @unique
+  berryFlavorId Int? @unique @map("berry_flavor_id")
+
+  // Relations
+  berryFlavor BerryFlavor?      @relation(fields: [berryFlavorId], references: [id])
+  names       ContestTypeName[]
+  moves       Move[]
+
+  @@map("contest_types")
+}
+
+model ContestTypeName {
+  contestTypeId Int     @map("contest_type_id")
+  languageId    Int     @map("language_id")
+  name          String
+  color         String?
+
+  // Relations
+  contestType ContestType @relation(fields: [contestTypeId], references: [id], onDelete: Cascade)
+  language    Language    @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([contestTypeId, languageId])
+  @@map("contest_type_names")
+}
+
+model ContestEffect {
+  id     Int @id
+  appeal Int
+  jam    Int
+
+  // Relations
+  entries      ContestEffectEntry[]
+  flavorTexts  ContestEffectFlavorText[]
+  moves        Move[]
+
+  @@map("contest_effects")
+}
+
+model ContestEffectEntry {
+  contestEffectId Int @map("contest_effect_id")
+  languageId      Int @map("language_id")
+  effect          String? @db.Text
+
+  // Relations
+  contestEffect ContestEffect @relation(fields: [contestEffectId], references: [id], onDelete: Cascade)
+  language      Language      @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([contestEffectId, languageId])
+  @@map("contest_effect_entries")
+}
+
+model ContestEffectFlavorText {
+  contestEffectId Int @map("contest_effect_id")
+  languageId      Int @map("language_id")
+  flavorText      String? @map("flavor_text") @db.Text
+
+  // Relations
+  contestEffect ContestEffect @relation(fields: [contestEffectId], references: [id], onDelete: Cascade)
+  language      Language      @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([contestEffectId, languageId])
+  @@map("contest_effect_flavor_text")
+}
+
+model SuperContestEffect {
+  id     Int @id
+  appeal Int
+
+  // Relations
+  flavorTexts SuperContestEffectFlavorText[]
+  moves       Move[]
+
+  @@map("super_contest_effects")
+}
+
+model SuperContestEffectFlavorText {
+  superContestEffectId Int @map("super_contest_effect_id")
+  languageId           Int @map("language_id")
+  flavorText           String? @map("flavor_text") @db.Text
+
+  // Relations
+  superContestEffect SuperContestEffect @relation(fields: [superContestEffectId], references: [id], onDelete: Cascade)
+  language           Language           @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([superContestEffectId, languageId])
+  @@map("super_contest_effect_flavor_text")
+}
+
+// =================
+// NATURE MODELS
+// =================
+model Nature {
+  id              Int  @id
+  name            String @unique
+  decreasedStatId Int? @map("decreased_stat_id")
+  increasedStatId Int? @map("increased_stat_id")
+  hatesFlavorId   Int? @map("hates_flavor_id")
+  likesFlavorId   Int? @map("likes_flavor_id")
+  gameIndex       Int  @map("game_index")
+
+  // Relations
+  names         NatureName[]
+  decreasedStat Stat?        @relation("DecreasedStat", fields: [decreasedStatId], references: [id])
+  increasedStat Stat?        @relation("IncreasedStat", fields: [increasedStatId], references: [id])
+  hatesFlavor   BerryFlavor? @relation("HatedFlavor", fields: [hatesFlavorId], references: [id])
+  likesFlavor   BerryFlavor? @relation("LikedFlavor", fields: [likesFlavorId], references: [id])
+  pokeathlonStatChanges NaturePokeathlonStatAffect[]
+  moveBattleStylePreferences NatureBattleStylePreference[]
+
+  @@map("natures")
+}
+
+model NatureName {
+  natureId   Int @map("nature_id")
+  languageId Int @map("language_id")
+  name       String
+
+  // Relations
+  nature   Nature   @relation(fields: [natureId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([natureId, languageId])
+  @@map("nature_names")
+}
+
+model NaturePokeathlonStatAffect {
+  natureId         Int @map("nature_id")
+  pokeathlonStatId Int @map("pokeathlon_stat_id")
+  maxChange        Int @map("max_change")
+
+  // Relations
+  nature         Nature         @relation(fields: [natureId], references: [id], onDelete: Cascade)
+  pokeathlonStat PokeathlonStat @relation(fields: [pokeathlonStatId], references: [id], onDelete: Cascade)
+
+  @@id([natureId, pokeathlonStatId])
+  @@map("nature_pokeathlon_stat_affects")
+}
+
+model NatureBattleStylePreference {
+  natureId            Int @map("nature_id")
+  moveBattleStyleId   Int @map("move_battle_style_id")
+  lowHpPreference     Int @map("low_hp_preference")
+  highHpPreference    Int @map("high_hp_preference")
+
+  // Relations
+  nature          Nature          @relation(fields: [natureId], references: [id], onDelete: Cascade)
+  moveBattleStyle MoveBattleStyle @relation(fields: [moveBattleStyleId], references: [id], onDelete: Cascade)
+
+  @@id([natureId, moveBattleStyleId])
+  @@map("nature_battle_style_preferences")
+}
+
+// =================
+// POKEATHLON MODELS
+// =================
+model PokeathlonStat {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names         PokeathlonStatName[]
+  natureChanges NaturePokeathlonStatAffect[]
+
+  @@map("pokeathlon_stats")
+}
+
+model PokeathlonStatName {
+  pokeathlonStatId Int @map("pokeathlon_stat_id")
+  languageId       Int @map("language_id")
+  name             String
+
+  // Relations
+  pokeathlonStat PokeathlonStat @relation(fields: [pokeathlonStatId], references: [id], onDelete: Cascade)
+  language       Language       @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([pokeathlonStatId, languageId])
+  @@map("pokeathlon_stat_names")
+}
+
+// =================
+// CHARACTERISTIC MODELS
+// =================
+model Characteristic {
+  id            Int @id
+  statId        Int @map("stat_id")
+  geneModulo    Int @map("gene_modulo")
+  possibleValues String @map("possible_values") @db.Text // JSON array as string
+
+  // Relations
+  stat         Stat                           @relation(fields: [statId], references: [id])
+  descriptions CharacteristicDescription[]
+
+  @@map("characteristics")
+}
+
+model CharacteristicDescription {
+  characteristicId Int @map("characteristic_id")
+  languageId       Int @map("language_id")
+  description      String @db.Text
+
+  // Relations
+  characteristic Characteristic @relation(fields: [characteristicId], references: [id], onDelete: Cascade)
+  language       Language       @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([characteristicId, languageId])
+  @@map("characteristic_descriptions")
+}
+
+// =================
+// GENDER MODELS
+// =================
+model Gender {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names             GenderName[]
+  pokemonEvolutions PokemonEvolution[]
+
+  @@map("genders")
+}
+
+model GenderName {
+  genderId   Int @map("gender_id")
+  languageId Int @map("language_id")
+  name       String
+
+  // Relations
+  gender   Gender   @relation(fields: [genderId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([genderId, languageId])
+  @@map("gender_names")
+}
+
+// =================
+// POKEDEX MODELS
+// =================
+model Pokedex {
+  id           Int     @id
+  name         String  @unique
+  isMainSeries Boolean @default(true) @map("is_main_series")
+  regionId     Int?    @map("region_id")
+
+  // Relations
+  region          Region?                      @relation(fields: [regionId], references: [id])
+  names           PokedexName[]
+  descriptions    PokedexDescription[]
+  pokemonEntries  PokemonSpeciesPokedexNumber[]
+  versionGroups   VersionGroupPokedex[]
+
+  @@map("pokedexes")
+}
+
+model PokedexName {
+  pokedexId  Int @map("pokedex_id")
+  languageId Int @map("language_id")
+  name       String
+
+  // Relations
+  pokedex  Pokedex  @relation(fields: [pokedexId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([pokedexId, languageId])
+  @@map("pokedex_names")
+}
+
+model PokedexDescription {
+  pokedexId   Int @map("pokedex_id")
+  languageId  Int @map("language_id")
+  description String @db.Text
+
+  // Relations
+  pokedex  Pokedex  @relation(fields: [pokedexId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([pokedexId, languageId])
+  @@map("pokedex_descriptions")
+}
+
+model PokemonSpeciesPokedexNumber {
+  pokemonSpeciesId Int @map("pokemon_species_id")
+  pokedexId        Int @map("pokedex_id")
+  pokedexNumber    Int @map("pokedex_number")
+
+  // Relations
+  pokemonSpecies PokemonSpecies @relation(fields: [pokemonSpeciesId], references: [id], onDelete: Cascade)
+  pokedex        Pokedex        @relation(fields: [pokedexId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonSpeciesId, pokedexId])
+  @@map("pokemon_species_pokedex_numbers")
+}
+
+model VersionGroupPokedex {
+  versionGroupId Int @map("version_group_id")
+  pokedexId      Int @map("pokedex_id")
+
+  // Relations
+  versionGroup VersionGroup @relation(fields: [versionGroupId], references: [id], onDelete: Cascade)
+  pokedex      Pokedex      @relation(fields: [pokedexId], references: [id], onDelete: Cascade)
+
+  @@id([versionGroupId, pokedexId])
+  @@map("version_group_pokedexes")
+}
+
+// =================
+// PAL PARK MODELS
+// =================
+model PalParkArea {
+  id   Int    @id
+  name String @unique
+
+  // Relations
+  names      PalParkAreaName[]
+  encounters PalParkEncounter[]
+
+  @@map("pal_park_areas")
+}
+
+model PalParkAreaName {
+  palParkAreaId Int @map("pal_park_area_id")
+  languageId    Int @map("language_id")
+  name          String
+
+  // Relations
+  palParkArea PalParkArea @relation(fields: [palParkAreaId], references: [id], onDelete: Cascade)
+  language    Language    @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([palParkAreaId, languageId])
+  @@map("pal_park_area_names")
+}
+
+model PalParkEncounter {
+  pokemonSpeciesId Int @map("pokemon_species_id")
+  palParkAreaId    Int @map("pal_park_area_id")
+  baseScore        Int @map("base_score")
+  rate             Int
+
+  // Relations
+  pokemonSpecies PokemonSpecies @relation(fields: [pokemonSpeciesId], references: [id], onDelete: Cascade)
+  palParkArea    PalParkArea    @relation(fields: [palParkAreaId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonSpeciesId, palParkAreaId])
+  @@map("pal_park_encounters")
+}
+
+// Additional relations for existing models
+// Add these fields to existing models:
+
+// Add to Item model:
+// machines              Machine[]
+// berries               Berry[]
+// itemAttributeMap      ItemItemAttributeMap[]
+
+// Add to ItemCategory model:
+// pocketId              Int? @map("pocket_id")
+// pocket                ItemPocket? @relation(fields: [pocketId], references: [id])
+
+// Add to Move model:
+// contestTypeId         Int? @map("contest_type_id")
+// superContestEffectId  Int? @map("super_contest_effect_id")
+// contestType           ContestType? @relation(fields: [contestTypeId], references: [id])
+// superContestEffect    SuperContestEffect? @relation(fields: [superContestEffectId], references: [id])
+// machines              Machine[]
+
+// Add to Type model:
+// berries               Berry[]
+
+// Add to Stat model:
+// increasedNatures      Nature[] @relation("IncreasedStat")
+// decreasedNatures      Nature[] @relation("DecreasedStat")
+// characteristics       Characteristic[]
+
+// Add to Language model:
+// berryFirmnessNames              BerryFirmnessName[]
+// berryFlavorNames                BerryFlavorName[]
+// contestTypeNames                ContestTypeName[]
+// contestEffectEntries            ContestEffectEntry[]
+// contestEffectFlavorTexts        ContestEffectFlavorText[]
+// superContestEffectFlavorTexts   SuperContestEffectFlavorText[]
+// natureNames                     NatureName[]
+// characteristicDescriptions      CharacteristicDescription[]
+// pokedexNames                    PokedexName[]
+// pokedexDescriptions             PokedexDescription[]
+// itemAttributeNames              ItemAttributeName[]
+// itemAttributeDescriptions       ItemAttributeDescription[]
+// itemPocketNames                 ItemPocketName[]
+
+// Add to Region model:
+// pokedexes             Pokedex[]
+
+// Add to VersionGroup model:
+// machines              Machine[]
+
+// Add to Pokemon model:
+// natures               PokemonNature[]
+
+// Add to PokemonSpecies model:
+// pokedexEntries        PokemonSpeciesPokedexEntry[]
+// genderId              Int? @map("gender_id")
+// gender                Gender? @relation(fields: [genderId], references: [id])
+
+// Add to PokemonEvolution model:
+// genderId              Int? @map("gender_id")
+// gender                Gender? @relation(fields: [genderId], references: [id])
