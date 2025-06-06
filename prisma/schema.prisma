@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-// 100% aligned with PokeAPI v2 structure
 generator client {
   provider = "prisma-client-js"
 }
@@ -39,9 +37,6 @@ model Language {
   encounterConditionNames         EncounterConditionName[]
   encounterConditionValueNames    EncounterConditionValueName[]
   encounterMethodNames            EncounterMethodName[]
-  evolutionTriggerNames           EvolutionTriggerName[]
-  genderNames                     GenderName[]
-  generationNames                 GenerationName[]
   growthRateDescriptions          GrowthRateDescription[]
   itemAttributeDescriptions       ItemAttributeDescription[]
   itemAttributeNames              ItemAttributeName[]
@@ -53,9 +48,8 @@ model Language {
   itemPocketNames                 ItemPocketName[]
   locationAreaNames               LocationAreaName[]
   locationNames                   LocationName[]
-  machineVersionGroupNames        MachineVersionGroupName[]
   moveBattleStyleNames            MoveBattleStyleName[]
-  moveEffectEntries               MoveEffectEntry[]  // New relation
+  moveEffectEntries               MoveEffectEntry[]
   moveFlavorTexts                 MoveFlavorText[]
   moveLearnMethodDescriptions     MoveLearnMethodDescription[]
   moveLearnMethodNames            MoveLearnMethodName[]
@@ -63,6 +57,7 @@ model Language {
   moveTargetDescriptions          MoveTargetDescription[]
   moveTargetNames                 MoveTargetName[]
   moveDamageClassNames            MoveDamageClassName[]
+  moveDamageClassDescriptions     MoveDamageClassDescription[]
   moveMetaAilmentNames            MoveMetaAilmentName[]
   moveMetaCategoryDescriptions    MoveMetaCategoryDescription[]
   natureNames                     NatureName[]
@@ -78,12 +73,10 @@ model Language {
   pokemonSpeciesDescriptions      PokemonSpeciesDescription[]
   pokemonSpeciesFlavorTexts       PokemonSpeciesFlavorText[]
   pokemonSpeciesNames             PokemonSpeciesName[]
-  regionNames                     RegionName[]
   statNames                       StatName[]
   superContestEffectFlavorTexts   SuperContestEffectFlavorText[]
   typeNames                       TypeName[]
   versionNames                    VersionName[]
-  versionGroupNames               VersionGroupName[]
 
   @@map("languages")
 }
@@ -108,14 +101,12 @@ model Generation {
   id           Int  @id
   name         String @unique
   mainRegionId Int? @map("main_region_id")
-  order        Int?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
   mainRegion        Region?               @relation(fields: [mainRegionId], references: [id])
-  names             GenerationName[]
   abilities         Ability[]
   items             Item[]
   moves             Move[]
@@ -130,19 +121,6 @@ model Generation {
   @@map("generations")
 }
 
-model GenerationName {
-  generationId Int @map("generation_id")
-  languageId   Int @map("language_id")
-  name         String
-
-  // Relations
-  generation Generation @relation(fields: [generationId], references: [id], onDelete: Cascade)
-  language   Language   @relation(fields: [languageId], references: [id], onDelete: Cascade)
-
-  @@id([generationId, languageId])
-  @@map("generation_names")
-}
-
 // =================
 // REGION MODELS
 // =================
@@ -154,7 +132,6 @@ model Region {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  names       RegionName[]
   generations Generation[]
   locations   Location[]
   pokedexes   Pokedex[]
@@ -163,36 +140,25 @@ model Region {
   @@map("regions")
 }
 
-model RegionName {
-  regionId   Int @map("region_id")
-  languageId Int @map("language_id")
-  name       String
-
-  // Relations
-  region   Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
-  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
-
-  @@id([regionId, languageId])
-  @@map("region_names")
-}
-
 // =================
 // LOCATION MODELS
 // =================
 model Location {
   id       Int @id
   name     String
-  regionId Int @map("region_id")
+  regionId Int? @map("region_id")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  region           Region                @relation(fields: [regionId], references: [id])
+  region           Region?               @relation(fields: [regionId], references: [id])
   names            LocationName[]
   areas            LocationArea[]
   pokemonEvolution PokemonEvolution[]
 
+  @@index([regionId], name: "idx_locations_region") // Locations by region (Kanto, Johto, etc.)
+  @@index([name], name: "idx_locations_name") // Location name searches
   @@map("locations")
 }
 
@@ -223,6 +189,8 @@ model LocationArea {
   names             LocationAreaName[]
   pokemonEncounters PokemonEncounter[]
 
+  @@index([locationId], name: "idx_location_areas_location") // Areas within a location
+  @@index([name], name: "idx_location_areas_name") // Area name searches
   @@map("location_areas")
 }
 
@@ -297,6 +265,7 @@ model TypeEfficacy {
   targetType Type @relation("TargetType", fields: [targetTypeId], references: [id], onDelete: Cascade)
 
   @@id([damageTypeId, targetTypeId])
+  @@index([targetTypeId], name: "idx_type_efficacy_target") // What's effective against this type
   @@map("type_efficacy")
 }
 
@@ -396,6 +365,8 @@ model AbilityChangeLog {
 // =================
 // MOVE MODELS
 // =================
+
+
 model MoveBattleStyle {
   id   Int    @id
   name String @unique
@@ -425,8 +396,9 @@ model MoveDamageClass {
   name String @unique
 
   // Relations
-  names MoveDamageClassName[]
-  moves Move[]
+  names        MoveDamageClassName[]
+  descriptions MoveDamageClassDescription[]
+  moves        Move[]
 
   @@map("move_damage_classes")
 }
@@ -435,7 +407,6 @@ model MoveDamageClassName {
   moveDamageClassId Int @map("move_damage_class_id")
   languageId        Int @map("language_id")
   name              String
-  description       String? @db.Text
 
   // Relations
   moveDamageClass MoveDamageClass @relation(fields: [moveDamageClassId], references: [id], onDelete: Cascade)
@@ -443,6 +414,19 @@ model MoveDamageClassName {
 
   @@id([moveDamageClassId, languageId])
   @@map("move_damage_class_names")
+}
+
+model MoveDamageClassDescription {
+  moveDamageClassId Int @map("move_damage_class_id")
+  languageId        Int @map("language_id")
+  description       String @db.Text
+
+  // Relations
+  moveDamageClass MoveDamageClass @relation(fields: [moveDamageClassId], references: [id], onDelete: Cascade)
+  language        Language        @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([moveDamageClassId, languageId])
+  @@map("move_damage_class_descriptions")
 }
 
 model MoveEffectEntry {
@@ -574,7 +558,12 @@ model Move {
   statChanges          MoveStatChange[]
   effectEntries        MoveEffectEntry[]  // New relation for effect text
   learnedByPokemon     MoveLearnedByPokemon[]
-
+  
+  @@index([typeId], name: "idx_moves_type") // Filter moves by type (Electric, Fire, etc.)
+  @@index([name], name: "idx_move_name") // Move name searches and sorting
+  @@index([generationId], name: "idx_moves_generation") // Filter moves by generation
+  @@index([moveDamageClassId], name: "idx_moves_damage_class") // Physical/Special/Status moves
+  @@index([power], name: "idx_moves_power") // Filter by move power (100+ damage moves)
   @@map("moves")
 }
 
@@ -727,6 +716,7 @@ model MoveLearnedByPokemon {
   @@map("move_learned_by_pokemon")
 }
 
+
 // =================
 // ITEM MODELS
 // =================
@@ -871,6 +861,7 @@ model Item {
   generationId     Int? @map("generation_id")
   generation       Generation? @relation(fields: [generationId], references: [id])
 
+  @@index([itemCategoryId], name: "idx_items_category") // Items by category (Pokeballs, Medicine, etc.)
   @@map("items")
 }
 
@@ -1133,7 +1124,16 @@ model PokemonSpecies {
   pokemonEvolutions    PokemonEvolution[]
   pokedexNumbers       PokemonSpeciesPokedexNumber[]
   palParkEncounters    PalParkEncounter[]
+  varieties            PokemonSpeciesVariety[]
+  genderDetails        PokemonSpeciesGenderDetails[]
 
+  @@index([name], name: "idx_species_name") // Species name searches
+  @@index([generationId], name: "idx_species_generation") // Filter by generation (Gen 1, Gen 2, etc.)
+  @@index([isLegendary], name: "idx_species_legendary") // Filter legendary Pokemon
+  @@index([isMythical], name: "idx_species_mythical") // Filter mythical Pokemon
+  @@index([colorId], name: "idx_species_color") // Filter by color (red, blue Pokemon)
+  @@index([evolvesFromSpeciesId], name: "idx_species_evolves_from") // Evolution chain queries
+  @@index([evolutionChainId], name: "idx_species_evolution_chain") // Group by evolution families
   @@map("pokemon_species")
 }
 
@@ -1191,6 +1191,18 @@ model PokemonSpeciesEggGroup {
   @@map("pokemon_species_egg_groups")
 }
 
+model PokemonSpeciesVariety {
+  pokemonSpeciesId Int     @map("pokemon_species_id")
+  pokemonId        Int     @map("pokemon_id")
+  isDefault        Boolean @default(false) @map("is_default")
+
+  pokemonSpecies PokemonSpecies @relation(fields: [pokemonSpeciesId], references: [id], onDelete: Cascade)
+  pokemon        Pokemon        @relation(fields: [pokemonId], references: [id], onDelete: Cascade)
+
+  @@id([pokemonSpeciesId, pokemonId])
+  @@map("pokemon_species_varieties")
+}
+
 // =================
 // POKEMON MODELS
 // =================
@@ -1203,6 +1215,8 @@ model Pokemon {
   baseExperience    Int     @map("base_experience")
   order             Int
   isDefault         Boolean @default(false) @map("is_default")
+  criesLatest       String? @map("cries_latest")
+  criesLegacy       String? @map("cries_legacy")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -1221,8 +1235,10 @@ model Pokemon {
   abilityPast       PokemonAbilityPast[]
   encounters        PokemonEncounter[]
   learnableMoves    MoveLearnedByPokemon[]
+  speciesVarieties  PokemonSpeciesVariety[]
 
-
+  @@index([pokemonSpeciesId], name: "idx_pokemon_species") // Fast species lookups and joins
+  @@index([name], name: "idx_pokemon_name") // Name-based searches and sorting
   @@map("pokemon")
 }
 
@@ -1237,6 +1253,8 @@ model PokemonAbility {
   ability Ability @relation(fields: [abilityId], references: [id], onDelete: Cascade)
 
   @@id([pokemonId, slot])
+  @@index([abilityId], name: "idx_pokemon_abilities_ability") // Reverse lookup: Pokemon with this ability
+  @@index([isHidden], name: "idx_pokemon_abilities_hidden") // Filter hidden abilities
   @@map("pokemon_abilities")
 }
 
@@ -1266,6 +1284,8 @@ model PokemonType {
   type    Type    @relation(fields: [typeId], references: [id], onDelete: Cascade)
 
   @@id([pokemonId, slot])
+  @@index([pokemonId], name: "idx_pokemon_types") // Get all types for a Pokemon
+  @@index([typeId], name: "idx_pokemon_types_type") // Find all Pokemon of a specific type
   @@map("pokemon_types")
 }
 
@@ -1343,6 +1363,11 @@ model PokemonMove {
   moveLearnMethod MoveLearnMethod @relation(fields: [moveLearnMethodId], references: [id], onDelete: Cascade)
 
   @@id([pokemonId, versionGroupId, moveId, moveLearnMethodId])
+  @@index([moveId], name: "idx_pokemon_moves_move") // Reverse lookup: which Pokemon learn this move
+  @@index([versionGroupId], name: "idx_pokemon_moves_version") // Movesets by game version
+  @@index([moveLearnMethodId], name: "idx_pokemon_moves_learn_method") // Level-up vs TM vs breeding
+  @@index([levelLearnedAt], name: "idx_pokemon_moves_level") // Moves learned at specific levels
+  @@index([pokemonId, versionGroupId], name: "idx_pokemon_moves_composite") // Complete moveset queries
   @@map("pokemon_moves")
 }
 
@@ -1416,6 +1441,7 @@ model PokemonForm {
   types        PokemonFormType[]
   sprites      PokemonFormSprites?
 
+  @@index([pokemonId], name: "idx_forms_pokemon") // All forms of a Pokemon
   @@map("pokemon_forms")
 }
 
@@ -1481,24 +1507,11 @@ model EvolutionTrigger {
   name String @unique
 
   // Relations
-  names             EvolutionTriggerName[]
   pokemonEvolutions PokemonEvolution[]
 
   @@map("evolution_triggers")
 }
 
-model EvolutionTriggerName {
-  evolutionTriggerId Int @map("evolution_trigger_id")
-  languageId         Int @map("language_id")
-  name               String
-
-  // Relations
-  evolutionTrigger EvolutionTrigger @relation(fields: [evolutionTriggerId], references: [id], onDelete: Cascade)
-  language         Language         @relation(fields: [languageId], references: [id], onDelete: Cascade)
-
-  @@id([evolutionTriggerId, languageId])
-  @@map("evolution_trigger_names")
-}
 
 model PokemonEvolution {
   id                     Int     @id @default(autoincrement())
@@ -1536,6 +1549,8 @@ model PokemonEvolution {
   knownMoveType     Type?             @relation("KnownMoveType", fields: [knownMoveTypeId], references: [id])
   partyType         Type?             @relation("PartyType", fields: [partyTypeId], references: [id])
 
+  @@index([pokemonSpeciesId], name: "idx_evolution_species") // How this Pokemon evolves
+  @@index([evolutionTriggerId], name: "idx_evolution_trigger") // Evolution by trigger type
   @@map("pokemon_evolution")
 }
 
@@ -1635,6 +1650,10 @@ model PokemonEncounter {
   encounterMethod EncounterMethod @relation(fields: [encounterMethodId], references: [id], onDelete: Cascade)
   conditionValueMap EncounterConditionValueMap[]
 
+  @@index([pokemonId], name: "idx_encounters_pokemon") // Find where a Pokemon can be encountered
+  @@index([locationAreaId], name: "idx_encounters_location_area") // Find Pokemon in a location
+  @@index([versionId], name: "idx_encounters_version") // Version-specific encounters
+  @@index([encounterMethodId], name: "idx_encounters_method") // Encounters by method (surfing, walking)
   @@map("pokemon_encounters")
 }
 
@@ -1664,7 +1683,6 @@ model VersionGroup {
 
   // Relations
   generation         Generation                   @relation(fields: [generationId], references: [id])
-  names              VersionGroupName[]
   versions           Version[]
   pokemonMoves       PokemonMove[]
   abilityFlavorTexts AbilityFlavorText[]
@@ -1679,19 +1697,6 @@ model VersionGroup {
   abilityChangeLogs  AbilityChangeLog[]
 
   @@map("version_groups")
-}
-
-model VersionGroupName {
-  versionGroupId Int @map("version_group_id")
-  languageId     Int @map("language_id")
-  name           String
-
-  // Relations
-  versionGroup VersionGroup @relation(fields: [versionGroupId], references: [id], onDelete: Cascade)
-  language     Language     @relation(fields: [languageId], references: [id], onDelete: Cascade)
-
-  @@id([versionGroupId, languageId])
-  @@map("version_group_names")
 }
 
 model Version {
@@ -1756,9 +1761,8 @@ model VersionGroupRegion {
 model Machine {
   id             Int @id
   itemId         Int @map("item_id")
-  moveId         Int @map("move_id")
+  moveId         Int @map("move_id") 
   versionGroupId Int @map("version_group_id")
-  machineNumber  Int @map("machine_number")
 
   // Relations
   item         Item         @relation(fields: [itemId], references: [id])
@@ -1767,18 +1771,6 @@ model Machine {
 
   @@unique([itemId, versionGroupId])
   @@map("machines")
-}
-
-model MachineVersionGroupName {
-  machineId  Int @map("machine_id")
-  languageId Int @map("language_id")
-  name       String
-
-  // Relations
-  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
-
-  @@id([machineId, languageId])
-  @@map("machine_version_group_names")
 }
 
 // =================
@@ -1973,7 +1965,6 @@ model Nature {
   increasedStatId Int? @map("increased_stat_id")
   hatesFlavorId   Int? @map("hates_flavor_id")
   likesFlavorId   Int? @map("likes_flavor_id")
-  gameIndex       Int  @map("game_index")
 
   // Relations
   names         NatureName[]
@@ -2091,23 +2082,22 @@ model Gender {
   name String @unique
 
   // Relations
-  names             GenderName[]
   pokemonEvolutions PokemonEvolution[]
+  pokemonSpeciesGenderDetails PokemonSpeciesGenderDetails[]
 
   @@map("genders")
 }
 
-model GenderName {
-  genderId   Int @map("gender_id")
-  languageId Int @map("language_id")
-  name       String
+model PokemonSpeciesGenderDetails {
+  pokemonSpeciesId Int @map("pokemon_species_id")
+  genderId         Int @map("gender_id")
 
   // Relations
-  gender   Gender   @relation(fields: [genderId], references: [id], onDelete: Cascade)
-  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  pokemonSpecies PokemonSpecies @relation(fields: [pokemonSpeciesId], references: [id], onDelete: Cascade)
+  gender         Gender         @relation(fields: [genderId], references: [id], onDelete: Cascade)
 
-  @@id([genderId, languageId])
-  @@map("gender_names")
+  @@id([pokemonSpeciesId, genderId])
+  @@map("pokemon_species_gender_details")
 }
 
 // =================
@@ -2165,6 +2155,8 @@ model PokemonSpeciesPokedexNumber {
   pokedex        Pokedex        @relation(fields: [pokedexId], references: [id], onDelete: Cascade)
 
   @@id([pokemonSpeciesId, pokedexId])
+  @@index([pokedexNumber], name: "idx_pokedex_numbers_number") // Pokemon by dex number (#001, #150)
+  @@index([pokedexId], name: "idx_pokedex_numbers_pokedex") // Entries in specific Pokedex
   @@map("pokemon_species_pokedex_numbers")
 }
 
