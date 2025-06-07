@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "tsx src/lib/services/seed/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.9.0",
@@ -23,6 +24,7 @@
     "@types/react-dom": "^19.1.5",
     "prisma": "^6.9.0",
     "tailwindcss": "^4",
+    "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   }
 }
