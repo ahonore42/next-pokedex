@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "tsx src/lib/services/seed/seed.ts"
+    "seed": "tsx src/lib/database/seed/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.9.0",
