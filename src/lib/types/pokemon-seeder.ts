@@ -19,32 +19,15 @@ export interface ProgressCategory {
   expectedCount?: number;
 }
 
+export interface ProgressStatus {
+  completed: boolean;
+  count: number;
+  failed: number;
+  expectedCount?: number;
+}
+
 export interface SeedingProgress {
-  languages: ProgressCategory;
-  generations: ProgressCategory;
-  regions: ProgressCategory;
-  types: ProgressCategory;
-  abilities: ProgressCategory;
-  moves: ProgressCategory;
-  machines: ProgressCategory;
-  items: ProgressCategory;
-  pokemonSpecies: ProgressCategory;
-  pokemon: ProgressCategory;
-  evolutionChains: ProgressCategory;
-  locations: ProgressCategory;
-  locationAreas: ProgressCategory;
-  encounters: ProgressCategory;
-  flavorTexts: ProgressCategory;
-  gameIndices: ProgressCategory;
-  pokemonForms: ProgressCategory;
-  versionGroups: ProgressCategory;
-  pokedexes: ProgressCategory;
-  characteristics: ProgressCategory;
-  genders: ProgressCategory;
-  natures: ProgressCategory;
-  pokeathlonStats: ProgressCategory;
-  palParkAreas: ProgressCategory;
-  berries: ProgressCategory;
+  [key: string]: ProgressStatus;
 }
 
 export interface ErrorLog {

@@ -35,7 +35,7 @@ const CONFIG: AppConfig = {
 // Generic seed framework interfaces
 interface SeedingConfig<T> {
   endpoint: string;
-  categoryName: keyof SeedingProgress;
+  categoryName: string;
   mode?: "premium" | "standard";
   batchSize?: number;
   progressLogInterval?: number;
@@ -61,33 +61,7 @@ export class PokemonDataSeeder {
   constructor() {
     this.cache = new Map<string, any>();
     this.processedUrls = new Set<string>();
-    this.progress = {
-      languages: { completed: false, count: 0, failed: 0 },
-      generations: { completed: false, count: 0, failed: 0 },
-      regions: { completed: false, count: 0, failed: 0 },
-      types: { completed: false, count: 0, failed: 0 },
-      abilities: { completed: false, count: 0, failed: 0 },
-      moves: { completed: false, count: 0, failed: 0 },
-      machines: { completed: false, count: 0, failed: 0 },
-      items: { completed: false, count: 0, failed: 0 },
-      pokemonSpecies: { completed: false, count: 0, failed: 0 },
-      pokemon: { completed: false, count: 0, failed: 0 },
-      evolutionChains: { completed: false, count: 0, failed: 0 },
-      locations: { completed: false, count: 0, failed: 0 },
-      locationAreas: { completed: false, count: 0, failed: 0 },
-      encounters: { completed: false, count: 0, failed: 0 },
-      flavorTexts: { completed: false, count: 0, failed: 0 },
-      gameIndices: { completed: false, count: 0, failed: 0 },
-      pokemonForms: { completed: false, count: 0, failed: 0 },
-      versionGroups: { completed: false, count: 0, failed: 0 },
-      pokedexes: { completed: false, count: 0, failed: 0 },
-      characteristics: { completed: false, count: 0, failed: 0 },
-      genders: { completed: false, count: 0, failed: 0 },
-      natures: { completed: false, count: 0, failed: 0 },
-      pokeathlonStats: { completed: false, count: 0, failed: 0 },
-      palParkAreas: { completed: false, count: 0, failed: 0 },
-      berries: { completed: false, count: 0, failed: 0 },
-    };
+    this.progress = {};
     this.stats = {
       totalRequests: 0,
       failedRequests: 0,
@@ -567,6 +541,7 @@ export class PokemonDataSeeder {
     // Get all items and filter out existing ones
     const allItems = await this.fetchAllFromEndpoint(endpoint, mode);
     let itemsToProcess = allItems;
+    let existingCount = 0;
 
     if (processor.getExistingIds) {
       const existingIds = await processor.getExistingIds();
@@ -578,7 +553,15 @@ export class PokemonDataSeeder {
     }
 
     if (itemsToProcess.length === 0) {
-      this.progress[categoryName].completed = true;
+      // First, create the progress object for this category.
+      this.progress[categoryName] = {
+        completed: true,
+        count: existingCount,
+        failed: 0,
+        expectedCount: allItems.length,
+      };
+      // Log completion and exit for this category.
+      this.log(`✅ Completed ${categoryName}: All ${allItems.length} items already exist in the database.`);
       return;
     }
 
