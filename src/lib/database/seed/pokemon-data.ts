@@ -35,7 +35,6 @@ const CONFIG: AppConfig = {
 // Generic seed framework interfaces
 interface SeedingConfig<T> {
   endpoint: string;
-  categoryName: string;
   mode?: "premium" | "standard";
   batchSize?: number;
   progressLogInterval?: number;
@@ -110,45 +109,46 @@ export class PokemonDataSeeder {
       await this.getModelStatistics();
       this.log("🌱 Seeding the database...");
       // PHASE 1: Foundation (safe to re-run)
-      this.log("\n\n=== 🧩 PHASE 1: Foundation Data ===\n\n");
+      this.log("\n\n\n=== 🧩 PHASE 1: Foundational Data ===\n\n");
       await this.delay(3000);
       await this.seedLanguages("premium");
       await this.seedRegions("premium");
       await this.seedGenerations("premium");
 
       // PHASE 2: Game Infrastructure (safe to re-run)
-      this.log("\n\n=== 🧩 PHASE 2: Game Infrastructure ===\n\n");
+      this.log("\n\n\n=== 🧩 PHASE 2: Game Infrastructure ===\n\n");
       await this.delay(3000);
       await this.seedVersionGroups("premium");
 
       // PHASE 3: Supplementary Data (safe to re-run)
-      this.log("\n\n=== 🧩 PHASE 3: Supplementary Data ===\n\n");
+      this.log("\n\n\n=== 🧩 PHASE 3: Supplementary Data ===\n\n");
       await this.delay(3000);
-      await this.seedSupplementaryData();
-      await this.seedItemSupplementaryData();
+      await this.seedSupplementaryData("premium");
+      await this.seedItemSupplementaryData("premium");
       await this.seedStats("premium");
-
+      await this.seedPokemonHabitats("premium");
       // PHASE 4: Core Game Mechanics (safe to re-run)
-      this.log("\n\n=== 🧩 PHASE 4: Core Game Mechanics ===\n\n");
+      this.log("\n\n\n=== 🧩 PHASE 4: Core Game Mechanics ===\n\n");
       await this.delay(3000);
       await this.seedTypes("premium");
       await this.seedTypeEfficacyMatrix();
       await this.seedAbilities("premium");
 
       // PHASE 5: Move System (check for existing meta records)
-      this.log("\n\n=== 🧩 PHASE 5: Move System ===\n\n");
+      this.log("\n\n\n=== 🧩 PHASE 5: Move System ===\n\n");
       await this.delay(3000);
       await this.debugMoveMetaRecords();
       await this.seedMoves("premium");
 
       // PHASE 6: Item System (safe to re-run)
-      this.log("\n\n=== 🧩 PHASE 6: Item System ===\n\n");
+      this.log("\n\n\n=== 🧩 PHASE 6: Item System ===\n\n");
       await this.delay(3000);
       await this.seedItems("premium");
       await this.seedMachines("premium");
+      await this.seedItemAttributes("premium");
 
       // PHASE 7: Additional Game Systems (safe to re-run)
-      this.log("\n\n=== 🧩 PHASE 7: Additional Game Systems ===\n\n");
+      this.log("\n\n\n=== 🧩 PHASE 7: Additional Game Systems ===\n\n");
       await this.delay(3000);
       await this.seedBerries("premium");
       await this.seedNatures("premium");
@@ -157,21 +157,21 @@ export class PokemonDataSeeder {
       await this.seedPokeathlonStats("premium");
 
       // PHASE 8: Location System (safe to re-run)
-      this.log("\n\n=== 🧩 PHASE 8: Location System ===\n\n");
+      this.log("\n\n\n=== 🧩 PHASE 8: Location System ===\n\n");
       await this.delay(3000);
       await this.seedLocations("premium");
       await this.seedLocationAreas("premium");
       await this.seedPalParkAreas("premium");
 
       // PHASE 9: Encounter Setup (safe to re-run)
-      this.log("\n\n=== 🧩 PHASE 9: Encounter Setup ===\n\n");
+      this.log("\n\n\n=== 🧩 PHASE 9: Encounter Setup ===\n\n");
       await this.delay(3000);
       await this.seedEncounterConditions("premium");
       await this.seedEncounterMethods("premium");
       await this.seedEvolutionTriggers("premium");
 
       // PHASE 10: Pokemon Data (mostly safe with upsert)
-      this.log("\n\n=== 🧩 PHASE 10: Pokemon Data ===\n\n");
+      this.log("\n\n\n=== 🧩 PHASE 10: Pokemon Data ===\n\n");
       await this.delay(3000);
       await this.seedPokemonSpecies("premium");
       await this.seedEvolutionChains("premium");
@@ -371,6 +371,10 @@ export class PokemonDataSeeder {
     return match ? parseInt(match[1]) : null;
   }
 
+  toCamelCase(str) {
+    return str.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+  }
+
   // ======================================================
   //                HTTP Methods
   // ======================================================
@@ -506,7 +510,7 @@ export class PokemonDataSeeder {
   }
 
   // ======================================================
-  //                Generic Seeding Methods
+  //                Generic Methods
   // ======================================================
 
   private async getExistingIds(modelName: keyof PrismaClient): Promise<Set<number>> {
@@ -523,19 +527,80 @@ export class PokemonDataSeeder {
     return new Set(existing.map((item: { id: number }) => item.id));
   }
 
+  // A generic method to add localized data for models
+  private async addJoinedRecordData(
+    prismaModel: any,
+    primaryForeignKey: string,
+    primaryId: number,
+    sourceArray: any[] | undefined,
+    dataFields: string[],
+    secondaryForeignKey: string = "languageId"
+  ): Promise<void> {
+    if (!sourceArray || !Array.isArray(sourceArray) || dataFields.length === 0) {
+      return;
+    }
+    const secondaryModelName = secondaryForeignKey.replace(/Id$/i, "");
+    const secondaryModelIdSet = await this.getExistingIds(secondaryModelName);
+    for (const entry of sourceArray) {
+      const secondaryId = this.extractIdFromUrl(entry[secondaryModelName]?.url);
+      if (secondaryId) {
+        if (secondaryModelIdSet.has(secondaryId)) {
+          const dataPayload: { [key: string]: any } = {};
+          for (const field of dataFields) {
+            if (entry[field] !== undefined && entry[field] !== null) {
+              dataPayload[field] = entry[field];
+            }
+          }
+          if (Object.keys(dataPayload).length === 0) {
+            continue;
+          }
+          await prismaModel.upsert({
+            where: {
+              [`${primaryForeignKey}_${secondaryForeignKey}`]: {
+                [primaryForeignKey]: primaryId,
+                [secondaryForeignKey]: secondaryId,
+              },
+            },
+            update: dataPayload,
+            create: {
+              [primaryForeignKey]: primaryId,
+              [secondaryForeignKey]: secondaryId,
+              ...dataPayload,
+            },
+          });
+        }
+      }
+    }
+  }
+
+  // Performs a generalized upsert operation for a model with a simple numeric ID.
+  private async upsertRecord(
+    prismaModel: any,
+    id: number | string | null | undefined,
+    data: Record<string, any>
+  ): Promise<void> {
+    if (id === null || id === undefined) {
+      // Cannot upsert without an ID, so we skip.
+      return;
+    }
+
+    await prismaModel.upsert({
+      where: { id: id },
+      update: data,
+      create: {
+        id: id,
+        ...data,
+      },
+    });
+  }
+
   // Generic seed method
   async seedGenericCore<T, R = void>(
     config: Omit<SeedingConfig<T>, "timeoutMs" | "maxRetries">,
     processor: SeedingProcessor<T, R>
   ): Promise<void> {
-    const {
-      endpoint,
-      categoryName,
-      mode = "standard",
-      batchSize = CONFIG.BATCH_SIZE,
-      progressLogInterval = 25,
-    } = config;
-
+    const { endpoint, mode = "standard", batchSize = CONFIG.BATCH_SIZE, progressLogInterval = 25 } = config;
+    const categoryName = this.toCamelCase(endpoint);
     this.log(`Seeding ${categoryName}...`);
 
     // Get all items and filter out existing ones
@@ -681,10 +746,10 @@ export class PokemonDataSeeder {
 
   // Generic seed method with timeout and retry
   async seedGeneric<T, R = void>(config: SeedingConfig<T>, processor: SeedingProcessor<T, R>): Promise<void> {
-    const { timeoutMs = 10000, maxRetries = 2, ...seedConfig } = config;
+    const { timeoutMs = 60000, maxRetries = 2, ...seedConfig } = config;
     return await this.withTimeoutAndRetry(
       () => this.seedGenericCore(seedConfig, processor),
-      `Seeding ${config.categoryName}`,
+      `Seeding ${this.toCamelCase(config.endpoint)}`,
       timeoutMs,
       maxRetries
     );
@@ -699,7 +764,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "pokemon-species",
-        categoryName: "pokemonSpecies",
         mode,
         batchSize: CONFIG.BATCH_SIZE,
         progressLogInterval: 50,
@@ -762,7 +826,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "pokemon",
-        categoryName: "pokemon",
         mode,
         batchSize: 1,
         progressLogInterval: 50,
@@ -897,7 +960,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "pokemon-species",
-        categoryName: "pokemonSpecies", // Reuse existing category or create new one
         mode,
         batchSize: CONFIG.BATCH_SIZE,
         progressLogInterval: 50,
@@ -1017,7 +1079,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "location",
-        categoryName: "locations",
         mode,
         batchSize: CONFIG.BATCH_SIZE,
         progressLogInterval: 25,
@@ -1036,17 +1097,9 @@ export class PokemonDataSeeder {
             return null;
           }
 
-          await prisma.location.upsert({
-            where: { id: locationData.id },
-            update: {
-              name: locationData.name,
-              regionId,
-            },
-            create: {
-              id: locationData.id,
-              name: locationData.name,
-              regionId,
-            },
+          await this.upsertRecord(prisma.location, locationData.id, {
+            name: locationData.name,
+            regionId,
           });
 
           if (locationData.names && Array.isArray(locationData.names)) {
@@ -1089,7 +1142,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "location-area",
-        categoryName: "locationAreas",
         mode,
         batchSize: CONFIG.BATCH_SIZE,
         progressLogInterval: 25,
@@ -1158,7 +1210,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "encounter-method",
-        categoryName: "encounters", // Note: using encounters category
         mode,
         batchSize: CONFIG.BATCH_SIZE,
         progressLogInterval: 25,
@@ -1177,7 +1228,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "pokedex",
-        categoryName: "pokedexes",
         mode,
         batchSize: CONFIG.BATCH_SIZE,
         progressLogInterval: 5,
@@ -1247,7 +1297,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "evolution-chain",
-        categoryName: "evolutionChains",
         mode,
         batchSize: CONFIG.BATCH_SIZE,
         progressLogInterval: 25,
@@ -1271,7 +1320,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "language",
-        categoryName: "languages",
         mode,
         progressLogInterval: 10,
       },
@@ -1289,7 +1337,15 @@ export class PokemonDataSeeder {
           for (const lang of allLanguages) {
             try {
               const langData = await this.fetchWithProxy(lang.url, mode);
-              await this.processLanguageNames(langData);
+              // await this.processLanguageNames(langData);
+              await this.addJoinedRecordData(
+                prisma.languageName,
+                "languageId",
+                langData.id,
+                langData.names,
+                ["name"],
+                "localLanguageId"
+              );
             } catch (error: unknown) {
               this.log(`Failed to create language names for ${lang.name}: ${(error as Error).message}`, "error");
             }
@@ -1303,7 +1359,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "region",
-        categoryName: "regions",
         mode,
         progressLogInterval: 10,
       },
@@ -1320,7 +1375,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "generation",
-        categoryName: "generations",
         mode,
         progressLogInterval: 10,
       },
@@ -1337,7 +1391,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "version-group",
-        categoryName: "versionGroups",
         mode,
         progressLogInterval: 10,
       },
@@ -1354,7 +1407,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "type",
-        categoryName: "types",
         mode,
         progressLogInterval: 10,
       },
@@ -1440,7 +1492,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "ability",
-        categoryName: "abilities",
         mode,
         progressLogInterval: 25,
       },
@@ -1494,7 +1545,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "move",
-        categoryName: "moves",
         mode,
         progressLogInterval: 50,
       },
@@ -1548,7 +1598,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "item",
-        categoryName: "items",
         mode,
         progressLogInterval: 50,
       },
@@ -1608,14 +1657,13 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "item-attribute",
-        categoryName: "items",
         mode,
         progressLogInterval: 4,
       },
       {
         getExistingIds: async () => this.getExistingIds("itemAttribute"),
-        processItem: async (machine: NamedAPIResource, mode: "premium" | "standard") => {
-          await this.processMachine(machine, mode);
+        processItem: async (itemAttribute: NamedAPIResource, mode: "premium" | "standard") => {
+          await this.processItemAttribute(itemAttribute, mode);
         },
       }
     );
@@ -1625,7 +1673,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "machine",
-        categoryName: "machines",
         mode,
         progressLogInterval: 25,
       },
@@ -1642,7 +1689,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "move-battle-style",
-        categoryName: "moves",
         mode,
         progressLogInterval: 10,
       },
@@ -1744,7 +1790,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "move-damage-class",
-        categoryName: "moves",
         mode,
         progressLogInterval: 10,
       },
@@ -1761,7 +1806,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "move-target",
-        categoryName: "moves",
         mode,
         progressLogInterval: 10,
       },
@@ -1778,7 +1822,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "stat",
-        categoryName: "moves", // Using moves category for game mechanics
         mode,
         progressLogInterval: 10,
       },
@@ -1795,7 +1838,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "characteristic", // ← Fixed: correct endpoint
-        categoryName: "characteristics", // ← Fixed: correct category name
         mode,
         progressLogInterval: 10,
       },
@@ -1831,56 +1873,21 @@ export class PokemonDataSeeder {
           }
 
           // Create the characteristic
-          await prisma.characteristic.upsert({
-            where: { id: characteristicData.id },
-            update: {
-              statId,
-              geneModulo: characteristicData.gene_modulo,
-              possibleValues: JSON.stringify(characteristicData.possible_values),
-            },
-            create: {
-              id: characteristicData.id,
-              statId,
-              geneModulo: characteristicData.gene_modulo,
-              possibleValues: JSON.stringify(characteristicData.possible_values),
-            },
+          await this.upsertRecord(prisma.characteristic, characteristicData.id, {
+            statId,
+            geneModulo: characteristicData.gene_modulo,
+            possibleValues: JSON.stringify(characteristicData.possible_values),
           });
 
           // Create characteristic descriptions
-          if (characteristicData.descriptions && Array.isArray(characteristicData.descriptions)) {
-            for (const descEntry of characteristicData.descriptions) {
-              if (!descEntry || !descEntry.language || !descEntry.language.url) {
-                continue;
-              }
-
-              const languageId = this.extractIdFromUrl(descEntry.language.url);
-              if (languageId) {
-                // Verify language exists
-                const languageExists = await prisma.language.findUnique({
-                  where: { id: languageId },
-                  select: { id: true },
-                });
-
-                if (languageExists) {
-                  await prisma.characteristicDescription.upsert({
-                    where: {
-                      characteristicId_languageId: {
-                        characteristicId: characteristicData.id,
-                        languageId,
-                      },
-                    },
-                    update: { description: descEntry.description },
-                    create: {
-                      characteristicId: characteristicData.id,
-                      languageId,
-                      description: descEntry.description,
-                    },
-                  });
-                }
-              }
-            }
-          }
-
+          await this.addJoinedRecordData(
+            prisma.characteristicDescription,
+            "characteristicId",
+            characteristicData.id,
+            characteristicData.descriptions,
+            ["description"],
+            "languageId"
+          );
           this.log(`Processed characteristic ${characteristicId} for stat ${statId}`, "debug");
         },
       }
@@ -1891,7 +1898,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "gender",
-        categoryName: "pokemonSpecies", // Related to Pokemon breeding
         mode,
         progressLogInterval: 10,
       },
@@ -1908,7 +1914,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "pokeathlon-stat",
-        categoryName: "pokemon", // Related to Pokemon stats
         mode,
         progressLogInterval: 10,
       },
@@ -1925,7 +1930,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "pal-park-area",
-        categoryName: "locations", // Related to locations
         mode,
         progressLogInterval: 10,
       },
@@ -1942,7 +1946,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "nature",
-        categoryName: "pokemon", // Related to Pokemon stats/behavior
         mode,
         progressLogInterval: 25,
       },
@@ -1959,7 +1962,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "berry",
-        categoryName: "items", // Berry-related items
         mode,
         progressLogInterval: 25,
       },
@@ -1976,7 +1978,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "move-learn-method",
-        categoryName: "moves",
         mode,
         progressLogInterval: 10,
       },
@@ -1993,7 +1994,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "egg-group",
-        categoryName: "pokemonSpecies", // Related to species breeding
         mode,
         progressLogInterval: 10,
       },
@@ -2010,7 +2010,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "growth-rate",
-        categoryName: "pokemonSpecies",
         mode,
         progressLogInterval: 10,
       },
@@ -2027,7 +2026,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "pokemon-color",
-        categoryName: "pokemonSpecies",
         mode,
         progressLogInterval: 10,
       },
@@ -2044,7 +2042,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "pokemon-shape",
-        categoryName: "pokemonSpecies",
         mode,
         progressLogInterval: 10,
       },
@@ -2061,7 +2058,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "pokemon-habitat",
-        categoryName: "pokemonSpecies",
         mode,
         progressLogInterval: 10,
       },
@@ -2078,7 +2074,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "berry-flavor",
-        categoryName: "items", // Berry-related
         mode,
         progressLogInterval: 10,
       },
@@ -2095,7 +2090,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "berry-firmness",
-        categoryName: "items",
         mode,
         progressLogInterval: 10,
       },
@@ -2112,7 +2106,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "move-ailment",
-        categoryName: "moves",
         mode,
         progressLogInterval: 10,
       },
@@ -2129,7 +2122,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "move-category",
-        categoryName: "moves",
         mode,
         progressLogInterval: 10,
       },
@@ -2146,7 +2138,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "contest-type",
-        categoryName: "moves", // Contest-related
         mode,
         progressLogInterval: 10,
       },
@@ -2163,7 +2154,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "contest-effect",
-        categoryName: "moves",
         mode,
         progressLogInterval: 10,
       },
@@ -2180,7 +2170,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "super-contest-effect",
-        categoryName: "moves",
         mode,
         progressLogInterval: 10,
       },
@@ -2197,7 +2186,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "item-pocket",
-        categoryName: "items",
         mode,
         progressLogInterval: 10,
       },
@@ -2214,7 +2202,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "item-category",
-        categoryName: "items",
         mode,
         progressLogInterval: 10,
       },
@@ -2231,7 +2218,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "item-fling-effect",
-        categoryName: "items",
         mode,
         progressLogInterval: 10,
       },
@@ -2310,7 +2296,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "encounter-condition",
-        categoryName: "encounters",
         mode,
         progressLogInterval: 10,
       },
@@ -2327,7 +2312,6 @@ export class PokemonDataSeeder {
     await this.seedGeneric(
       {
         endpoint: "evolution-trigger",
-        categoryName: "evolutionChains",
         mode,
         progressLogInterval: 10,
       },
@@ -2451,39 +2435,6 @@ export class PokemonDataSeeder {
     });
   }
 
-  private async processLanguageNames(langData: any): Promise<void> {
-    // Create language names - all languages should exist now
-    if (langData.names && Array.isArray(langData.names)) {
-      for (const nameEntry of langData.names) {
-        const localLanguageId = this.extractIdFromUrl(nameEntry.language.url);
-        if (localLanguageId) {
-          // Verify the local language exists before creating the name
-          const localLanguageExists = await prisma.language.findUnique({
-            where: { id: localLanguageId },
-            select: { id: true },
-          });
-
-          if (localLanguageExists) {
-            await prisma.languageName.upsert({
-              where: {
-                languageId_localLanguageId: {
-                  languageId: langData.id,
-                  localLanguageId,
-                },
-              },
-              update: { name: nameEntry.name },
-              create: {
-                languageId: langData.id,
-                localLanguageId,
-                name: nameEntry.name,
-              },
-            });
-          }
-        }
-      }
-    }
-  }
-
   private async processRegion(region: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const regionData = await this.fetchWithProxy(region.url, mode);
 
@@ -2512,17 +2463,9 @@ export class PokemonDataSeeder {
       }
     }
 
-    await prisma.generation.upsert({
-      where: { id: genData.id },
-      update: {
-        name: genData.name,
-        mainRegionId,
-      },
-      create: {
-        id: genData.id,
-        name: genData.name,
-        mainRegionId,
-      },
+    await this.upsertRecord(prisma.generation, genData.id, {
+      name: genData.name,
+      mainRegionId,
     });
   }
 
@@ -2535,65 +2478,30 @@ export class PokemonDataSeeder {
       throw new Error(`Missing generation ID for version group ${vgData.name}`);
     }
 
-    await prisma.versionGroup.upsert({
-      where: { id: vgData.id },
-      update: {
-        name: vgData.name,
-        order: vgData.order,
-        generationId,
-      },
-      create: {
-        id: vgData.id,
-        name: vgData.name,
-        order: vgData.order,
-        generationId,
-      },
+    // Create version group
+    await this.upsertRecord(prisma.versionGroup, vgData.id, {
+      name: vgData.name,
+      order: vgData.order,
+      generationId,
     });
 
     // Create versions
     for (const version of vgData.versions) {
       const versionData = await this.fetchWithProxy(version.url, mode);
-      await prisma.version.upsert({
-        where: { id: versionData.id },
-        update: {
-          name: versionData.name,
-          versionGroupId: vgData.id,
-        },
-        create: {
-          id: versionData.id,
-          name: versionData.name,
-          versionGroupId: vgData.id,
-        },
+      await this.upsertRecord(prisma.version, versionData.id, {
+        name: versionData.name,
+        versionGroupId: vgData.id,
       });
-      if (versionData.names && Array.isArray(versionData.names)) {
-        for (const nameEntry of versionData.names) {
-          const languageId = this.extractIdFromUrl(nameEntry.language?.url);
-          if (languageId) {
-            // Verify language exists
-            const languageExists = await prisma.language.findUnique({
-              where: { id: languageId },
-              select: { id: true },
-            });
 
-            if (languageExists) {
-              await prisma.versionName.upsert({
-                where: {
-                  versionId_languageId: {
-                    versionId: versionData.id,
-                    languageId,
-                  },
-                },
-                update: { name: nameEntry.name },
-                create: {
-                  versionId: versionData.id,
-                  languageId,
-                  name: nameEntry.name,
-                },
-              });
-            }
-          }
-        }
-      }
+      // Add version names
+      await this.addJoinedRecordData(
+        prisma.versionName,
+        "versionId",
+        versionData.id,
+        versionData.names,
+        ["name"],
+        "languageId"
+      );
     }
   }
 
@@ -2616,35 +2524,7 @@ export class PokemonDataSeeder {
     });
 
     // Create type names
-    for (const nameEntry of typeData.names) {
-      const languageId = this.extractIdFromUrl(nameEntry.language.url);
-      if (languageId) {
-        // Verify language exists
-        const languageExists = await prisma.language.findUnique({
-          where: { id: languageId },
-          select: { id: true },
-        });
-
-        if (languageExists) {
-          await prisma.typeName.upsert({
-            where: {
-              typeId_languageId: {
-                typeId: typeData.id,
-                languageId,
-              },
-            },
-            update: { name: nameEntry.name },
-            create: {
-              typeId: typeData.id,
-              languageId,
-              name: nameEntry.name,
-            },
-          });
-        } else {
-          this.log(`Language ${languageId} not found for type ${typeData.name}, skipping name`, "warn");
-        }
-      }
-    }
+    await this.addJoinedRecordData(prisma.typeName, "typeId", typeData.id, typeData.names, ["name"], "languageId");
   }
 
   private async processTypeEffectiveness(type: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
@@ -2833,56 +2713,18 @@ export class PokemonDataSeeder {
     });
 
     // Create ability names
-    for (const nameEntry of abilityData.names) {
-      const languageId = this.extractIdFromUrl(nameEntry.language.url);
-      if (languageId) {
-        // Verify language exists first
-        const languageExists = await prisma.language.findUnique({
-          where: { id: languageId },
-        });
-        if (!languageExists) {
-          this.log(`Language ${languageId} not found, skipping name`, "warn");
-          continue;
-        }
-
-        await prisma.abilityName.upsert({
-          where: {
-            abilityId_languageId: { abilityId: abilityData.id, languageId },
-          },
-          update: { name: nameEntry.name },
-          create: {
-            abilityId: abilityData.id,
-            languageId,
-            name: nameEntry.name,
-          },
-        });
-      }
-    }
+    await this.addJoinedRecordData(prisma.abilityName, "abilityId", abilityData.id, abilityData.names, ["name"]);
 
     // Create ability effect texts
-    for (const effectEntry of abilityData.effect_entries) {
-      const languageId = this.extractIdFromUrl(effectEntry.language.url);
-      if (languageId) {
-        await prisma.abilityEffectText.upsert({
-          where: {
-            abilityId_languageId: {
-              abilityId: abilityData.id,
-              languageId,
-            },
-          },
-          update: {
-            shortEffect: effectEntry.short_effect,
-            effect: effectEntry.effect,
-          },
-          create: {
-            abilityId: abilityData.id,
-            languageId,
-            shortEffect: effectEntry.short_effect,
-            effect: effectEntry.effect,
-          },
-        });
-      }
-    }
+    const effectEntries = abilityData.effect_entries.map((entry) => ({
+      language: entry.language,
+      shortEffect: entry.short_effect, // Manually map snake_case to camelCase
+      effect: entry.effect,
+    }));
+    await this.addJoinedRecordData(prisma.abilityEffectText, "abilityId", abilityData.id, effectEntries, [
+      "shortEffect",
+      "effect",
+    ]);
 
     // Create ability flavor texts
     if (abilityData.flavor_text_entries && Array.isArray(abilityData.flavor_text_entries)) {
@@ -2991,23 +2833,20 @@ export class PokemonDataSeeder {
     }
 
     // Create the move with all available fields
-    await prisma.move.create({
-      data: {
-        id: moveData.id,
-        name: moveData.name,
-        generationId,
-        typeId,
-        moveDamageClassId,
-        moveTargetId,
-        power: moveData.power,
-        pp: moveData.pp,
-        accuracy: moveData.accuracy,
-        priority: moveData.priority,
-        effectChance: moveData.effect_chance,
-        contestTypeId,
-        contestEffectId,
-        superContestEffectId,
-      },
+    await this.upsertRecord(prisma.move, moveData.id, {
+      name: moveData.name,
+      generationId,
+      typeId,
+      moveDamageClassId,
+      moveTargetId,
+      power: moveData.power,
+      pp: moveData.pp,
+      accuracy: moveData.accuracy,
+      priority: moveData.priority,
+      effectChance: moveData.effect_chance,
+      contestTypeId,
+      contestEffectId,
+      superContestEffectId,
     });
 
     // Create move names
@@ -3027,31 +2866,19 @@ export class PokemonDataSeeder {
     }
 
     // Create move effect entries from effect_entries
-    if (moveData.effect_entries && Array.isArray(moveData.effect_entries)) {
-      for (const effectEntry of moveData.effect_entries) {
-        const languageId = this.extractIdFromUrl(effectEntry.language?.url);
-        if (languageId) {
-          await prisma.moveEffectEntry.upsert({
-            where: {
-              moveId_languageId: {
-                moveId: moveData.id,
-                languageId,
-              },
-            },
-            update: {
-              effect: effectEntry.effect,
-              shortEffect: effectEntry.short_effect,
-            },
-            create: {
-              moveId: moveData.id,
-              languageId,
-              effect: effectEntry.effect,
-              shortEffect: effectEntry.short_effect,
-            },
-          });
-        }
-      }
-    }
+    const effectEntries = moveData.effect_entries.map((entry) => ({
+      language: entry.language,
+      shortEffect: entry.short_effect,
+      effect: entry.effect,
+    }));
+    await this.addJoinedRecordData(
+      prisma.moveEffectEntry,
+      "moveId",
+      moveData.id,
+      effectEntries,
+      ["effect", "shortEffect"],
+      "languageId"
+    );
 
     // Create move flavor texts
     if (moveData.flavor_text_entries && Array.isArray(moveData.flavor_text_entries)) {
@@ -3083,6 +2910,14 @@ export class PokemonDataSeeder {
     }
 
     // Create move stat changes
+    await this.addJoinedRecordData(
+      prisma.moveStatChange,
+      "moveId",
+      moveData.id,
+      moveData.stat_changes,
+      ["change"],
+      "statId"
+    );
     if (moveData.stat_changes && Array.isArray(moveData.stat_changes)) {
       for (const statChange of moveData.stat_changes) {
         const statId = this.extractIdFromUrl(statChange.stat?.url);
@@ -3418,44 +3253,65 @@ export class PokemonDataSeeder {
     }
   }
 
-  private async processItemAttribute(attribute: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
-    const attributeData = await this.fetchWithProxy(attribute.url, mode);
+  private async processItemAttribute(itemAttribute: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
+    const attributeData = await this.fetchWithProxy(itemAttribute.url, mode);
+    if (!attributeData) return;
 
-    // Extract and validate fields
-    const itemId = this.extractIdFromUrl(attributeData.item?.url);
-    const moveId = this.extractIdFromUrl(attributeData.move?.url);
-    const versionGroupId = this.extractIdFromUrl(attributeData.version_group?.url);
+    // Create or update the main ItemAttribute record
+    await this.upsertRecord(prisma.itemAttribute, attributeData.id, { name: attributeData.name });
 
-    if (!itemId || !moveId || !versionGroupId) {
-      throw new Error(`Missing required fields for machine ${attributeData.id}`);
-    }
-
-    // Verify referenced records exist
-    const [itemExists, moveExists, versionGroupExists] = await Promise.all([
-      prisma.item.findUnique({
-        where: { id: itemId },
-        select: { id: true },
-      }),
-      prisma.move.findUnique({
-        where: { id: moveId },
-        select: { id: true },
-      }),
-      prisma.versionGroup.findUnique({
-        where: { id: versionGroupId },
-        select: { id: true },
-      }),
+    // Create attribute names
+    await this.addJoinedRecordData(prisma.itemAttributeName, "itemAttributeId", attributeData.id, attributeData.names, [
+      "name",
     ]);
 
-    if (!itemExists || !moveExists || !versionGroupExists) {
-      throw new Error(`Referenced records not found for machine ${attributeData.id}`);
+    // Create attribute descriptions
+    await this.addJoinedRecordData(
+      prisma.itemAttributeDescription,
+      "itemAttributeId",
+      attributeData.id,
+      attributeData.descriptions,
+      ["description"],
+      "languageId"
+    );
+
+    // Connect attributes to items
+    await this.processItemAttributeMap(attributeData);
+  }
+
+  // Creates records in the ItemItemAttributeMap join table.
+  private async processItemAttributeMap(attributeData: any): Promise<void> {
+    const itemAttributeId = attributeData.id;
+    if (itemAttributeId === undefined) {
+      return;
     }
 
-    // Create machine record
-    await prisma.machine.upsert({
-      where: { id: attributeData.id },
-      update: { itemId, moveId, versionGroupId },
-      create: { id: attributeData.id, itemId, moveId, versionGroupId },
-    });
+    const itemsToLink = attributeData.items;
+    if (!itemsToLink || !Array.isArray(itemsToLink)) {
+      return;
+    }
+
+    const existingItemIds = await this.getExistingIds("item");
+    for (const item of itemsToLink) {
+      const itemId = this.extractIdFromUrl(item.url);
+
+      if (itemId && existingItemIds.has(itemId)) {
+        // Create the record in the join table without the intermediate keyObject.
+        await prisma.itemItemAttributeMap.upsert({
+          where: {
+            itemId_itemAttributeId: {
+              itemAttributeId: itemAttributeId,
+              itemId: itemId,
+            },
+          },
+          update: {},
+          create: {
+            itemAttributeId: itemAttributeId,
+            itemId: itemId,
+          },
+        });
+      }
+    }
   }
 
   private async processMachine(machine: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
@@ -4240,63 +4096,28 @@ export class PokemonDataSeeder {
               }
 
               // Create/update the Pokemon form
-              await prisma.pokemonForm.upsert({
-                where: { id: formData.id },
-                update: {
-                  name: formData.name,
-                  pokemonId: pokemonData.id,
-                  formName: formData.form_name,
-                  versionGroupId,
-                  isDefault: formData.is_default,
-                  isBattleOnly: formData.is_battle_only,
-                  isMega: formData.is_mega,
-                  formOrder: formData.form_order,
-                  order: formData.order,
-                },
-                create: {
-                  id: formData.id,
-                  name: formData.name,
-                  pokemonId: pokemonData.id,
-                  formName: formData.form_name,
-                  versionGroupId,
-                  isDefault: formData.is_default,
-                  isBattleOnly: formData.is_battle_only,
-                  isMega: formData.is_mega,
-                  formOrder: formData.form_order,
-                  order: formData.order,
-                },
+              await this.upsertRecord(prisma.pokemonForm, formData.id, {
+                name: formData.name,
+                pokemonId: pokemonData.id,
+                formName: formData.form_name,
+                versionGroupId,
+                isDefault: formData.is_default,
+                isBattleOnly: formData.is_battle_only,
+                isMega: formData.is_mega,
+                formOrder: formData.form_order,
+                order: formData.order,
               });
 
               // Create form names with null checks
-              if (formData.names && Array.isArray(formData.names)) {
-                for (const nameEntry of formData.names) {
-                  if (!nameEntry || !nameEntry.language || !nameEntry.language.url) {
-                    continue;
-                  }
-
-                  const languageId = this.extractIdFromUrl(nameEntry.language.url);
-                  if (languageId) {
-                    await prisma.pokemonFormName.upsert({
-                      where: {
-                        pokemonFormId_languageId: {
-                          pokemonFormId: formData.id,
-                          languageId,
-                        },
-                      },
-                      update: {
-                        name: nameEntry.name,
-                        pokemonName: nameEntry.pokemon_name,
-                      },
-                      create: {
-                        pokemonFormId: formData.id,
-                        languageId,
-                        name: nameEntry.name,
-                        pokemonName: nameEntry.pokemon_name,
-                      },
-                    });
-                  }
-                }
-              }
+              const formNameEntries = formData.names.map((entry) => ({
+                language: entry.language,
+                pokemon: entry.pokemon,
+                pokemonName: entry.pokemon_name,
+              }));
+              await this.addJoinedRecordData(prisma.pokemonFormName, "pokemonFormId", formData.id, formNameEntries, [
+                "name",
+                "pokemonName",
+              ]);
 
               // Create form types with null checks
               if (formData.types && Array.isArray(formData.types)) {
@@ -4327,21 +4148,11 @@ export class PokemonDataSeeder {
 
               // Create form sprites (sprites shouldn't have URL issues, but being safe)
               if (formData.sprites) {
-                await prisma.pokemonFormSprites.upsert({
-                  where: { pokemonFormId: formData.id },
-                  update: {
-                    frontDefault: formData.sprites.front_default,
-                    frontShiny: formData.sprites.front_shiny,
-                    backDefault: formData.sprites.back_default,
-                    backShiny: formData.sprites.back_shiny,
-                  },
-                  create: {
-                    pokemonFormId: formData.id,
-                    frontDefault: formData.sprites.front_default,
-                    frontShiny: formData.sprites.front_shiny,
-                    backDefault: formData.sprites.back_default,
-                    backShiny: formData.sprites.back_shiny,
-                  },
+                await this.upsertRecord(prisma.pokemonFormSprites, formData.id, {
+                  frontDefault: formData.sprites.front_default,
+                  frontShiny: formData.sprites.front_shiny,
+                  backDefault: formData.sprites.back_default,
+                  backShiny: formData.sprites.back_shiny,
                 });
               }
             } catch (formError) {
@@ -4539,17 +4350,8 @@ export class PokemonDataSeeder {
       order: speciesData.order,
     };
 
-    const createData = {
-      ...speciesBaseData,
-      id: speciesData.id,
-      generationId,
-      colorId,
-      shapeId,
-      growthRateId,
-      habitatId,
-    };
-
-    const updateData = {
+    // Create pokemon species
+    await this.upsertRecord(prisma.pokemonSpecies, speciesData.id, {
       ...speciesBaseData,
       generationId: generationId,
       colorId: colorId,
@@ -4558,43 +4360,22 @@ export class PokemonDataSeeder {
       ...(habitatId !== undefined && {
         habitatId: { set: habitatId },
       }),
-    };
-
-    // Create/update species
-    await prisma.pokemonSpecies.upsert({
-      where: { id: speciesData.id },
-      update: updateData,
-      create: createData,
     });
 
-    // Create species names
-    for (const nameEntry of speciesData.names) {
-      const languageId = this.extractIdFromUrl(nameEntry.language.url);
-      if (languageId) {
-        await prisma.pokemonSpeciesName.upsert({
-          where: {
-            pokemonSpeciesId_languageId: {
-              pokemonSpeciesId: speciesData.id,
-              languageId,
-            },
-          },
-          update: {
-            name: nameEntry.name,
-            genus: speciesData.genera.find(
-              (g: { genus: string; language: NamedAPIResource }) => this.extractIdFromUrl(g.language.url) === languageId
-            )?.genus,
-          },
-          create: {
-            pokemonSpeciesId: speciesData.id,
-            languageId,
-            name: nameEntry.name,
-            genus: speciesData.genera.find(
-              (g: { genus: string; language: NamedAPIResource }) => this.extractIdFromUrl(g.language.url) === languageId
-            )?.genus,
-          },
-        });
-      }
-    }
+    // Create species names and genera
+    const genusMap = new Map(speciesData.genera.map((entry) => [entry.language.name, entry.genus]));
+    const nameAndGenusEntries = speciesData.names.map((nameEntry) => {
+      const matchingGenus = genusMap.get(nameEntry.language.name) || null;
+      return {
+        language: nameEntry.language,
+        name: nameEntry.name,
+        genus: matchingGenus,
+      };
+    });
+    await this.addJoinedRecordData(prisma.pokemonSpeciesName, "pokemonSpeciesId", speciesData.id, nameAndGenusEntries, [
+      "name",
+      "genus",
+    ]);
 
     // Create egg group relationships
     for (const eggGroup of speciesData.egg_groups) {
@@ -4667,84 +4448,26 @@ export class PokemonDataSeeder {
     }
 
     // Create/update the pokedex
-    await prisma.pokedex.upsert({
-      where: { id: pokedexData.id },
-      update: {
-        name: pokedexData.name,
-        isMainSeries: pokedexData.is_main_series,
-        regionId: regionId || undefined,
-      },
-      create: {
-        id: pokedexData.id,
-        name: pokedexData.name,
-        isMainSeries: pokedexData.is_main_series,
-        regionId: regionId || undefined,
-      },
+    await this.upsertRecord(prisma.pokedex, pokedexData.id, {
+      name: pokedexData.name,
+      isMainSeries: pokedexData.is_main_series,
+      regionId: regionId || undefined,
     });
 
     // Create pokedex names
-    if (pokedexData.names && Array.isArray(pokedexData.names)) {
-      for (const nameEntry of pokedexData.names) {
-        const languageId = this.extractIdFromUrl(nameEntry.language.url);
-        if (languageId) {
-          // Verify language exists
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.pokedexName.upsert({
-              where: {
-                pokedexId_languageId: {
-                  pokedexId: pokedexData.id,
-                  languageId,
-                },
-              },
-              update: { name: nameEntry.name },
-              create: {
-                pokedexId: pokedexData.id,
-                languageId,
-                name: nameEntry.name,
-              },
-            });
-          }
-        }
-      }
-    }
+    await this.addJoinedRecordData(prisma.pokedexName, "pokedexId", pokedexData.id, pokedexData.names, ["name"]);
 
     // Create pokedex descriptions
-    if (pokedexData.descriptions && Array.isArray(pokedexData.descriptions)) {
-      for (const descEntry of pokedexData.descriptions) {
-        const languageId = this.extractIdFromUrl(descEntry.language.url);
-        if (languageId) {
-          // Verify language exists
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
+    await this.addJoinedRecordData(
+      prisma.pokedexDescription,
+      "pokedexId",
+      pokedexData.id,
+      pokedexData.descriptions,
+      ["description"],
+      "languageId"
+    );
 
-          if (languageExists) {
-            await prisma.pokedexDescription.upsert({
-              where: {
-                pokedexId_languageId: {
-                  pokedexId: pokedexData.id,
-                  languageId,
-                },
-              },
-              update: { description: descEntry.description },
-              create: {
-                pokedexId: pokedexData.id,
-                languageId,
-                description: descEntry.description,
-              },
-            });
-          }
-        }
-      }
-
-      await this.processVersionGroupPokedexRelationships(pokedexData);
-    }
+    await this.processVersionGroupPokedexRelationships(pokedexData);
 
     // Collect Pokemon entries for later bulk processing
     const pokemonEntries: { pokedexId: number; pokedexNumber: number }[] = [];
@@ -5009,213 +4732,63 @@ export class PokemonDataSeeder {
 
   private async processMoveDamageClass(mdc: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const mdcData = await this.fetchWithProxy(mdc.url, mode);
-
-    // Create/update the move damage class
-    await prisma.moveDamageClass.upsert({
-      where: { id: mdcData.id },
-      update: { name: mdcData.name },
-      create: { id: mdcData.id, name: mdcData.name },
-    });
-
+    // Create the move damage class
+    await this.upsertRecord(prisma.moveDamageClass, mdcData.id, { name: mdcData.name });
     // Create move damage class names
-    if (mdcData.names && Array.isArray(mdcData.names)) {
-      for (const nameEntry of mdcData.names) {
-        const languageId = this.extractIdFromUrl(nameEntry.language?.url);
-        if (languageId) {
-          // Verify language exists
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.moveDamageClassName.upsert({
-              where: {
-                moveDamageClassId_languageId: {
-                  moveDamageClassId: mdcData.id,
-                  languageId,
-                },
-              },
-              update: { name: nameEntry.name },
-              create: {
-                moveDamageClassId: mdcData.id,
-                languageId,
-                name: nameEntry.name,
-              },
-            });
-          }
-        }
-      }
-    }
-
+    await this.addJoinedRecordData(prisma.moveDamageClassName, "moveDamageClassId", mdcData.id, mdcData.names, [
+      "name",
+    ]);
     // Create move damage class descriptions
-    if (mdcData.descriptions && Array.isArray(mdcData.descriptions)) {
-      for (const descEntry of mdcData.descriptions) {
-        const languageId = this.extractIdFromUrl(descEntry.language?.url);
-        if (languageId) {
-          // Verify language exists
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.moveDamageClassDescription.upsert({
-              where: {
-                moveDamageClassId_languageId: {
-                  moveDamageClassId: mdcData.id,
-                  languageId,
-                },
-              },
-              update: { description: descEntry.description },
-              create: {
-                moveDamageClassId: mdcData.id,
-                languageId,
-                description: descEntry.description,
-              },
-            });
-          }
-        }
-      }
-    }
+    await this.addJoinedRecordData(
+      prisma.moveDamageClassDescription,
+      "moveDamageClassId",
+      mdcData.id,
+      mdcData.descriptions,
+      ["description"]
+    );
   }
 
   private async processMoveTargetItem(mt: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const mtData = await this.fetchWithProxy(mt.url, mode);
-    await prisma.moveTarget.upsert({
-      where: { id: mtData.id },
-      update: { name: mtData.name },
-      create: { id: mtData.id, name: mtData.name },
-    });
+    await this.upsertRecord(prisma.moveTarget, mtData.id, { name: mtData.name });
+    await this.addJoinedRecordData(prisma.moveTargetName, "moveTargetId", mtData.id, mtData.names, ["name"]);
+    await this.addJoinedRecordData(prisma.moveTargetDescription, "moveTargetId", mtData.id, mtData.descriptions, [
+      "description",
+    ]);
   }
 
   private async processStat(stat: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const statData = await this.fetchWithProxy(stat.url, mode);
-
-    // Create the stat
-    await prisma.stat.upsert({
-      where: { id: statData.id },
-      update: {
-        name: statData.name,
-        isBattleOnly: statData.is_battle_only,
-        gameIndex: statData.game_index,
-      },
-      create: {
-        id: statData.id,
-        name: statData.name,
-        isBattleOnly: statData.is_battle_only,
-        gameIndex: statData.game_index,
-      },
+    await this.upsertRecord(prisma.stat, statData.id, {
+      name: statData.name,
+      isBattleOnly: statData.is_battle_only,
+      gameIndex: statData.game_index,
     });
-
-    // Create stat names
-    if (statData.names && Array.isArray(statData.names)) {
-      for (const nameEntry of statData.names) {
-        const languageId = this.extractIdFromUrl(nameEntry.language?.url);
-        if (languageId) {
-          // Verify language exists
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.statName.upsert({
-              where: {
-                statId_languageId: {
-                  statId: statData.id,
-                  languageId,
-                },
-              },
-              update: { name: nameEntry.name },
-              create: {
-                statId: statData.id,
-                languageId,
-                name: nameEntry.name,
-              },
-            });
-          } else {
-            this.log(`Language ${languageId} not found for stat ${statData.name}, skipping name`, "warn");
-          }
-        }
-      }
-    }
+    await this.addJoinedRecordData(prisma.statName, "statId", statData.id, statData.names, ["name"]);
   }
 
   private async processGender(gender: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const genderData = await this.fetchWithProxy(gender.url, mode);
-
-    // Create only the gender - no species relationships yet
-    await prisma.gender.upsert({
-      where: { id: genderData.id },
-      update: { name: genderData.name },
-      create: {
-        id: genderData.id,
-        name: genderData.name,
-      },
-    });
+    await this.upsertRecord(prisma.gender, genderData.id, { name: genderData.name });
   }
 
   private async processNature(nature: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const natureData = await this.fetchWithProxy(nature.url, mode);
-
     // Extract optional stat and flavor references
     const decreasedStatId = natureData.decreased_stat ? this.extractIdFromUrl(natureData.decreased_stat.url) : null;
     const increasedStatId = natureData.increased_stat ? this.extractIdFromUrl(natureData.increased_stat.url) : null;
     const hatesFlavorId = natureData.hates_flavor ? this.extractIdFromUrl(natureData.hates_flavor.url) : null;
     const likesFlavorId = natureData.likes_flavor ? this.extractIdFromUrl(natureData.likes_flavor.url) : null;
-
-    // Create the nature (removed gameIndex)
-    await prisma.nature.upsert({
-      where: { id: natureData.id },
-      update: {
-        name: natureData.name,
-        decreasedStatId,
-        increasedStatId,
-        hatesFlavorId,
-        likesFlavorId,
-      },
-      create: {
-        id: natureData.id,
-        name: natureData.name,
-        decreasedStatId,
-        increasedStatId,
-        hatesFlavorId,
-        likesFlavorId,
-      },
+    // Create the nature
+    await this.upsertRecord(prisma.nature, natureData.id, {
+      name: natureData.name,
+      decreasedStatId,
+      increasedStatId,
+      hatesFlavorId,
+      likesFlavorId,
     });
-
     // Create nature names
-    if (natureData.names && Array.isArray(natureData.names)) {
-      for (const nameEntry of natureData.names) {
-        const languageId = this.extractIdFromUrl(nameEntry.language.url);
-        if (languageId) {
-          // Verify language exists
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.natureName.upsert({
-              where: {
-                natureId_languageId: {
-                  natureId: natureData.id,
-                  languageId,
-                },
-              },
-              update: { name: nameEntry.name },
-              create: {
-                natureId: natureData.id,
-                languageId,
-                name: nameEntry.name,
-              },
-            });
-          }
-        }
-      }
-    }
-
+    await this.addJoinedRecordData(prisma.natureName, "natureId", natureData.id, natureData.names, ["name"]);
     // Create nature pokeathlon stat affects (if any)
     if (natureData.pokeathlon_stat_changes && Array.isArray(natureData.pokeathlon_stat_changes)) {
       for (const statChange of natureData.pokeathlon_stat_changes) {
@@ -5290,90 +4863,52 @@ export class PokemonDataSeeder {
 
   private async processPokeathlonStat(stat: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const statData = await this.fetchWithProxy(stat.url, mode);
-
-    // Create the pokeathlon stat
-    await prisma.pokeathlonStat.upsert({
-      where: { id: statData.id },
-      update: { name: statData.name },
-      create: {
-        id: statData.id,
-        name: statData.name,
-      },
-    });
-
-    // Create pokeathlon stat names
-    if (statData.names && Array.isArray(statData.names)) {
-      for (const nameEntry of statData.names) {
-        const languageId = this.extractIdFromUrl(nameEntry.language.url);
-        if (languageId) {
-          // Verify language exists
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.pokeathlonStatName.upsert({
-              where: {
-                pokeathlonStatId_languageId: {
-                  pokeathlonStatId: statData.id,
-                  languageId,
-                },
-              },
-              update: { name: nameEntry.name },
-              create: {
-                pokeathlonStatId: statData.id,
-                languageId,
-                name: nameEntry.name,
-              },
-            });
-          }
-        }
-      }
-    }
+    await this.upsertRecord(prisma.pokeathlonStat, statData.id, { name: statData.name });
+    await this.addJoinedRecordData(prisma.pokeathlonStatName, "pokeathlonStatId", statData.id, statData.names, [
+      "name",
+    ]);
   }
 
   private async processPalParkArea(area: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const areaData = await this.fetchWithProxy(area.url, mode);
+    await this.upsertRecord(prisma.palParkArea, areaData.id, { name: areaData.name });
 
-    // Create the pal park area
-    await prisma.palParkArea.upsert({
-      where: { id: areaData.id },
-      update: { name: areaData.name },
-      create: {
-        id: areaData.id,
-        name: areaData.name,
-      },
-    });
+    await this.addJoinedRecordData(prisma.palParkAreaName, "palParkAreaId", areaData.id, areaData.names, ["name"]);
+    await this.processPalParkEncounters(areaData);
+  }
 
-    // Create pal park area names
-    if (areaData.names && Array.isArray(areaData.names)) {
-      for (const nameEntry of areaData.names) {
-        const languageId = this.extractIdFromUrl(nameEntry.language.url);
-        if (languageId) {
-          // Verify language exists
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
+  private async processPalParkEncounters(areaData: any): Promise<void> {
+    const palParkAreaId = areaData.id;
+    if (palParkAreaId === undefined) {
+      return;
+    }
+    const encountersToLink = areaData.pokemon_encounters;
+    if (!encountersToLink || !Array.isArray(encountersToLink)) {
+      return;
+    }
+    const existingSpeciesIds = await this.getExistingIds("pokemonSpecies");
+    for (const encounter of encountersToLink) {
+      const pokemonSpeciesId = this.extractIdFromUrl(encounter.pokemon_species?.url);
+      if (pokemonSpeciesId && existingSpeciesIds.has(pokemonSpeciesId)) {
+        const dataPayload = {
+          baseScore: encounter.base_score,
+          rate: encounter.rate,
+        };
 
-          if (languageExists) {
-            await prisma.palParkAreaName.upsert({
-              where: {
-                palParkAreaId_languageId: {
-                  palParkAreaId: areaData.id,
-                  languageId,
-                },
-              },
-              update: { name: nameEntry.name },
-              create: {
-                palParkAreaId: areaData.id,
-                languageId,
-                name: nameEntry.name,
-              },
-            });
-          }
-        }
+        await prisma.palParkEncounter.upsert({
+          where: {
+            pokemonSpeciesId_palParkAreaId: {
+              pokemonSpeciesId: pokemonSpeciesId,
+              palParkAreaId: palParkAreaId,
+            },
+          },
+          update: dataPayload,
+          create: {
+            pokemonSpeciesId: pokemonSpeciesId,
+            palParkAreaId: palParkAreaId,
+            ...dataPayload,
+          },
+        });
       }
     }
   }
@@ -5390,170 +4925,71 @@ export class PokemonDataSeeder {
       throw new Error(`Missing required fields for berry ${berryData.name}`);
     }
 
-    // Create the berry
-    await prisma.berry.upsert({
-      where: { id: berryData.id },
-      update: {
-        name: berryData.name,
-        berryFirmnessId,
-        naturalGiftPower: berryData.natural_gift_power,
-        naturalGiftTypeId,
-        size: berryData.size,
-        maxHarvest: berryData.max_harvest,
-        growthTime: berryData.growth_time,
-        soilDryness: berryData.soil_dryness,
-        smoothness: berryData.smoothness,
-        itemId,
-      },
-      create: {
-        id: berryData.id,
-        name: berryData.name,
-        berryFirmnessId,
-        naturalGiftPower: berryData.natural_gift_power,
-        naturalGiftTypeId,
-        size: berryData.size,
-        maxHarvest: berryData.max_harvest,
-        growthTime: berryData.growth_time,
-        soilDryness: berryData.soil_dryness,
-        smoothness: berryData.smoothness,
-        itemId,
-      },
+    // Create berry
+    await this.upsertRecord(prisma.berry, berryData.id, {
+      name: berryData.name,
+      berryFirmnessId,
+      naturalGiftPower: berryData.natural_gift_power,
+      naturalGiftTypeId,
+      size: berryData.size,
+      maxHarvest: berryData.max_harvest,
+      growthTime: berryData.growth_time,
+      soilDryness: berryData.soil_dryness,
+      smoothness: berryData.smoothness,
+      itemId,
     });
 
     // Create berry flavor mappings
-    if (berryData.flavors && Array.isArray(berryData.flavors)) {
-      for (const flavorEntry of berryData.flavors) {
-        const berryFlavorId = this.extractIdFromUrl(flavorEntry.flavor.url);
-        if (berryFlavorId) {
-          // Verify berry flavor exists
-          const berryFlavorExists = await prisma.berryFlavor.findUnique({
-            where: { id: berryFlavorId },
-            select: { id: true },
-          });
-
-          if (berryFlavorExists) {
-            await prisma.berryFlavorMap.upsert({
-              where: {
-                berryId_berryFlavorId: {
-                  berryId: berryData.id,
-                  berryFlavorId,
-                },
-              },
-              update: { potency: flavorEntry.potency },
-              create: {
-                berryId: berryData.id,
-                berryFlavorId,
-                potency: flavorEntry.potency,
-              },
-            });
-          }
-        }
-      }
-    }
+    await this.addJoinedRecordData(
+      prisma.berryFlavorMap,
+      "berryId",
+      berryData.id,
+      berryData.flavors,
+      ["potency"],
+      "berryFlavorId"
+    );
   }
 
   private async processMoveLearnMethod(mlm: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const mlmData = await this.fetchWithProxy(mlm.url, mode);
-    await prisma.moveLearnMethod.upsert({
-      where: { id: mlmData.id },
-      update: { name: mlmData.name },
-      create: { id: mlmData.id, name: mlmData.name },
-    });
+    await this.upsertRecord(prisma.moveLearnMethod, mlmData.id, { name: mlmData.name });
+    await this.addJoinedRecordData(prisma.moveLearnMethodName, "moveLearnMethodId", mlmData.id, mlmData.names, [
+      "name",
+    ]);
+    await this.addJoinedRecordData(
+      prisma.moveLearnMethodDescription,
+      "moveLearnMethodId",
+      mlmData.id,
+      mlmData.descriptions,
+      ["description"],
+      "languageId"
+    );
   }
 
   private async processEggGroup(eggGroup: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const eggGroupData = await this.fetchWithProxy(eggGroup.url, mode);
-    await prisma.eggGroup.upsert({
-      where: { id: eggGroupData.id },
-      update: { name: eggGroupData.name },
-      create: { id: eggGroupData.id, name: eggGroupData.name },
-    });
+    await this.upsertRecord(prisma.eggGroup, eggGroupData.id, eggGroupData.name);
 
     // Upsert egg group names
-    if (eggGroupData.names && Array.isArray(eggGroupData.names)) {
-      for (const nameEntry of eggGroupData.names) {
-        const languageId = this.extractIdFromUrl(nameEntry.language.url);
-        if (languageId) {
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.eggGroupName.upsert({
-              where: {
-                eggGroupId_languageId: {
-                  // This composite key is based on your schema update
-                  eggGroupId: eggGroupData.id,
-                  languageId,
-                },
-              },
-              update: {
-                name: nameEntry.name,
-              },
-              create: {
-                eggGroupId: eggGroupData.id,
-                languageId,
-                name: nameEntry.name,
-              },
-            });
-          } else {
-            this.log(`Language ${languageId} not found for egg group ${eggGroupData.name}, skipping name`, "warn");
-          }
-        }
-      }
-    }
+    await this.addJoinedRecordData(prisma.eggGroupName, "eggGroupId", eggGroupData.id, eggGroupData.names, ["name"]);
   }
 
   private async processGrowthRate(growthRate: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const growthRateData = await this.fetchWithProxy(growthRate.url, mode);
-    await prisma.growthRate.upsert({
-      where: { id: growthRateData.id },
-      update: { name: growthRateData.name, formula: growthRateData.formula },
-      create: {
-        id: growthRateData.id,
-        name: growthRateData.name,
-        formula: growthRateData.formula,
-      },
+    await this.upsertRecord(prisma.growthRate, growthRateData.id, {
+      name: growthRateData.name,
+      formula: growthRateData.formula,
     });
 
     // Upsert growth rate descriptions
-    if (growthRateData.descriptions && Array.isArray(growthRateData.descriptions)) {
-      for (const description of growthRateData.descriptions) {
-        const languageId = this.extractIdFromUrl(description.language.url);
-        if (languageId) {
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.growthRateDescription.upsert({
-              where: {
-                growthRateId_languageId: {
-                  // This is the composite key from your schema
-                  growthRateId: growthRateData.id,
-                  languageId,
-                },
-              },
-              update: {
-                description: description.description,
-              },
-              create: {
-                growthRateId: growthRateData.id,
-                languageId,
-                description: description.description,
-              },
-            });
-          } else {
-            this.log(
-              `Language ${languageId} not found for growth rate ${growthRateData.name}, skipping description`,
-              "warn"
-            );
-          }
-        }
-      }
-    }
+    await this.addJoinedRecordData(
+      prisma.growthRateDescription,
+      "growthRateId",
+      growthRateData.id,
+      growthRateData.descriptions,
+      ["description"],
+      "languageId"
+    );
 
     // Upsert growth rate experience levels
     if (growthRateData.levels && Array.isArray(growthRateData.levels)) {
@@ -5581,481 +5017,191 @@ export class PokemonDataSeeder {
 
   private async processPokemonColor(pkmnColor: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const pkmnColorData = await this.fetchWithProxy(pkmnColor.url, mode);
-    await prisma.pokemonColor.upsert({
-      where: { id: pkmnColorData.id },
-      update: { name: pkmnColorData.name },
-      create: {
-        id: pkmnColorData.id,
-        name: pkmnColorData.name,
-      },
-    });
+    await this.upsertRecord(prisma.pokemonColor, pkmnColorData.id, { name: pkmnColorData.name });
+    await this.addJoinedRecordData(prisma.pokemonColorName, "pokemonColorId", pkmnColorData.id, pkmnColorData.names, [
+      "name",
+    ]);
   }
 
   private async processPokemonShape(pkmnShape: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const pkmnShapeData = await this.fetchWithProxy(pkmnShape.url, mode);
-    await prisma.pokemonShape.upsert({
-      where: { id: pkmnShapeData.id },
-      update: { name: pkmnShapeData.name },
-      create: {
-        id: pkmnShapeData.id,
-        name: pkmnShapeData.name,
-      },
-    });
+    await this.upsertRecord(prisma.pokemonShape, pkmnShapeData.id, { name: pkmnShapeData.name });
+    await this.addJoinedRecordData(prisma.pokemonShapeName, "pokemonShapeId", pkmnShapeData.id, pkmnShapeData.names, [
+      "name",
+    ]);
+    const awesomeNameEntries = pkmnShapeData.awesome_names.map((entry) => ({
+      language: entry.language,
+      awesomeName: entry.awesome_name,
+    }));
+    await this.addJoinedRecordData(
+      prisma.PokemonShapeAwesomeName,
+      "pokemonShapeId",
+      pkmnShapeData.id,
+      awesomeNameEntries,
+      ["awesomeName"]
+    );
   }
 
   private async processPokemonHabitat(pkmnHabitat: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const pkmnHabitatData = await this.fetchWithProxy(pkmnHabitat.url, mode);
-    await prisma.pokemonHabitat.upsert({
-      where: { id: pkmnHabitatData.id },
-      update: { name: pkmnHabitatData.name },
-      create: {
-        id: pkmnHabitatData.id,
-        name: pkmnHabitatData.name,
-      },
-    });
+    await this.upsertRecord(prisma.pokemonHabitat, pkmnHabitatData.id, { name: pkmnHabitatData.name });
+    await this.addJoinedRecordData(
+      prisma.pokemonHabitatName,
+      "pokemonHabitatId",
+      pkmnHabitatData.id,
+      pkmnHabitatData.names,
+      ["name"]
+    );
   }
 
   private async processBerryFlavor(bflav: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const bflavData = await this.fetchWithProxy(bflav.url, mode);
-
-    // Create the berry flavor
-    await prisma.berryFlavor.create({
-      data: { id: bflavData.id, name: bflavData.name },
-    });
-
-    // Create berry flavor names
-    if (bflavData.names && Array.isArray(bflavData.names)) {
-      for (const nameEntry of bflavData.names) {
-        const languageId = this.extractIdFromUrl(nameEntry.language.url);
-        if (languageId) {
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.berryFlavorName.create({
-              data: {
-                berryFlavorId: bflavData.id,
-                languageId,
-                name: nameEntry.name,
-              },
-            });
-          } else {
-            this.log(`Language ${languageId} not found for berry flavor ${bflavData.name}, skipping name`, "warn");
-          }
-        }
-      }
-    }
+    await this.upsertRecord(prisma.berryFlavor, bflavData.id, { name: bflavData.name });
+    await this.addJoinedRecordData(prisma.berryFlavorName, "berryFlavorId", bflavData.id, bflavData.names, ["name"]);
   }
 
   private async processBerryFirmness(bfirm: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const bfirmData = await this.fetchWithProxy(bfirm.url, mode);
-
-    // Create the berry firmness
-    await prisma.berryFirmness.create({
-      data: { id: bfirmData.id, name: bfirmData.name },
-    });
-
-    // Create berry firmness names
-    if (bfirmData.names && Array.isArray(bfirmData.names)) {
-      for (const nameEntry of bfirmData.names) {
-        const languageId = this.extractIdFromUrl(nameEntry.language.url);
-        if (languageId) {
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.berryFirmnessName.create({
-              data: {
-                berryFirmnessId: bfirmData.id,
-                languageId,
-                name: nameEntry.name,
-              },
-            });
-          } else {
-            this.log(`Language ${languageId} not found for berry firmness ${bfirmData.name}, skipping name`, "warn");
-          }
-        }
-      }
-    }
+    await this.upsertRecord(prisma.berryFirmness, bfirmData.id, { name: bfirmData.name });
+    await this.addJoinedRecordData(prisma.berryFirmnessName, "berryFirmnessId", bfirmData.id, bfirmData.names, [
+      "name",
+    ]);
   }
 
   private async processMoveMetaAilment(mma: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const mmaData = await this.fetchWithProxy(mma.url, mode);
-
-    // Create the move meta ailment
-    await prisma.moveMetaAilment.create({
-      data: { id: mmaData.id, name: mmaData.name },
-    });
-
-    // Create move meta ailment names with validation
-    if (mmaData.names && Array.isArray(mmaData.names)) {
-      for (const nameEntry of mmaData.names) {
-        const languageId = this.extractIdFromUrl(nameEntry.language.url);
-        if (languageId) {
-          // Validate existing language
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.moveMetaAilmentName.create({
-              data: {
-                moveMetaAilmentId: mmaData.id,
-                languageId,
-                name: nameEntry.name,
-              },
-            });
-          } else {
-            this.log(`Language ${languageId} not found for move meta ailment ${mmaData.name}, skipping name`, "warn");
-          }
-        }
-      }
-    }
+    await this.upsertRecord(prisma.moveMetaAilment, mmaData.id, { name: mmaData.name });
+    await this.addJoinedRecordData(prisma.moveMetaAilmentName, "moveMetaAilmentId", mmaData.id, mmaData.names, [
+      "name",
+    ]);
   }
 
   private async processMoveMetaCategory(mmc: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const mmcData = await this.fetchWithProxy(mmc.url, mode);
-
-    // Create the move meta category
-    await prisma.moveMetaCategory.create({
-      data: { id: mmcData.id, name: mmcData.name },
-    });
-
-    // Create move meta category descriptions
-    if (mmcData.descriptions && Array.isArray(mmcData.descriptions)) {
-      for (const descEntry of mmcData.descriptions) {
-        const languageId = this.extractIdFromUrl(descEntry.language.url);
-        if (languageId) {
-          await prisma.moveMetaCategoryDescription.create({
-            data: {
-              moveMetaCategoryId: mmcData.id,
-              languageId,
-              description: descEntry.description,
-            },
-          });
-        }
-      }
-    }
+    await this.upsertRecord(prisma.moveMetaCategory, mmcData.id, { name: mmcData.name });
+    await this.addJoinedRecordData(
+      prisma.moveMetaCategoryDescription,
+      "moveMetaCategoryId",
+      mmcData.id,
+      mmcData.descriptions,
+      ["description"]
+    );
   }
 
   private async processContestType(ct: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const ctData = await this.fetchWithProxy(ct.url, mode);
-
-    // Extract berry flavor ID (optional)
     const berryFlavorId = ctData.berry_flavor ? this.extractIdFromUrl(ctData.berry_flavor.url) : null;
-
-    await prisma.contestType.create({
-      data: {
-        id: ctData.id,
-        name: ctData.name,
-        berryFlavorId,
-      },
-    });
-
-    // Create contest type names
-    if (ctData.names && Array.isArray(ctData.names)) {
-      for (const nameEntry of ctData.names) {
-        const languageId = this.extractIdFromUrl(nameEntry.language.url);
-        if (languageId) {
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.contestTypeName.create({
-              data: {
-                contestTypeId: ctData.id,
-                languageId,
-                name: nameEntry.name,
-                color: nameEntry.color,
-              },
-            });
-          }
-        }
-      }
-    }
+    await this.upsertRecord(prisma.contestType, ctData.id, { name: ctData.name, berryFlavorId });
+    await this.addJoinedRecordData(prisma.contestTypeName, "contestTypeId", ctData.id, ctData.names, ["name", "color"]);
   }
 
   private async processContestEffect(ce: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const ceData = await this.fetchWithProxy(ce.url, mode);
-
-    await prisma.contestEffect.create({
-      data: {
-        id: ceData.id,
-        appeal: ceData.appeal,
-        jam: ceData.jam,
-      },
-    });
+    // Create contest effect
+    await this.upsertRecord(prisma.contestEffect, ceData.id, { appeal: ceData.appeal, jam: ceData.jam });
 
     // Create contest effect entries
-    if (ceData.effect_entries && Array.isArray(ceData.effect_entries)) {
-      for (const effectEntry of ceData.effect_entries) {
-        const languageId = this.extractIdFromUrl(effectEntry.language.url);
-        if (languageId) {
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.contestEffectEntry.create({
-              data: {
-                contestEffectId: ceData.id,
-                languageId,
-                effect: effectEntry.effect,
-              },
-            });
-          }
-        }
-      }
-    }
+    await this.addJoinedRecordData(prisma.contestEffectEntry, "contestEffectId", ceData.id, ceData.effect_entries, [
+      "effect",
+    ]);
 
     // Create contest effect flavor texts
-    if (ceData.flavor_text_entries && Array.isArray(ceData.flavor_text_entries)) {
-      for (const flavorEntry of ceData.flavor_text_entries) {
-        const languageId = this.extractIdFromUrl(flavorEntry.language.url);
-        if (languageId) {
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.contestEffectFlavorText.create({
-              data: {
-                contestEffectId: ceData.id,
-                languageId,
-                flavorText: flavorEntry.flavor_text,
-              },
-            });
-          }
-        }
-      }
-    }
+    const contestEffectFlavorTextEntries = ceData.flavor_text_entries.map((entry) => ({
+      language: entry.language,
+      flavorText: entry.flavor_text,
+    }));
+    await this.addJoinedRecordData(
+      prisma.contestEffectFlavorText,
+      "contestEffectId",
+      ceData.id,
+      contestEffectFlavorTextEntries,
+      ["flavorText"]
+    );
   }
 
   private async processSuperContestEffect(sce: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const sceData = await this.fetchWithProxy(sce.url, mode);
-
-    await prisma.superContestEffect.create({
-      data: {
-        id: sceData.id,
-        appeal: sceData.appeal,
-      },
-    });
-
-    // Create super contest effect flavor texts
-    if (sceData.flavor_text_entries && Array.isArray(sceData.flavor_text_entries)) {
-      for (const flavorEntry of sceData.flavor_text_entries) {
-        const languageId = this.extractIdFromUrl(flavorEntry.language.url);
-        if (languageId) {
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.superContestEffectFlavorText.create({
-              data: {
-                superContestEffectId: sceData.id,
-                languageId,
-                flavorText: flavorEntry.flavor_text,
-              },
-            });
-          }
-        }
-      }
-    }
+    await this.upsertRecord(prisma.superContestEffect, sceData.id, { appeal: sceData.appeal });
+    const superContestEffectFlavorTextEntries = sceData.flavor_text_entries.map((entry) => ({
+      language: entry.language,
+      flavorText: entry.flavor_text,
+    }));
+    await this.addJoinedRecordData(
+      prisma.superContestEffectFlavorText,
+      "superContestEffectId",
+      sceData.id,
+      superContestEffectFlavorTextEntries,
+      ["flavorText"]
+    );
   }
 
   private async processItemPocket(pocket: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const pocketData = await this.fetchWithProxy(pocket.url, mode);
-    await prisma.itemPocket.upsert({
-      where: { id: pocketData.id },
-      update: { name: pocketData.name },
-      create: { id: pocketData.id, name: pocketData.name },
-    });
+    await this.upsertRecord(prisma.itemPocket, pocketData.id, { name: pocketData.name });
+    await this.addJoinedRecordData(prisma.itemPocketName, "itemPocketId", pocketData.id, pocketData.names, ["name"]);
   }
 
   private async processItemCategory(category: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const categoryData = await this.fetchWithProxy(category.url, mode);
-
-    // Required field
     const pocketId = this.extractIdFromUrl(categoryData.pocket.url);
     if (!pocketId) {
       throw new Error(`Missing pocket ID for category ${categoryData.name}`);
     }
-
-    await prisma.itemCategory.upsert({
-      where: { id: categoryData.id },
-      update: {
-        name: categoryData.name,
-        pocketId: pocketId,
-      },
-      create: {
-        id: categoryData.id,
-        name: categoryData.name,
-        pocketId: pocketId,
-      },
-    });
+    await this.upsertRecord(prisma.itemCategory, categoryData.id, { name: categoryData.name, pocketId: pocketId });
+    await this.addJoinedRecordData(prisma.itemCategoryName, "itemCategoryId", categoryData.id, categoryData.names, [
+      "name",
+    ]);
   }
 
   private async processItemFlingEffect(flingEffect: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const flingEffectData = await this.fetchWithProxy(flingEffect.url, mode);
-    await prisma.itemFlingEffect.upsert({
-      where: { id: flingEffectData.id },
-      update: { name: flingEffectData.name },
-      create: {
-        id: flingEffectData.id,
-        name: flingEffectData.name,
-      },
-    });
-
+    await this.upsertRecord(prisma.itemFlingEffect, flingEffectData.id, { name: flingEffectData.name });
     // Create fling effect entries
-    if (flingEffectData.effect_entries && Array.isArray(flingEffectData.effect_entries)) {
-      for (const flingEffectEntry of flingEffectData.effect_entries) {
-        const languageId = this.extractIdFromUrl(flingEffectEntry.language.url);
-        if (languageId) {
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            console.log({ languageId, itemFlingEffectId: flingEffectData.id, effect: flingEffectEntry.effect });
-            await prisma.itemFlingEffectEffectText.upsert({
-              where: {
-                itemFlingEffectId_languageId: {
-                  itemFlingEffectId: flingEffectData.id,
-                  languageId,
-                },
-              },
-              update: { effect: flingEffectEntry.effect },
-              create: {
-                itemFlingEffectId: flingEffectData.id,
-                languageId,
-                effect: flingEffectEntry.effect,
-              },
-            });
-          }
-        }
-      }
-    }
+    this.addJoinedRecordData(
+      prisma.itemFlingEffectEffectText,
+      "itemFlingEffectId",
+      flingEffectData.id,
+      flingEffectData.effect_entries,
+      ["effect"]
+    );
   }
 
   private async processEncounterCondition(condition: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const conditionData = await this.fetchWithProxy(condition.url, mode);
-
     // Create the encounter condition
-    await prisma.encounterCondition.upsert({
-      where: { id: conditionData.id },
-      update: { name: conditionData.name },
-      create: {
-        id: conditionData.id,
-        name: conditionData.name,
-      },
-    });
-
+    await this.upsertRecord(prisma.encounterCondition, conditionData.id, { name: conditionData.name });
     // Create encounter condition names
-    if (conditionData.names && Array.isArray(conditionData.names)) {
-      for (const nameEntry of conditionData.names) {
-        const languageId = this.extractIdFromUrl(nameEntry.language.url);
-        if (languageId) {
-          const languageExists = await prisma.language.findUnique({
-            where: { id: languageId },
-            select: { id: true },
-          });
-
-          if (languageExists) {
-            await prisma.encounterConditionName.upsert({
-              where: {
-                encounterConditionId_languageId: {
-                  encounterConditionId: conditionData.id,
-                  languageId,
-                },
-              },
-              update: { name: nameEntry.name },
-              create: {
-                encounterConditionId: conditionData.id,
-                languageId,
-                name: nameEntry.name,
-              },
-            });
-          }
-        }
-      }
-    }
-
+    this.addJoinedRecordData(
+      prisma.encounterConditionName,
+      "encounterConditionId",
+      conditionData.id,
+      conditionData.name,
+      ["name"]
+    );
     // Create encounter condition values
     if (conditionData.values && Array.isArray(conditionData.values)) {
       for (const valueRef of conditionData.values) {
         const valueData = await this.fetchWithProxy(valueRef.url, mode);
-
-        await prisma.encounterConditionValue.upsert({
-          where: { id: valueData.id },
-          update: {
-            name: valueData.name,
-            encounterConditionId: conditionData.id,
-            isDefault: valueData.is_default,
-          },
-          create: {
-            id: valueData.id,
-            name: valueData.name,
-            encounterConditionId: conditionData.id,
-            isDefault: valueData.is_default,
-          },
+        await this.upsertRecord(prisma.encounterConditionValue, valueData.id, {
+          name: valueData.name,
+          encounterConditionId: conditionData.id,
+          isDefault: valueData.is_default,
         });
-
         // Create encounter condition value names
-        if (valueData.names && Array.isArray(valueData.names)) {
-          for (const nameEntry of valueData.names) {
-            const languageId = this.extractIdFromUrl(nameEntry.language.url);
-            if (languageId) {
-              const languageExists = await prisma.language.findUnique({
-                where: { id: languageId },
-                select: { id: true },
-              });
-
-              if (languageExists) {
-                await prisma.encounterConditionValueName.upsert({
-                  where: {
-                    encounterConditionValueId_languageId: {
-                      encounterConditionValueId: valueData.id,
-                      languageId,
-                    },
-                  },
-                  update: { name: nameEntry.name },
-                  create: {
-                    encounterConditionValueId: valueData.id,
-                    languageId,
-                    name: nameEntry.name,
-                  },
-                });
-              }
-            }
-          }
-        }
+        this.addJoinedRecordData(
+          prisma.encounterConditionValueName,
+          "encounterConditionValueId",
+          valueData.id,
+          valueData.names,
+          ["name"]
+        );
       }
     }
   }
 
   private async processEvolutionTrigger(trigger: NamedAPIResource, mode: "premium" | "standard"): Promise<void> {
     const triggerData = await this.fetchWithProxy(trigger.url, mode);
-
-    await prisma.evolutionTrigger.upsert({
-      where: { id: triggerData.id },
-      update: { name: triggerData.name },
-      create: {
-        id: triggerData.id,
-        name: triggerData.name,
-      },
-    });
+    await this.upsertRecord(prisma.evolutionTrigger, triggerData.id, { name: triggerData.name });
   }
 
   // ======================================================
