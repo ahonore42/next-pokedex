@@ -2,6 +2,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator pothos {
+  provider = "prisma-pothos-types"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -70,7 +74,6 @@ model Language {
   pokemonHabitatNames             PokemonHabitatName[]
   pokemonShapeAwesomeNames        PokemonShapeAwesomeName[]
   pokemonShapeNames               PokemonShapeName[]
-  pokemonSpeciesDescriptions      PokemonSpeciesDescription[]
   pokemonSpeciesFlavorTexts       PokemonSpeciesFlavorText[]
   pokemonSpeciesNames             PokemonSpeciesName[]
   statNames                       StatName[]
@@ -838,6 +841,7 @@ model Item {
   name           String @unique
   itemCategoryId Int  @map("item_category_id")
   cost           Int  @default(0)
+  sprite         String?
   flingPower     Int? @map("fling_power")
   flingEffectId  Int? @map("fling_effect_id")
 
@@ -1118,7 +1122,6 @@ model PokemonSpecies {
   growthRate           GrowthRate              @relation(fields: [growthRateId], references: [id])
   pokemon              Pokemon[]
   names                PokemonSpeciesName[]
-  descriptions         PokemonSpeciesDescription[]
   flavorTexts          PokemonSpeciesFlavorText[]
   eggGroups            PokemonSpeciesEggGroup[]
   pokemonEvolutions    PokemonEvolution[]
@@ -1149,19 +1152,6 @@ model PokemonSpeciesName {
 
   @@id([pokemonSpeciesId, languageId])
   @@map("pokemon_species_names")
-}
-
-model PokemonSpeciesDescription {
-  pokemonSpeciesId Int @map("pokemon_species_id")
-  languageId       Int @map("language_id")
-  description      String @db.Text
-
-  // Relations
-  pokemonSpecies PokemonSpecies @relation(fields: [pokemonSpeciesId], references: [id], onDelete: Cascade)
-  language       Language       @relation(fields: [languageId], references: [id], onDelete: Cascade)
-
-  @@id([pokemonSpeciesId, languageId])
-  @@map("pokemon_species_descriptions")
 }
 
 model PokemonSpeciesFlavorText {
