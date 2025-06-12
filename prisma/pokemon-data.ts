@@ -1,5 +1,6 @@
 // Pokemon Data Seeding System with Prisma ORM, Rate Limiting, and Proxy
 import { PrismaClient } from '@prisma/client';
+import type { Language } from '@prisma/client';
 import axios from 'axios';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 
@@ -23,7 +24,7 @@ export interface AppConfig {
 }
 
 export interface LanguageEntry {
-  language: prisma.language;
+  language: Language;
   [key: string]: any;
 }
 
