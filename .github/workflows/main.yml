@@ -18,15 +18,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v3
         with:
           version: 8.5.1
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 22.x
           cache: 'pnpm' # You can active this cache when your repo has a lockfile
@@ -38,7 +38,7 @@ jobs:
         run: pnpm exec playwright install chromium
 
       - name: Next.js cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.next/cache
           key: ${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-nextjs
@@ -54,11 +54,10 @@ jobs:
 
       - name: Upload test results
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: test results
-          path: |
-            playwright/test-results
+          name: test-results
+          path: playwright/test-results
 
   unit:
     name: 'Unit tests + typecheck'
@@ -77,15 +76,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v3
         with:
           version: 8.5.1
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 22.x
           cache: 'pnpm' # You can active this cache when your repo has a lockfile
@@ -94,7 +93,7 @@ jobs:
         run: pnpm install
 
       - name: Next.js cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.next/cache
           key: ${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-nextjs
@@ -104,3 +103,4 @@ jobs:
 
       - run: pnpm test-unit
       - run: pnpm tsc
+
