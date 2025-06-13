@@ -22,9 +22,8 @@ export type RouterOutputs = inferRouterOutputs<AppRouter>;
 export type PokemonListResponse = RouterOutputs['pokemon']['list'];
 export type PokemonById = RouterOutputs['pokemon']['byId'];
 export type PokemonByName = RouterOutputs['pokemon']['byName'];
-// Extract just the pokemon array
 export type PokemonArray = PokemonListResponse['pokemon'];
-
+export type DbStats = RouterOutputs['pokemon']['dbStats'];
 // // Extract individual Pokemon type
 // type Pokemon = PokemonArray[number];
 // // or alternatively:
