@@ -1,158 +1,85 @@
 import { trpc } from '../utils/trpc';
 import type { NextPageWithLayout } from './_app';
-import type { inferProcedureInput } from '@trpc/server';
-import Link from 'next/link';
-import { Fragment } from 'react';
-import type { AppRouter } from '~/server/routers/_app';
+// import type { inferProcedureInput } from '@trpc/server';
+// import Link from 'next/link';
+// import type { AppRouter } from '~/server/routers/_app';
+import { useEffect, useState } from 'react';
+import { DbStats, PokemonArray } from '~/server/routers/_app';
+import HeaderMenu from '~/components/layout/HeaderMenu';
+import QuickAccess from '~/components/layout/QuickAccess';
+import SearchBar from '~/components/layout/SearchBar';
+import LatestUpdates from '~/components/informational/LatestUpdates';
+import FooterMenu from '~/components/layout/FooterMenu';
+import Pokeball from '~/components/ui/Pokeball';
+import DatabaseStats from '~/components/informational/DatabaseStats';
+import FeaturedPokemonDisplay from '~/components/informational/FeaturedPokemonDisplay';
 
 const IndexPage: NextPageWithLayout = () => {
+  const [pokemon, setPokemon] = useState<PokemonArray>([]);
+  const [dbStats, setDbStats] = useState<DbStats | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(false);
   const utils = trpc.useUtils();
-  const postsQuery = trpc.post.list.useInfiniteQuery(
-    {
-      limit: 5,
-    },
-    {
-      getNextPageParam(lastPage) {
-        return lastPage.nextCursor;
-      },
-    },
-  );
+  const pokemonQuery = trpc.pokemon.featured.useQuery();
+  const statsQuery = trpc.pokemon.dbStats.useQuery();
 
-  const addPost = trpc.post.add.useMutation({
-    async onSuccess() {
-      // refetches posts after a post is added
-      await utils.post.list.invalidate();
-    },
-  });
-
-  // prefetch all posts for instant navigation
-  // useEffect(() => {
-  //   const allPosts = postsQuery.data?.pages.flatMap((page) => page.items) ?? [];
-  //   for (const { id } of allPosts) {
-  //     void utils.post.byId.prefetch({ id });
-  //   }
-  // }, [postsQuery.data, utils]);
+  useEffect(() => {
+    if (pokemon.length < 1) {
+      setIsLoading(true);
+    }
+    const pokemonList = pokemonQuery.data?.pokemon ?? [];
+    const stats = statsQuery.data;
+    for (const { id } of pokemonList) {
+      void utils.pokemon.byId.prefetch({ id });
+    }
+    setPokemon(pokemonList);
+    setDbStats(stats);
+    setIsLoading(false);
+  }, [pokemonQuery.data, utils, pokemon.length, statsQuery.data]);
 
   return (
-    <div className="flex flex-col bg-gray-800 py-8">
-      <h1 className="text-4xl font-bold">
-        Welcome to your tRPC with Prisma starter!
-      </h1>
-      <p className="text-gray-400">
-        If you get stuck, check{' '}
-        <Link className="underline" href="https://trpc.io">
-          the docs
-        </Link>
-        , write a message in our{' '}
-        <Link className="underline" href="https://trpc.io/discord">
-          Discord-channel
-        </Link>
-        , or write a message in{' '}
-        <Link
-          className="underline"
-          href="https://github.com/trpc/trpc/discussions"
-        >
-          GitHub Discussions
-        </Link>
-        .
-      </p>
+    <div
+      className="min-h-screen transition-colors duration-300"
+      style={{ backgroundColor: 'var(--color-background)' }}
+    >
+      <HeaderMenu />
 
-      <div className="flex flex-col py-8 items-start gap-y-2">
-        <div className="flex flex-col"></div>
-        <h2 className="text-3xl font-semibold">
-          Latest Posts
-          {postsQuery.status === 'pending' && '(loading)'}
-        </h2>
-
-        <button
-          className="bg-gray-900 p-2 rounded-md font-semibold disabled:bg-gray-700 disabled:text-gray-400"
-          onClick={() => postsQuery.fetchNextPage()}
-          disabled={!postsQuery.hasNextPage || postsQuery.isFetchingNextPage}
-        >
-          {postsQuery.isFetchingNextPage
-            ? 'Loading more...'
-            : postsQuery.hasNextPage
-              ? 'Load More'
-              : 'Nothing more to load'}
-        </button>
-
-        {postsQuery.data?.pages.map((page, index) => (
-          <Fragment key={page.items[0]?.id || index}>
-            {page.items.map((item) => (
-              <article key={item.id}>
-                <h3 className="text-2xl font-semibold">{item.title}</h3>
-                <Link className="text-gray-400" href={`/post/${item.id}`}>
-                  View more
-                </Link>
-              </article>
-            ))}
-          </Fragment>
-        ))}
-      </div>
-
-      <hr />
-
-      <div className="flex flex-col py-8 items-center">
-        <h2 className="text-3xl font-semibold pb-2">Add a Post</h2>
-
-        <form
-          className="py-2 w-4/6"
-          onSubmit={async (e) => {
-            /**
-             * In a real app you probably don't want to use this manually
-             * Checkout React Hook Form - it works great with tRPC
-             * @see https://react-hook-form.com/
-             * @see https://kitchen-sink.trpc.io/react-hook-form
-             */
-            e.preventDefault();
-            const $form = e.currentTarget;
-            const values = Object.fromEntries(new FormData($form));
-            type Input = inferProcedureInput<AppRouter['post']['add']>;
-            //    ^?
-            const input: Input = {
-              title: values.title as string,
-              text: values.text as string,
-            };
-            try {
-              await addPost.mutateAsync(input);
-
-              $form.reset();
-            } catch (cause) {
-              console.error({ cause }, 'Failed to add post');
-            }
-          }}
-        >
-          <div className="flex flex-col gap-y-4 font-semibold">
-            <input
-              className="focus-visible:outline-dashed outline-offset-4 outline-2 outline-gray-700 rounded-xl px-4 py-3 bg-gray-900"
-              id="title"
-              name="title"
-              type="text"
-              placeholder="Title"
-              disabled={addPost.isPending}
-            />
-            <textarea
-              className="resize-none focus-visible:outline-dashed outline-offset-4 outline-2 outline-gray-700 rounded-xl px-4 py-3 bg-gray-900"
-              id="text"
-              name="text"
-              placeholder="Text"
-              disabled={addPost.isPending}
-              rows={6}
-            />
-
-            <div className="flex justify-center">
-              <input
-                className="cursor-pointer bg-gray-900 p-2 rounded-md px-16"
-                type="submit"
-                disabled={addPost.isPending}
-              />
-              {addPost.error && (
-                <p style={{ color: 'red' }}>{addPost.error.message}</p>
-              )}
+      {isLoading ? (
+        <div className="flex justify-center items-center h-screen">
+          <Pokeball size="xl" endlessSpin spinSpeed={1.5} />
+        </div>
+      ) : (
+        <main className="mb-4 mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-8 md:py-12 xl:py-16 2xl:py-20 max-w-7xl 2xl:max-w-[1400px] self-center">
+          {/* Welcome Section */}
+          <div className="sm:flex sm:items-start sm:gap-4 sm:py-8 mb-4">
+            <div className="px-4 sm:px-0">
+              <h1 className="text-3xl md:text-4xl xl:text-5xl 2xl:text-6xl font-bold text-primary tracking-tight xl:tracking-tighter mb-4 text-gradient">
+                Evolve Pokédex
+              </h1>
+              <div className="w-full max-w-md sm:max-w-lg lg:max-w-2xl xl:max-w-3xl mx-auto px-4">
+                <p className="text-lg xl:text-xl 2xl:text-2xl text-secondary mx-auto text-left">
+                  Your comprehensive resource for Pokémon information. Search
+                  through our complete database of Pokémon species, moves,
+                  abilities, and more.
+                </p>
+              </div>
             </div>
+            {dbStats && <DatabaseStats stats={dbStats} />}
           </div>
-        </form>
-      </div>
+
+          <div className="mb-4">
+            <SearchBar />
+          </div>
+
+          {/* Main Content */}
+          <div className="flex flex-col col-span-1 gap-4">
+            <QuickAccess />
+            <FeaturedPokemonDisplay pokemon={pokemon} />
+            <LatestUpdates />
+          </div>
+        </main>
+      )}
+
+      <FooterMenu />
     </div>
   );
 };
