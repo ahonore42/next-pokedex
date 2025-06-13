@@ -107,8 +107,8 @@ export default function FooterMenu() {
         <div className="border-t border-gray-300 m-8 pt-8 text-center text-sm text-gray-600">
           <p>© 2025 Pokédex Database. Built with Next.js and the PokéAPI.</p>
           <p>
-            Pokémon and all related characters are trademarks of Nintendo, Game
-            Freak, and Creatures Inc.
+            Pokémon and all related characters are trademarks of Nintendo, Game Freak, and Creatures
+            Inc.
           </p>
         </div>
       </div>

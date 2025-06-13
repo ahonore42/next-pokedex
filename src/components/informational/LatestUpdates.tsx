@@ -1,24 +1,24 @@
-import SectionCard from "../ui/SectionCard";
+import SectionCard from '../ui/SectionCard';
 
 export default function LatestUpdates() {
   const updates = [
     {
-      date: "June 1, 2025",
-      title: "Daily Featured Pokémon Rotation",
-      desc: "Featured Pokémon now change daily with a curated selection from all generations.",
-      type: "feature",
+      date: 'June 1, 2025',
+      title: 'Daily Featured Pokémon Rotation',
+      desc: 'Featured Pokémon now change daily with a curated selection from all generations.',
+      type: 'feature',
     },
     {
-      date: "June 1, 2025",
-      title: "Complete Type System Updated",
-      desc: "Added support for all 20 Pokémon types including Stellar and Unknown types.",
-      type: "update",
+      date: 'June 1, 2025',
+      title: 'Complete Type System Updated',
+      desc: 'Added support for all 20 Pokémon types including Stellar and Unknown types.',
+      type: 'update',
     },
     {
-      date: "June 1, 2025",
-      title: "Enhanced Theme System",
-      desc: "Improved dark mode support with better contrast ratios and accessibility.",
-      type: "improvement",
+      date: 'June 1, 2025',
+      title: 'Enhanced Theme System',
+      desc: 'Improved dark mode support with better contrast ratios and accessibility.',
+      type: 'improvement',
     },
   ];
 
@@ -37,16 +37,14 @@ export default function LatestUpdates() {
               border-emerald-600 dark:border-emerald-500
             `}
             style={{
-              backgroundColor: "var(--color-update-card-bg)",
-              color: "var(--color-pokemon-card-text-secondary)",
+              backgroundColor: 'var(--color-update-card-bg)',
+              color: 'var(--color-pokemon-card-text-secondary)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor =
-                "var(--color-update-card-hover-bg)";
+              e.currentTarget.style.backgroundColor = 'var(--color-update-card-hover-bg)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor =
-                "var(--color-update-card-bg)";
+              e.currentTarget.style.backgroundColor = 'var(--color-update-card-bg)';
             }}
           >
             <div className="flex items-start gap-3">

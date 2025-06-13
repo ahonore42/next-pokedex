@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 interface PokeballProps {
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   rotationDegrees?: number;
   hoverScale?: number;
   endlessSpin?: boolean;
@@ -10,60 +10,60 @@ interface PokeballProps {
 }
 
 export default function Pokeball({
-  size = "sm",
+  size = 'sm',
   rotationDegrees = 45,
   hoverScale = 1.3,
   endlessSpin = false,
   spinSpeed = 2,
-  className = "",
+  className = '',
 }: PokeballProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   // Size configurations
   const sizeConfig = {
     sm: {
-      container: "w-8 h-8",
+      container: 'w-8 h-8',
       highlight: {
-        top: "top-0.5 left-1 w-2 h-1",
-        bottom: "bottom-0.5 right-1 w-1.5 h-0.5",
+        top: 'top-0.5 left-1 w-2 h-1',
+        bottom: 'bottom-0.5 right-1 w-1.5 h-0.5',
       },
-      band: "h-0.5",
-      blackCircle: "w-2.5 h-2.5",
-      grayRing: "w-1.5 h-1.5",
-      centerButton: "w-1 h-1",
+      band: 'h-0.5',
+      blackCircle: 'w-2.5 h-2.5',
+      grayRing: 'w-1.5 h-1.5',
+      centerButton: 'w-1 h-1',
     },
     md: {
-      container: "w-12 h-12",
+      container: 'w-12 h-12',
       highlight: {
-        top: "top-1 left-1.5 w-3 h-1.5",
-        bottom: "bottom-1 right-1.5 w-2 h-1",
+        top: 'top-1 left-1.5 w-3 h-1.5',
+        bottom: 'bottom-1 right-1.5 w-2 h-1',
       },
-      band: "h-1",
-      blackCircle: "w-4 h-4",
-      grayRing: "w-2.5 h-2.5",
-      centerButton: "w-1.5 h-1.5",
+      band: 'h-1',
+      blackCircle: 'w-4 h-4',
+      grayRing: 'w-2.5 h-2.5',
+      centerButton: 'w-1.5 h-1.5',
     },
     lg: {
-      container: "w-16 h-16",
+      container: 'w-16 h-16',
       highlight: {
-        top: "top-1 left-2 w-4 h-2",
-        bottom: "bottom-1 right-2 w-3 h-1",
+        top: 'top-1 left-2 w-4 h-2',
+        bottom: 'bottom-1 right-2 w-3 h-1',
       },
-      band: "h-1",
-      blackCircle: "w-5 h-5",
-      grayRing: "w-3 h-3",
-      centerButton: "w-2 h-2",
+      band: 'h-1',
+      blackCircle: 'w-5 h-5',
+      grayRing: 'w-3 h-3',
+      centerButton: 'w-2 h-2',
     },
     xl: {
-      container: "w-20 h-20",
+      container: 'w-20 h-20',
       highlight: {
-        top: "top-1.5 left-2.5 w-5 h-2.5",
-        bottom: "bottom-1.5 right-2.5 w-4 h-1.5",
+        top: 'top-1.5 left-2.5 w-5 h-2.5',
+        bottom: 'bottom-1.5 right-2.5 w-4 h-1.5',
       },
-      band: "h-1.5",
-      blackCircle: "w-6 h-6",
-      grayRing: "w-4 h-4",
-      centerButton: "w-2.5 h-2.5",
+      band: 'h-1.5',
+      blackCircle: 'w-6 h-6',
+      grayRing: 'w-4 h-4',
+      centerButton: 'w-2.5 h-2.5',
     },
   };
 
@@ -77,8 +77,8 @@ export default function Pokeball({
     : {
         transform: isHovered
           ? `scale(${hoverScale}) rotate(${rotationDegrees}deg)`
-          : "scale(1) rotate(0deg)",
-        transition: "transform 300ms ease",
+          : 'scale(1) rotate(0deg)',
+        transition: 'transform 300ms ease',
       };
 
   // Counter-rotation style for gradients
@@ -91,8 +91,8 @@ export default function Pokeball({
   // Scale wrapper style for endlessSpin hover
   const scaleWrapperStyle = endlessSpin
     ? {
-        transform: isHovered ? `scale(${hoverScale})` : "scale(1)",
-        transition: "transform 300ms ease",
+        transform: isHovered ? `scale(${hoverScale})` : 'scale(1)',
+        transition: 'transform 300ms ease',
       }
     : {};
 
@@ -111,31 +111,29 @@ export default function Pokeball({
       {/* Top Red Half */}
       <div
         className={`absolute top-0 left-0 w-full h-1/2 rounded-t-full ${
-          endlessSpin
-            ? "bg-red-500"
-            : "bg-gradient-to-b from-red-400 via-red-500 to-red-700"
+          endlessSpin ? 'bg-red-500' : 'bg-gradient-to-b from-red-400 via-red-500 to-red-700'
         } shadow-inner`}
       ></div>
       {/* Bottom Silver/White Half */}
       <div
         className={`absolute bottom-0 left-0 w-full h-1/2 rounded-b-full ${
-          endlessSpin
-            ? "bg-gray-200"
-            : "bg-gradient-to-t from-gray-300 via-gray-100 to-white"
+          endlessSpin ? 'bg-gray-200' : 'bg-gradient-to-t from-gray-300 via-gray-100 to-white'
         } shadow-inner`}
       ></div>
       {/* Center black band */}
-      <div className={`absolute top-1/2 left-0 w-full ${config.band} bg-gradient-to-r from-gray-900 via-black to-gray-900 transform -translate-y-1/2`}></div>
+      <div
+        className={`absolute top-1/2 left-0 w-full ${config.band} bg-gradient-to-r from-gray-900 via-black to-gray-900 transform -translate-y-1/2`}
+      ></div>
       {/* Black circle */}
-      <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${config.blackCircle} bg-black rounded-full`}>
+      <div
+        className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${config.blackCircle} bg-black rounded-full`}
+      >
         {/* Gray ring inside the black circle */}
         <div
           className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${
             config.grayRing
           } ${
-            endlessSpin
-              ? "bg-gray-300"
-              : "bg-gradient-to-br from-gray-100 via-gray-300 to-gray-400"
+            endlessSpin ? 'bg-gray-300' : 'bg-gradient-to-br from-gray-100 via-gray-300 to-gray-400'
           } rounded-full`}
         >
           {/* Inner center button */}
@@ -144,17 +142,14 @@ export default function Pokeball({
               config.centerButton
             } ${
               endlessSpin
-                ? "bg-gray-300"
-                : "bg-gradient-to-br from-gray-100 via-gray-300 to-gray-400"
+                ? 'bg-gray-300'
+                : 'bg-gradient-to-br from-gray-100 via-gray-300 to-gray-400'
             } group-hover:from-red-300 group-hover:via-red-400 group-hover:to-red-600 rounded-full transition-all duration-200 delay-300`}
           ></div>
         </div>
       </div>
       {/* Fixed gradient layer (counter-rotates to stay in place) */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={gradientTransformStyle}
-      >
+      <div className="absolute inset-0 pointer-events-none" style={gradientTransformStyle}>
         {/* Independent lighting overlay when spinning */}
         {endlessSpin && (
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white via-transparent to-black opacity-30"></div>
@@ -169,16 +164,20 @@ export default function Pokeball({
         ></div>
         {/* Center gray ring gradient overlay */}
         {endlessSpin && (
-          <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${config.blackCircle} pointer-events-none`}>
-            <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${config.grayRing} bg-gradient-to-br from-gray-100 via-gray-300 to-gray-400 rounded-full`}>
+          <div
+            className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${config.blackCircle} pointer-events-none`}
+          >
+            <div
+              className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${config.grayRing} bg-gradient-to-br from-gray-100 via-gray-300 to-gray-400 rounded-full`}
+            >
               {/* Center button gradient overlay - turns red on hover */}
               <div
                 className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${
                   config.centerButton
                 } ${
                   endlessSpin
-                    ? "bg-gray-300 group-hover:bg-red-400 transition-all duration-200 delay-300"
-                    : "bg-gradient-to-br from-gray-100 via-gray-300 to-gray-400 group-hover:from-red-300 group-hover:via-red-400 group-hover:to-red-600"
+                    ? 'bg-gray-300 group-hover:bg-red-400 transition-all duration-200 delay-300'
+                    : 'bg-gradient-to-br from-gray-100 via-gray-300 to-gray-400 group-hover:from-red-300 group-hover:via-red-400 group-hover:to-red-600'
                 } rounded-full transition-all duration-200 delay-300`}
               ></div>
             </div>

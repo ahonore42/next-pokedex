@@ -28,12 +28,8 @@ export default function HeaderMenu() {
           >
             <Pokeball size="sm" rotationDegrees={45} />
             <div>
-              <h1 className="text-xl font-bold text-primary tracking-tight">
-                Evolve Pokédex
-              </h1>
-              <p className="text-sm text-secondary">
-                Complete Pokémon Reference
-              </p>
+              <h1 className="text-xl font-bold text-primary tracking-tight">Evolve Pokédex</h1>
+              <p className="text-sm text-secondary">Complete Pokémon Reference</p>
             </div>
           </a>
 
@@ -70,9 +66,7 @@ export default function HeaderMenu() {
               <div className="w-6 h-6 flex flex-col justify-center items-center">
                 <span
                   className={`bg-primary block transition-all duration-300 h-0.5 w-6 rounded-sm ${
-                    isMobileMenuOpen
-                      ? 'rotate-45 translate-y-1'
-                      : '-translate-y-0.5'
+                    isMobileMenuOpen ? 'rotate-45 translate-y-1' : '-translate-y-0.5'
                   }`}
                 ></span>
                 <span
@@ -82,9 +76,7 @@ export default function HeaderMenu() {
                 ></span>
                 <span
                   className={`bg-primary block transition-all duration-300 h-0.5 w-6 rounded-sm ${
-                    isMobileMenuOpen
-                      ? '-rotate-45 -translate-y-1'
-                      : 'translate-y-0.5'
+                    isMobileMenuOpen ? '-rotate-45 -translate-y-1' : 'translate-y-0.5'
                   }`}
                 ></span>
               </div>

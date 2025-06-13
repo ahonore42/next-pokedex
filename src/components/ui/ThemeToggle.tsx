@@ -1,22 +1,20 @@
-"use client";
+'use client';
 
-import { useTheme } from "~/lib/contexts/ThemeContext";
+import { useTheme } from '~/lib/contexts/ThemeContext';
 
 export default function ThemeToggle() {
   const { theme, toggleTheme, isLoading } = useTheme();
 
   if (isLoading) {
-    return (
-      <div className="w-10 h-10 rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
-    );
+    return <div className="w-10 h-10 rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />;
   }
 
   return (
     <button
       onClick={toggleTheme}
       className="relative w-10 h-10 rounded-lg border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-all duration-300 group overflow-hidden hover:cursor-pointer"
-      aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-      title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+      aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+      title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
       {/* Background gradient that shifts based on theme */}
       <div className="absolute inset-0 bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-indigo-900 dark:to-purple-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -26,9 +24,7 @@ export default function ThemeToggle() {
         {/* Sun icon for light mode */}
         <svg
           className={`w-5 h-5 text-yellow-500 transform transition-all duration-500 ${
-            theme === "light"
-              ? "rotate-0 scale-100 opacity-100"
-              : "rotate-180 scale-0 opacity-0"
+            theme === 'light' ? 'rotate-0 scale-100 opacity-100' : 'rotate-180 scale-0 opacity-0'
           }`}
           fill="currentColor"
           viewBox="0 0 24 24"
@@ -40,9 +36,7 @@ export default function ThemeToggle() {
         {/* Moon icon for dark mode */}
         <svg
           className={`w-5 h-5 text-indigo-400 absolute transform transition-all duration-500 ${
-            theme === "dark"
-              ? "rotate-0 scale-100 opacity-100"
-              : "-rotate-180 scale-0 opacity-0"
+            theme === 'dark' ? 'rotate-0 scale-100 opacity-100' : '-rotate-180 scale-0 opacity-0'
           }`}
           fill="currentColor"
           viewBox="0 0 24 24"
