@@ -7,10 +7,10 @@ import { DefaultLayout } from '~/components/DefaultLayout';
 import { trpc } from '~/utils/trpc';
 import '~/styles/globals.css';
 
-export type NextPageWithLayout<
-  TProps = Record<string, unknown>,
-  TInitialProps = TProps,
-> = NextPage<TProps, TInitialProps> & {
+export type NextPageWithLayout<TProps = Record<string, unknown>, TInitialProps = TProps> = NextPage<
+  TProps,
+  TInitialProps
+> & {
   getLayout?: (page: ReactElement) => ReactNode;
 };
 
@@ -19,14 +19,11 @@ type AppPropsWithLayout = AppProps & {
 };
 
 const MyApp = (({ Component, pageProps }: AppPropsWithLayout) => {
-  const getLayout =
-    Component.getLayout ?? ((page) => <DefaultLayout>{page}</DefaultLayout>);
+  const getLayout = Component.getLayout ?? ((page) => <DefaultLayout>{page}</DefaultLayout>);
 
-    return (
-      <ThemeProvider defaultTheme="light">
-        {getLayout(<Component {...pageProps} />)}
-      </ThemeProvider>
-    )
+  return (
+    <ThemeProvider defaultTheme="light">{getLayout(<Component {...pageProps} />)}</ThemeProvider>
+  );
 }) as AppType;
 
 export default trpc.withTRPC(MyApp);

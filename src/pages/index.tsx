@@ -57,9 +57,8 @@ const IndexPage: NextPageWithLayout = () => {
               </h1>
               <div className="w-full max-w-md sm:max-w-lg lg:max-w-2xl xl:max-w-3xl mx-auto px-4">
                 <p className="text-lg xl:text-xl 2xl:text-2xl text-secondary mx-auto text-left">
-                  Your comprehensive resource for Pokémon information. Search
-                  through our complete database of Pokémon species, moves,
-                  abilities, and more.
+                  Your comprehensive resource for Pokémon information. Search through our complete
+                  database of Pokémon species, moves, abilities, and more.
                 </p>
               </div>
             </div>
