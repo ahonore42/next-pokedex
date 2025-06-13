@@ -26,9 +26,7 @@ export interface ProgressStatus {
   expectedCount?: number;
 }
 
-export interface SeedingProgress {
-  [key: string]: ProgressStatus;
-}
+export type SeedingProgress = Record<string, ProgressStatus>;
 
 export interface ErrorLog {
   url: string;
