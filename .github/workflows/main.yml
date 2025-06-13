@@ -54,11 +54,10 @@ jobs:
 
       - name: Upload test results
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: test results
-          path: |
-            playwright/test-results
+          name: test-results
+          path: playwright/test-results
 
   unit:
     name: 'Unit tests + typecheck'
