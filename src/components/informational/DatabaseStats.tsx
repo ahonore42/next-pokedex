@@ -1,39 +1,39 @@
-import { AppStats } from "@/lib/types/pokemon";
-import SectionCard from "../ui/SectionCard";
+import { DbStats } from '~/server/routers/_app';
+import SectionCard from '../ui/SectionCard';
 
-export default function DatabaseStats({ stats }: { stats: AppStats }) {
+export default function DatabaseStats({ stats }: { stats: DbStats }) {
   const statItems = [
     {
-      value: stats.totalPokemon.toLocaleString(),
-      label: "Pokémon Species",
-      color: "text-amber-600",
-      bgColor: "bg-amber-50",
-      hoverBg: "hover:bg-amber-100",
-      borderColor: "border-amber-200",
+      value: stats.pokemonSpecies.toLocaleString(),
+      label: 'Pokémon Species',
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-50',
+      hoverBg: 'hover:bg-amber-100',
+      borderColor: 'border-amber-200',
     },
     {
-      value: stats.totalTypes.toString(),
-      label: "Types",
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-50",
-      hoverBg: "hover:bg-emerald-100",
-      borderColor: "border-emerald-200",
+      value: stats.types.toString(),
+      label: 'Types',
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50',
+      hoverBg: 'hover:bg-emerald-100',
+      borderColor: 'border-emerald-200',
     },
     {
-      value: stats.totalGenerations.toString(),
-      label: "Generations",
-      color: "text-red-600",
-      bgColor: "bg-red-50",
-      hoverBg: "hover:bg-red-100",
-      borderColor: "border-red-200",
+      value: stats.generations.toString(),
+      label: 'Generations',
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+      hoverBg: 'hover:bg-red-100',
+      borderColor: 'border-red-200',
     },
     {
-      value: stats.totalMoves.toString(),
-      label: "Moves",
-      color: "text-fuchsia-600",
-      bgColor: "bg-fuchsia-50",
-      hoverBg: "hover:bg-fuchsia-100",
-      borderColor: "border-fuchsia-200",
+      value: stats.moves.toString(),
+      label: 'Moves',
+      color: 'text-fuchsia-600',
+      bgColor: 'bg-fuchsia-50',
+      hoverBg: 'hover:bg-fuchsia-100',
+      borderColor: 'border-fuchsia-200',
     },
   ];
 
