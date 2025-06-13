@@ -237,10 +237,7 @@ export class PokemonDataSeeder {
       const summary = await this.getProgressSummary();
       this.log(`🌱 Database seed completed! ${summary}`);
     } catch (error: unknown) {
-      this.log(
-        `❌ Fatal error during seed: ${(error as Error).message}`,
-        'error',
-      );
+      this.log(`❌ Fatal error during seed: ${(error as Error).message}`, 'error');
       throw error;
     } finally {
       await prisma.$disconnect();
@@ -304,10 +301,7 @@ export class PokemonDataSeeder {
       console.log(`Encounters: ${encounterCount.toLocaleString()}`);
       console.log('='.repeat(50) + '\n');
     } catch (error: unknown) {
-      this.log(
-        `❌ Failed to generate database statistics: ${(error as Error).message}`,
-        'error',
-      );
+      this.log(`❌ Failed to generate database statistics: ${(error as Error).message}`, 'error');
       throw error;
     }
   }
@@ -320,10 +314,7 @@ export class PokemonDataSeeder {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  log(
-    message: string,
-    level: 'info' | 'warn' | 'error' | 'debug' = 'info',
-  ): void {
+  log(message: string, level: 'info' | 'warn' | 'error' | 'debug' = 'info'): void {
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
     console.log(logMessage);
@@ -331,8 +322,7 @@ export class PokemonDataSeeder {
 
   private async logMemoryUsage(context = ''): Promise<void> {
     const used = process.memoryUsage();
-    const formatMB = (bytes: number) =>
-      Math.round((bytes / 1024 / 1024) * 100) / 100;
+    const formatMB = (bytes: number) => Math.round((bytes / 1024 / 1024) * 100) / 100;
 
     const memoryInfo = [
       `Memory usage${context ? ` (${context})` : ''}:`,
@@ -346,10 +336,7 @@ export class PokemonDataSeeder {
 
     // Warn if memory usage is getting high (over 1GB RSS)
     if (used.rss > 1024 * 1024 * 1024) {
-      this.log(
-        `⚠️ High memory usage detected: ${formatMB(used.rss)} MB RSS`,
-        'warn',
-      );
+      this.log(`⚠️ High memory usage detected: ${formatMB(used.rss)} MB RSS`, 'warn');
     }
   }
 
@@ -369,17 +356,13 @@ export class PokemonDataSeeder {
       if (this.evolutionMappings && this.evolutionMappings.size > 0) {
         const evolutionSize = this.evolutionMappings.size;
         this.evolutionMappings.clear();
-        this.log(
-          `🧹 Cleared evolution mappings: ${evolutionSize} entries removed`,
-        );
+        this.log(`🧹 Cleared evolution mappings: ${evolutionSize} entries removed`);
       }
 
       if (this.evolutionChainMappings && this.evolutionChainMappings.size > 0) {
         const chainSize = this.evolutionChainMappings.size;
         this.evolutionChainMappings.clear();
-        this.log(
-          `🧹 Cleared evolution chain mappings: ${chainSize} entries removed`,
-        );
+        this.log(`🧹 Cleared evolution chain mappings: ${chainSize} entries removed`);
       }
 
       // Force garbage collection if available
@@ -394,10 +377,7 @@ export class PokemonDataSeeder {
       // Log memory after cleanup
       this.logMemoryUsage(`After cleanup ${context}`);
     } catch (error) {
-      this.log(
-        `Failed to perform memory cleanup: ${(error as Error).message}`,
-        'warn',
-      );
+      this.log(`Failed to perform memory cleanup: ${(error as Error).message}`, 'warn');
     }
   }
 
@@ -431,18 +411,10 @@ export class PokemonDataSeeder {
   }
 
   async getProgressSummary(): Promise<string> {
-    const completed = Object.values(this.progress).filter(
-      (p) => p.completed,
-    ).length;
+    const completed = Object.values(this.progress).filter((p) => p.completed).length;
     const total = Object.keys(this.progress).length;
-    const totalProcessed = Object.values(this.progress).reduce(
-      (sum, p) => sum + p.count,
-      0,
-    );
-    const totalFailed = Object.values(this.progress).reduce(
-      (sum, p) => sum + p.failed,
-      0,
-    );
+    const totalProcessed = Object.values(this.progress).reduce((sum, p) => sum + p.count, 0);
+    const totalFailed = Object.values(this.progress).reduce((sum, p) => sum + p.failed, 0);
 
     return `Progress: ${completed}/${total} categories completed, ${totalProcessed} items processed, ${totalFailed} failed`;
   }
@@ -544,10 +516,7 @@ export class PokemonDataSeeder {
     }
   }
 
-  async fetchWithProxy(
-    url: string,
-    mode: 'standard' | 'premium' = 'standard',
-  ): Promise<any> {
+  async fetchWithProxy(url: string, mode: 'standard' | 'premium' = 'standard'): Promise<any> {
     if (this.cache.has(url)) {
       return this.cache.get(url);
     }
@@ -589,9 +558,7 @@ export class PokemonDataSeeder {
         requestsMade++;
 
         // Add a small delay between requests to be API-friendly
-        void (mode === 'premium'
-          ? await this.delay(100)
-          : await this.delay(1000));
+        void (mode === 'premium' ? await this.delay(100) : await this.delay(1000));
       } catch (error) {
         console.error(`Failed to fetch page at offset ${offset}:`, error);
         throw error;
@@ -599,9 +566,7 @@ export class PokemonDataSeeder {
     }
 
     if (requestsMade >= maxRequests) {
-      console.warn(
-        `Reached maximum request limit (${maxRequests}) for ${endpoint}`,
-      );
+      console.warn(`Reached maximum request limit (${maxRequests}) for ${endpoint}`);
     }
 
     return allResults;
@@ -636,11 +601,7 @@ export class PokemonDataSeeder {
     dataFields: string[],
     secondaryForeignKey = 'languageId',
   ): Promise<void> {
-    if (
-      !sourceArray ||
-      !Array.isArray(sourceArray) ||
-      dataFields.length === 0
-    ) {
+    if (!sourceArray || !Array.isArray(sourceArray) || dataFields.length === 0) {
       return;
     }
     const secondaryModelName = secondaryForeignKey.replace(/Id$/i, '');
@@ -798,21 +759,14 @@ export class PokemonDataSeeder {
               return result;
             } catch (error) {
               this.progress[categoryName].failed++;
-              this.log(
-                `Failed to process ${item.name}: ${(error as Error).message}`,
-                'error',
-              );
+              this.log(`Failed to process ${item.name}: ${(error as Error).message}`, 'error');
               return null;
             }
           }),
         );
 
         // Collect non-null results
-        results.push(
-          ...batchResults.filter(
-            (result) => result !== null && result !== undefined,
-          ),
-        );
+        results.push(...batchResults.filter((result) => result !== null && result !== undefined));
 
         // Progress logging
         if ((i + batchSize) % progressLogInterval === 0) {
@@ -829,20 +783,12 @@ export class PokemonDataSeeder {
           }
           this.progress[categoryName].count++;
 
-          if (
-            this.progress[categoryName].count % (progressLogInterval / 5) ===
-            0
-          ) {
-            this.log(
-              `${categoryName} progress: ${this.progress[categoryName].count} processed`,
-            );
+          if (this.progress[categoryName].count % (progressLogInterval / 5) === 0) {
+            this.log(`${categoryName} progress: ${this.progress[categoryName].count} processed`);
           }
         } catch (error) {
           this.progress[categoryName].failed++;
-          this.log(
-            `Failed to process ${item.name}: ${(error as Error).message}`,
-            'error',
-          );
+          this.log(`Failed to process ${item.name}: ${(error as Error).message}`, 'error');
         }
       }
     }
@@ -905,9 +851,7 @@ export class PokemonDataSeeder {
           await this.delay(backoffMs);
 
           // Force memory cleanup before retry
-          await this.checkAndCleanupMemory(
-            `Retry ${attempt} for ${operationName}`,
-          );
+          await this.checkAndCleanupMemory(`Retry ${attempt} for ${operationName}`);
         }
       }
     }
@@ -935,9 +879,7 @@ export class PokemonDataSeeder {
   // ======================================================
 
   // 1. POKEMON SPECIES (most complex - with evolution post-processing)
-  async seedPokemonSpecies(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedPokemonSpecies(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'pokemon-species',
@@ -947,10 +889,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('pokemonSpecies'),
-        processItem: async (
-          speciesItem: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (speciesItem: NamedAPIResource, mode: 'premium' | 'standard') => {
           const speciesId = this.extractIdFromUrl(speciesItem.url);
           if (!speciesId) return;
 
@@ -995,9 +934,7 @@ export class PokemonDataSeeder {
         },
 
         postProcess: async () => {
-          this.log(
-            'All species processed. Now processing evolution relationships...',
-          );
+          this.log('All species processed. Now processing evolution relationships...');
           await this.processEvolutionRelationships();
           this.evolutionMappings.clear();
           this.evolutionChainMappings.clear();
@@ -1018,21 +955,13 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('pokemon'),
-        processItem: async (
-          pokemonItem: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (pokemonItem: NamedAPIResource, mode: 'premium' | 'standard') => {
           const pokemonId = this.extractIdFromUrl(pokemonItem.url);
           if (!pokemonId) return null;
 
           // Check and cleanup memory every 5 Pokemon
-          if (
-            this.progress.pokemon.count % 5 === 0 &&
-            this.progress.pokemon.count > 0
-          ) {
-            await this.checkAndCleanupMemory(
-              `Pokemon #${this.progress.pokemon.count}`,
-            );
+          if (this.progress.pokemon.count % 5 === 0 && this.progress.pokemon.count > 0) {
+            await this.checkAndCleanupMemory(`Pokemon #${this.progress.pokemon.count}`);
           }
 
           let pokemonName = 'unknown';
@@ -1047,34 +976,31 @@ export class PokemonDataSeeder {
 
             if (existingPokemon) {
               pokemonName = existingPokemon.name;
-              this.log(
-                `Processing existing Pokemon: ${pokemonName} (ID: ${pokemonId})`,
-              );
+              this.log(`Processing existing Pokemon: ${pokemonName} (ID: ${pokemonId})`);
 
               // Check if relationships are complete
-              const [hasAbilities, hasTypes, hasStats, hasMoves, hasSprites] =
-                await Promise.all([
-                  prisma.pokemonAbility.findFirst({
-                    where: { pokemonId },
-                    select: { pokemonId: true },
-                  }),
-                  prisma.pokemonType.findFirst({
-                    where: { pokemonId },
-                    select: { pokemonId: true },
-                  }),
-                  prisma.pokemonStat.findFirst({
-                    where: { pokemonId },
-                    select: { pokemonId: true },
-                  }),
-                  prisma.pokemonMove.findFirst({
-                    where: { pokemonId },
-                    select: { pokemonId: true },
-                  }),
-                  prisma.pokemonSprites.findFirst({
-                    where: { pokemonId },
-                    select: { pokemonId: true },
-                  }),
-                ]);
+              const [hasAbilities, hasTypes, hasStats, hasMoves, hasSprites] = await Promise.all([
+                prisma.pokemonAbility.findFirst({
+                  where: { pokemonId },
+                  select: { pokemonId: true },
+                }),
+                prisma.pokemonType.findFirst({
+                  where: { pokemonId },
+                  select: { pokemonId: true },
+                }),
+                prisma.pokemonStat.findFirst({
+                  where: { pokemonId },
+                  select: { pokemonId: true },
+                }),
+                prisma.pokemonMove.findFirst({
+                  where: { pokemonId },
+                  select: { pokemonId: true },
+                }),
+                prisma.pokemonSprites.findFirst({
+                  where: { pokemonId },
+                  select: { pokemonId: true },
+                }),
+              ]);
 
               const missingRelationships: string[] = [];
               if (!hasAbilities) missingRelationships.push('abilities');
@@ -1084,16 +1010,12 @@ export class PokemonDataSeeder {
               if (!hasSprites) missingRelationships.push('sprites');
 
               if (missingRelationships.length > 0) {
-                this.log(
-                  `Pokemon ${pokemonName} missing: ${missingRelationships.join(', ')}`,
-                );
+                this.log(`Pokemon ${pokemonName} missing: ${missingRelationships.join(', ')}`);
 
                 pokemonData = await this.fetchWithProxy(pokemonItem.url, mode);
                 pokemonName = pokemonData.name;
 
-                this.log(
-                  `\n\n === Seeding Pokemon #${pokemonId}: ${pokemonName} ===\n\n`,
-                );
+                this.log(`\n\n === Seeding Pokemon #${pokemonId}: ${pokemonName} ===\n\n`);
 
                 // Process only missing relationships
                 if (!hasAbilities || !hasTypes || !hasStats || !hasSprites) {
@@ -1118,9 +1040,7 @@ export class PokemonDataSeeder {
               pokemonName = processedPokemon?.name || `ID-${pokemonId}`;
             }
 
-            this.log(
-              `✅ Successfully processed Pokemon: ${pokemonName} (ID: ${pokemonId})`,
-            );
+            this.log(`✅ Successfully processed Pokemon: ${pokemonName} (ID: ${pokemonId})`);
 
             // Clear local variables to help GC
             pokemonData = null;
@@ -1160,9 +1080,7 @@ export class PokemonDataSeeder {
     );
   }
 
-  async seedPokemonSpeciesVarieties(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedPokemonSpeciesVarieties(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'pokemon-species',
@@ -1193,10 +1111,7 @@ export class PokemonDataSeeder {
 
           try {
             // Fetch the species data to get varieties
-            const speciesData = await this.fetchWithProxy(
-              speciesItem.url,
-              mode,
-            );
+            const speciesData = await this.fetchWithProxy(speciesItem.url, mode);
             let varietiesCreated = 0;
 
             if (speciesData.varieties && Array.isArray(speciesData.varieties)) {
@@ -1281,9 +1196,7 @@ export class PokemonDataSeeder {
             0,
           );
           const speciesProcessed = validResults.length;
-          const speciesWithVarieties = validResults.filter(
-            (r) => r.varietiesCreated > 0,
-          ).length;
+          const speciesWithVarieties = validResults.filter((r) => r.varietiesCreated > 0).length;
 
           this.log(
             `✅ Species varieties completed: ${totalVarietiesCreated} varieties created for ${speciesWithVarieties}/${speciesProcessed} species`,
@@ -1293,9 +1206,7 @@ export class PokemonDataSeeder {
     );
   }
 
-  async seedLocations(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedLocations(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'location',
@@ -1305,10 +1216,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('location'),
-        processItem: async (
-          location: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (location: NamedAPIResource, mode: 'premium' | 'standard') => {
           const locationData = await this.fetchWithProxy(location.url, mode);
 
           // Handle optional region - can be null
@@ -1318,10 +1226,7 @@ export class PokemonDataSeeder {
 
           // Only validate if region is provided but invalid
           if (locationData.region && !regionId) {
-            this.log(
-              `Invalid region data for location ${locationData.name}, skipping`,
-              'warn',
-            );
+            this.log(`Invalid region data for location ${locationData.name}, skipping`, 'warn');
             return null;
           }
 
@@ -1369,9 +1274,7 @@ export class PokemonDataSeeder {
     );
   }
 
-  async seedLocationAreas(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedLocationAreas(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'location-area',
@@ -1381,23 +1284,13 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('locationArea'),
-        processItem: async (
-          locationArea: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
-          const locationAreaData = await this.fetchWithProxy(
-            locationArea.url,
-            mode,
-          );
+        processItem: async (locationArea: NamedAPIResource, mode: 'premium' | 'standard') => {
+          const locationAreaData = await this.fetchWithProxy(locationArea.url, mode);
 
           // Required field
-          const locationId = this.extractIdFromUrl(
-            locationAreaData.location.url,
-          );
+          const locationId = this.extractIdFromUrl(locationAreaData.location.url);
           if (!locationId) {
-            throw new Error(
-              `Missing location ID for area ${locationAreaData.name}`,
-            );
+            throw new Error(`Missing location ID for area ${locationAreaData.name}`);
           }
 
           await prisma.locationArea.upsert({
@@ -1449,9 +1342,7 @@ export class PokemonDataSeeder {
     );
   }
 
-  async seedEncounterMethods(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedEncounterMethods(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'encounter-method',
@@ -1461,10 +1352,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('encounterMethod'),
-        processItem: async (
-          method: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (method: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processEncounterMethod(method, mode);
           // No return needed - just processing encounter method data
         },
@@ -1472,9 +1360,7 @@ export class PokemonDataSeeder {
     );
   }
 
-  async seedPokedexes(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedPokedexes(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'pokedex',
@@ -1484,10 +1370,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('pokedex'),
-        processItem: async (
-          pokedex: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (pokedex: NamedAPIResource, mode: 'premium' | 'standard') => {
           const pokedexId = this.extractIdFromUrl(pokedex.url);
           if (!pokedexId) return null;
 
@@ -1512,8 +1395,7 @@ export class PokemonDataSeeder {
 
             const missingRelationships: string[] = [];
             if (!hasVersionGroups) missingRelationships.push('version-groups');
-            if (!hasPokemonEntries)
-              missingRelationships.push('pokemon-entries');
+            if (!hasPokemonEntries) missingRelationships.push('pokemon-entries');
 
             if (missingRelationships.length > 0) {
               this.log(
@@ -1541,10 +1423,7 @@ export class PokemonDataSeeder {
 
           results.forEach((result) => {
             if (result) {
-              pokemonSpeciesUpdates.set(
-                result.pokedexId,
-                result.pokemonEntries,
-              );
+              pokemonSpeciesUpdates.set(result.pokedexId, result.pokemonEntries);
             }
           });
 
@@ -1555,9 +1434,7 @@ export class PokemonDataSeeder {
     );
   }
 
-  async seedEvolutionChains(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedEvolutionChains(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'evolution-chain',
@@ -1567,10 +1444,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('evolutionChain'),
-        processItem: async (
-          chain: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (chain: NamedAPIResource, mode: 'premium' | 'standard') => {
           const chainData = await this.fetchWithProxy(chain.url, mode);
 
           // Create the evolution chain record
@@ -1583,9 +1457,7 @@ export class PokemonDataSeeder {
     );
   }
 
-  async seedLanguages(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedLanguages(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'language',
@@ -1594,10 +1466,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('language'),
-        processItem: async (
-          language: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (language: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processLanguage(language, mode);
         },
 
@@ -1639,19 +1508,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('region'),
-        processItem: async (
-          region: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (region: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processRegion(region, mode);
         },
       },
     );
   }
 
-  async seedGenerations(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedGenerations(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'generation',
@@ -1660,19 +1524,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('generation'),
-        processItem: async (
-          generation: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (generation: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processGeneration(generation, mode);
         },
       },
     );
   }
 
-  async seedVersionGroups(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedVersionGroups(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'version-group',
@@ -1681,10 +1540,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('versionGroup'),
-        processItem: async (
-          versionGroup: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (versionGroup: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processVersionGroup(versionGroup, mode);
         },
       },
@@ -1700,10 +1556,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('type'),
-        processItem: async (
-          type: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (type: NamedAPIResource, mode: 'premium' | 'standard') => {
           const typeId = this.extractIdFromUrl(type.url);
           if (!typeId) return;
 
@@ -1733,9 +1586,7 @@ export class PokemonDataSeeder {
             if (!hasEffectiveness) missingRelationships.push('effectiveness');
 
             if (missingRelationships.length > 0) {
-              this.log(
-                `Type ${existingType.name} missing: ${missingRelationships.join(', ')}`,
-              );
+              this.log(`Type ${existingType.name} missing: ${missingRelationships.join(', ')}`);
 
               // Process the type data
               await this.processType(type, mode);
@@ -1784,9 +1635,7 @@ export class PokemonDataSeeder {
     );
   }
 
-  async seedAbilities(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedAbilities(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'ability',
@@ -1795,10 +1644,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('ability'),
-        processItem: async (
-          ability: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (ability: NamedAPIResource, mode: 'premium' | 'standard') => {
           const abilityId = this.extractIdFromUrl(ability.url);
           if (!abilityId) return;
 
@@ -1810,21 +1656,20 @@ export class PokemonDataSeeder {
 
           if (existingAbility) {
             // Check if relationships are complete
-            const [hasNames, hasEffectTexts, hasFlavorTexts] =
-              await Promise.all([
-                prisma.abilityName.findFirst({
-                  where: { abilityId },
-                  select: { abilityId: true },
-                }),
-                prisma.abilityEffectText.findFirst({
-                  where: { abilityId },
-                  select: { abilityId: true },
-                }),
-                prisma.abilityFlavorText.findFirst({
-                  where: { abilityId },
-                  select: { abilityId: true },
-                }),
-              ]);
+            const [hasNames, hasEffectTexts, hasFlavorTexts] = await Promise.all([
+              prisma.abilityName.findFirst({
+                where: { abilityId },
+                select: { abilityId: true },
+              }),
+              prisma.abilityEffectText.findFirst({
+                where: { abilityId },
+                select: { abilityId: true },
+              }),
+              prisma.abilityFlavorText.findFirst({
+                where: { abilityId },
+                select: { abilityId: true },
+              }),
+            ]);
 
             const missingRelationships: string[] = [];
             if (!hasNames) missingRelationships.push('names');
@@ -1854,10 +1699,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('move'),
-        processItem: async (
-          move: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (move: NamedAPIResource, mode: 'premium' | 'standard') => {
           const moveId = this.extractIdFromUrl(move.url);
           if (!moveId) return;
 
@@ -1869,22 +1711,20 @@ export class PokemonDataSeeder {
 
           if (existingMove) {
             // Check if relationships are complete
-            const [hasNames, hasEffectEntries, hasMetaData] = await Promise.all(
-              [
-                prisma.moveName.findFirst({
-                  where: { moveId },
-                  select: { moveId: true },
-                }),
-                prisma.moveEffectEntry.findFirst({
-                  where: { moveId },
-                  select: { moveId: true },
-                }),
-                prisma.moveMetaData.findFirst({
-                  where: { moveId },
-                  select: { moveId: true },
-                }),
-              ],
-            );
+            const [hasNames, hasEffectEntries, hasMetaData] = await Promise.all([
+              prisma.moveName.findFirst({
+                where: { moveId },
+                select: { moveId: true },
+              }),
+              prisma.moveEffectEntry.findFirst({
+                where: { moveId },
+                select: { moveId: true },
+              }),
+              prisma.moveMetaData.findFirst({
+                where: { moveId },
+                select: { moveId: true },
+              }),
+            ]);
 
             const missingRelationships: string[] = [];
             if (!hasNames) missingRelationships.push('names');
@@ -1892,9 +1732,7 @@ export class PokemonDataSeeder {
             if (!hasMetaData) missingRelationships.push('meta-data');
 
             if (missingRelationships.length > 0) {
-              this.log(
-                `Move ${existingMove.name} missing: ${missingRelationships.join(', ')}`,
-              );
+              this.log(`Move ${existingMove.name} missing: ${missingRelationships.join(', ')}`);
               await this.processMove(move, mode);
             }
           } else {
@@ -1914,10 +1752,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('item'),
-        processItem: async (
-          item: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (item: NamedAPIResource, mode: 'premium' | 'standard') => {
           const itemId = this.extractIdFromUrl(item.url);
           if (!itemId) return;
 
@@ -1929,25 +1764,24 @@ export class PokemonDataSeeder {
 
           if (existingItem) {
             // Check if relationships are complete
-            const [hasNames, hasEffectTexts, hasFlavorTexts, hasGameIndices] =
-              await Promise.all([
-                prisma.itemName.findFirst({
-                  where: { itemId },
-                  select: { itemId: true },
-                }),
-                prisma.itemEffectText.findFirst({
-                  where: { itemId },
-                  select: { itemId: true },
-                }),
-                prisma.itemFlavorText.findFirst({
-                  where: { itemId },
-                  select: { itemId: true },
-                }),
-                prisma.itemGameIndex.findFirst({
-                  where: { itemId },
-                  select: { itemId: true },
-                }),
-              ]);
+            const [hasNames, hasEffectTexts, hasFlavorTexts, hasGameIndices] = await Promise.all([
+              prisma.itemName.findFirst({
+                where: { itemId },
+                select: { itemId: true },
+              }),
+              prisma.itemEffectText.findFirst({
+                where: { itemId },
+                select: { itemId: true },
+              }),
+              prisma.itemFlavorText.findFirst({
+                where: { itemId },
+                select: { itemId: true },
+              }),
+              prisma.itemGameIndex.findFirst({
+                where: { itemId },
+                select: { itemId: true },
+              }),
+            ]);
 
             const missingRelationships: string[] = [];
             if (!hasNames) missingRelationships.push('names');
@@ -1956,9 +1790,7 @@ export class PokemonDataSeeder {
             if (!hasGameIndices) missingRelationships.push('game-indices');
 
             if (missingRelationships.length > 0) {
-              this.log(
-                `Item ${existingItem.name} missing: ${missingRelationships.join(', ')}`,
-              );
+              this.log(`Item ${existingItem.name} missing: ${missingRelationships.join(', ')}`);
               await this.processItem(item, mode);
             }
           } else {
@@ -1970,9 +1802,7 @@ export class PokemonDataSeeder {
     );
   }
 
-  async seedItemAttributes(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedItemAttributes(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'item-attribute',
@@ -1981,10 +1811,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('itemAttribute'),
-        processItem: async (
-          itemAttribute: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (itemAttribute: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processItemAttribute(itemAttribute, mode);
         },
       },
@@ -2000,19 +1827,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('machine'),
-        processItem: async (
-          machine: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (machine: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processMachine(machine, mode);
         },
       },
     );
   }
 
-  async seedMoveBattleStyles(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedMoveBattleStyles(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'move-battle-style',
@@ -2021,10 +1843,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('moveBattleStyle'),
-        processItem: async (
-          mbs: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (mbs: NamedAPIResource, mode: 'premium' | 'standard') => {
           const mbsData = await this.fetchWithProxy(mbs.url, mode);
           await this.upsertRecord(prisma.moveBattleStyle, mbsData.id, {
             name: mbsData.name,
@@ -2045,9 +1864,7 @@ export class PokemonDataSeeder {
   // SUPPLEMENTARY DATA SEEDING METHODS (Multiple Endpoints)
   // ======================================================
 
-  async seedSupplementaryData(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedSupplementaryData(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     this.log('Seeding supplementary data...');
     // These methods handle multiple endpoints, so we'll call them sequentially
     await this.seedMoveDamageClasses(mode);
@@ -2071,9 +1888,7 @@ export class PokemonDataSeeder {
     this.log('Completed supplementary data seed');
   }
 
-  async seedItemSupplementaryData(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedItemSupplementaryData(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     this.log('Seeding item supplementary data...');
     await this.seedItemPockets(mode);
     await this.seedItemCategories(mode);
@@ -2081,9 +1896,7 @@ export class PokemonDataSeeder {
     this.log('Completed item supplementary data seed');
   }
 
-  async seedMoveDamageClasses(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedMoveDamageClasses(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'move-damage-class',
@@ -2092,19 +1905,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('moveDamageClass'),
-        processItem: async (
-          mdc: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (mdc: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processMoveDamageClass(mdc, mode);
         },
       },
     );
   }
 
-  async seedMoveTargets(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedMoveTargets(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'move-target',
@@ -2113,10 +1921,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('moveTarget'),
-        processItem: async (
-          mt: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (mt: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processMoveTargetItem(mt, mode);
         },
       },
@@ -2132,19 +1937,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('stat'),
-        processItem: async (
-          stat: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (stat: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processStat(stat, mode);
         },
       },
     );
   }
 
-  async seedCharacteristics(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedCharacteristics(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'characteristic', // ← Fixed: correct endpoint
@@ -2153,30 +1953,16 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('characteristic'),
-        processItem: async (
-          characteristic: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (characteristic: NamedAPIResource, mode: 'premium' | 'standard') => {
           const characteristicId = this.extractIdFromUrl(characteristic.url);
           if (!characteristicId) {
-            this.log(
-              `Skipping characteristic with invalid URL: ${characteristic.url}`,
-              'warn',
-            );
+            this.log(`Skipping characteristic with invalid URL: ${characteristic.url}`, 'warn');
             return;
           }
-          const characteristicData = await this.fetchWithProxy(
-            characteristic.url,
-            mode,
-          );
-          const statId = this.extractIdFromUrl(
-            characteristicData.highest_stat?.url,
-          );
+          const characteristicData = await this.fetchWithProxy(characteristic.url, mode);
+          const statId = this.extractIdFromUrl(characteristicData.highest_stat?.url);
           if (!statId) {
-            this.log(
-              `Missing stat ID for characteristic ${characteristicId}, skipping`,
-              'warn',
-            );
+            this.log(`Missing stat ID for characteristic ${characteristicId}, skipping`, 'warn');
             return;
           }
           const statExists = await prisma.stat.findUnique({
@@ -2191,17 +1977,11 @@ export class PokemonDataSeeder {
             return;
           }
           // Create the characteristic
-          await this.upsertRecord(
-            prisma.characteristic,
-            characteristicData.id,
-            {
-              statId,
-              geneModulo: characteristicData.gene_modulo,
-              possibleValues: JSON.stringify(
-                characteristicData.possible_values,
-              ),
-            },
-          );
+          await this.upsertRecord(prisma.characteristic, characteristicData.id, {
+            statId,
+            geneModulo: characteristicData.gene_modulo,
+            possibleValues: JSON.stringify(characteristicData.possible_values),
+          });
           // Create characteristic descriptions
           await this.addJoinedRecordData(
             prisma.characteristicDescription,
@@ -2211,10 +1991,7 @@ export class PokemonDataSeeder {
             ['description'],
             'languageId',
           );
-          this.log(
-            `Processed characteristic ${characteristicId} for stat ${statId}`,
-            'debug',
-          );
+          this.log(`Processed characteristic ${characteristicId} for stat ${statId}`, 'debug');
         },
       },
     );
@@ -2229,19 +2006,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('gender'),
-        processItem: async (
-          gender: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (gender: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processGender(gender, mode);
         },
       },
     );
   }
 
-  async seedPokeathlonStats(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedPokeathlonStats(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'pokeathlon-stat',
@@ -2250,19 +2022,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('pokeathlonStat'),
-        processItem: async (
-          stat: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (stat: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processPokeathlonStat(stat, mode);
         },
       },
     );
   }
 
-  async seedPalParkAreas(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedPalParkAreas(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'pal-park-area',
@@ -2271,10 +2038,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('palParkArea'),
-        processItem: async (
-          area: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (area: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processPalParkArea(area, mode);
         },
       },
@@ -2290,10 +2054,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('nature'),
-        processItem: async (
-          nature: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (nature: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processNature(nature, mode);
         },
       },
@@ -2309,19 +2070,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('berry'),
-        processItem: async (
-          berry: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (berry: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processBerry(berry, mode);
         },
       },
     );
   }
 
-  async seedMoveLearnMethods(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedMoveLearnMethods(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'move-learn-method',
@@ -2330,19 +2086,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('moveLearnMethod'),
-        processItem: async (
-          mlm: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (mlm: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processMoveLearnMethod(mlm, mode);
         },
       },
     );
   }
 
-  async seedEggGroups(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedEggGroups(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'egg-group',
@@ -2351,19 +2102,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('eggGroup'),
-        processItem: async (
-          eg: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (eg: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processEggGroup(eg, mode);
         },
       },
     );
   }
 
-  async seedGrowthRates(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedGrowthRates(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'growth-rate',
@@ -2372,19 +2118,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('growthRate'),
-        processItem: async (
-          gr: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (gr: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processGrowthRate(gr, mode);
         },
       },
     );
   }
 
-  async seedPokemonColors(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedPokemonColors(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'pokemon-color',
@@ -2393,19 +2134,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('pokemonColor'),
-        processItem: async (
-          pc: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (pc: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processPokemonColor(pc, mode);
         },
       },
     );
   }
 
-  async seedPokemonShapes(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedPokemonShapes(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'pokemon-shape',
@@ -2414,19 +2150,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('pokemonShape'),
-        processItem: async (
-          ps: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (ps: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processPokemonShape(ps, mode);
         },
       },
     );
   }
 
-  async seedPokemonHabitats(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedPokemonHabitats(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'pokemon-habitat',
@@ -2435,19 +2166,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('pokemonHabitat'),
-        processItem: async (
-          ph: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (ph: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processPokemonHabitat(ph, mode);
         },
       },
     );
   }
 
-  async seedBerryFlavors(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedBerryFlavors(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'berry-flavor',
@@ -2456,19 +2182,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('berryFlavor'),
-        processItem: async (
-          bf: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (bf: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processBerryFlavor(bf, mode);
         },
       },
     );
   }
 
-  async seedBerryFirmnesses(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedBerryFirmnesses(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'berry-firmness',
@@ -2477,19 +2198,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('berryFirmness'),
-        processItem: async (
-          bfirm: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (bfirm: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processBerryFirmness(bfirm, mode);
         },
       },
     );
   }
 
-  async seedMoveMetaAilments(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedMoveMetaAilments(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'move-ailment',
@@ -2498,19 +2214,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('moveMetaAilment'),
-        processItem: async (
-          mma: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (mma: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processMoveMetaAilment(mma, mode);
         },
       },
     );
   }
 
-  async seedMoveMetaCategories(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedMoveMetaCategories(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'move-category',
@@ -2519,19 +2230,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('moveMetaCategory'),
-        processItem: async (
-          mmc: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (mmc: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processMoveMetaCategory(mmc, mode);
         },
       },
     );
   }
 
-  async seedContestTypes(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedContestTypes(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'contest-type',
@@ -2540,19 +2246,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('contestType'),
-        processItem: async (
-          ct: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (ct: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processContestType(ct, mode);
         },
       },
     );
   }
 
-  async seedContestEffects(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedContestEffects(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'contest-effect',
@@ -2561,19 +2262,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('contestEffect'),
-        processItem: async (
-          ce: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (ce: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processContestEffect(ce, mode);
         },
       },
     );
   }
 
-  async seedSuperContestEffects(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedSuperContestEffects(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'super-contest-effect',
@@ -2582,19 +2278,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('superContestEffect'),
-        processItem: async (
-          sce: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (sce: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processSuperContestEffect(sce, mode);
         },
       },
     );
   }
 
-  async seedItemPockets(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedItemPockets(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'item-pocket',
@@ -2603,19 +2294,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('itemPocket'),
-        processItem: async (
-          pocket: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (pocket: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processItemPocket(pocket, mode);
         },
       },
     );
   }
 
-  async seedItemCategories(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedItemCategories(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'item-category',
@@ -2624,19 +2310,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('itemCategory'),
-        processItem: async (
-          category: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (category: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processItemCategory(category, mode);
         },
       },
     );
   }
 
-  async seedItemFlingEffects(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedItemFlingEffects(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'item-fling-effect',
@@ -2645,19 +2326,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('itemFlingEffect'),
-        processItem: async (
-          flingEffect: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (flingEffect: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processItemFlingEffect(flingEffect, mode);
         },
       },
     );
   }
 
-  async seedGenderSpeciesAssociations(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedGenderSpeciesAssociations(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     this.log('Creating gender-species associations...');
 
     // Get existing associations
@@ -2686,9 +2362,7 @@ export class PokemonDataSeeder {
           Array.isArray(genderData.pokemon_species_details)
         ) {
           for (const speciesDetail of genderData.pokemon_species_details) {
-            const pokemonSpeciesId = this.extractIdFromUrl(
-              speciesDetail.pokemon_species.url,
-            );
+            const pokemonSpeciesId = this.extractIdFromUrl(speciesDetail.pokemon_species.url);
 
             if (pokemonSpeciesId) {
               const compositeKey = `${pokemonSpeciesId}-${genderData.id}`;
@@ -2726,14 +2400,10 @@ export class PokemonDataSeeder {
       }
     }
 
-    this.log(
-      `✅ Gender-species associations completed: ${created} created, ${skipped} skipped`,
-    );
+    this.log(`✅ Gender-species associations completed: ${created} created, ${skipped} skipped`);
   }
 
-  async seedEncounterConditions(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedEncounterConditions(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'encounter-condition',
@@ -2742,19 +2412,14 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('encounterCondition'),
-        processItem: async (
-          condition: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (condition: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processEncounterCondition(condition, mode);
         },
       },
     );
   }
 
-  async seedEvolutionTriggers(
-    mode: 'premium' | 'standard' = 'standard',
-  ): Promise<void> {
+  async seedEvolutionTriggers(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
     await this.seedGeneric(
       {
         endpoint: 'evolution-trigger',
@@ -2763,10 +2428,7 @@ export class PokemonDataSeeder {
       },
       {
         getExistingIds: async () => this.getExistingIds('evolutionTrigger'),
-        processItem: async (
-          trigger: NamedAPIResource,
-          mode: 'premium' | 'standard',
-        ) => {
+        processItem: async (trigger: NamedAPIResource, mode: 'premium' | 'standard') => {
           await this.processEvolutionTrigger(trigger, mode);
         },
       },
@@ -2812,11 +2474,8 @@ export class PokemonDataSeeder {
       // Create a Set for O(1) lookup of existing relationships
       const existingSet = new Set(
         existingEfficacies.map(
-          (rel: {
-            damageTypeId: number;
-            targetTypeId: number;
-            damageFactor: number;
-          }) => `${rel.damageTypeId}-${rel.targetTypeId}`,
+          (rel: { damageTypeId: number; targetTypeId: number; damageFactor: number }) =>
+            `${rel.damageTypeId}-${rel.targetTypeId}`,
         ),
       );
 
@@ -2849,9 +2508,7 @@ export class PokemonDataSeeder {
       }
 
       if (created === 0) {
-        this.log(
-          `✅ No missing relationships found - all type combinations have efficacy values`,
-        );
+        this.log(`✅ No missing relationships found - all type combinations have efficacy values`);
       } else {
         this.log(
           `✅ Type efficacy matrix completed: ${created} new 1.0x default relationships added`,
@@ -2864,10 +2521,7 @@ export class PokemonDataSeeder {
         `Final matrix: ${finalTotal}/${expectedTotal} relationships (preserving 0x, 0.5x, 2x efficacies)`,
       );
     } catch (error: unknown) {
-      this.log(
-        `❌ Failed to complete type efficacy matrix: ${(error as Error).message}`,
-        'error',
-      );
+      this.log(`❌ Failed to complete type efficacy matrix: ${(error as Error).message}`, 'error');
       throw error;
     }
   }
@@ -2902,18 +2556,13 @@ export class PokemonDataSeeder {
     mode: 'premium' | 'standard',
   ): Promise<void> {
     const genData = await this.fetchWithProxy(generation.url, mode);
-    let mainRegionId = genData.main_region
-      ? this.extractIdFromUrl(genData.main_region.url)
-      : null;
+    let mainRegionId = genData.main_region ? this.extractIdFromUrl(genData.main_region.url) : null;
     if (mainRegionId) {
       const regionExists = await prisma.region.findUnique({
         where: { id: mainRegionId },
       });
       if (!regionExists) {
-        this.log(
-          `Region ${mainRegionId} not found, skipping main_region reference`,
-          'warn',
-        );
+        this.log(`Region ${mainRegionId} not found, skipping main_region reference`, 'warn');
         mainRegionId = null;
       }
     }
@@ -2958,10 +2607,7 @@ export class PokemonDataSeeder {
     }
   }
 
-  private async processType(
-    type: NamedAPIResource,
-    mode: 'premium' | 'standard',
-  ): Promise<void> {
+  private async processType(type: NamedAPIResource, mode: 'premium' | 'standard'): Promise<void> {
     const typeData = await this.fetchWithProxy(type.url, mode);
     const generationId = typeData.generation
       ? this.extractIdFromUrl(typeData.generation.url)
@@ -3022,11 +2668,7 @@ export class PokemonDataSeeder {
       },
     ];
 
-    for (const {
-      relations,
-      factor,
-      isFromRelation,
-    } of effectivenessRelations) {
+    for (const { relations, factor, isFromRelation } of effectivenessRelations) {
       for (const relatedType of relations) {
         const relatedTypeId = this.extractIdFromUrl(relatedType.url);
         if (relatedTypeId) {
@@ -3059,10 +2701,7 @@ export class PokemonDataSeeder {
     }
 
     // Create past type effectiveness relationships
-    if (
-      typeData.past_damage_relations &&
-      Array.isArray(typeData.past_damage_relations)
-    ) {
+    if (typeData.past_damage_relations && Array.isArray(typeData.past_damage_relations)) {
       for (const pastRelation of typeData.past_damage_relations) {
         const generationId = this.extractIdFromUrl(pastRelation.generation.url);
 
@@ -3116,20 +2755,12 @@ export class PokemonDataSeeder {
             },
           ];
 
-          for (const {
-            relations,
-            factor,
-            isFromRelation,
-          } of pastEffectivenessRelations) {
+          for (const { relations, factor, isFromRelation } of pastEffectivenessRelations) {
             for (const relatedType of relations) {
               const relatedTypeId = this.extractIdFromUrl(relatedType.url);
               if (relatedTypeId) {
-                const damageTypeId = isFromRelation
-                  ? relatedTypeId
-                  : typeData.id;
-                const targetTypeId = isFromRelation
-                  ? typeData.id
-                  : relatedTypeId;
+                const damageTypeId = isFromRelation ? relatedTypeId : typeData.id;
+                const targetTypeId = isFromRelation ? typeData.id : relatedTypeId;
 
                 // Verify both types exist
                 const [damageTypeExists, targetTypeExists] = await Promise.all([
@@ -3192,13 +2823,11 @@ export class PokemonDataSeeder {
       ['name'],
     );
     // Create ability effect texts
-    const effectEntries = abilityData.effect_entries.map(
-      (entry: LanguageEntry) => ({
-        language: entry.language,
-        shortEffect: entry.short_effect, // Manually map snake_case to camelCase
-        effect: entry.effect,
-      }),
-    );
+    const effectEntries = abilityData.effect_entries.map((entry: LanguageEntry) => ({
+      language: entry.language,
+      shortEffect: entry.short_effect, // Manually map snake_case to camelCase
+      effect: entry.effect,
+    }));
     await this.addJoinedRecordData(
       prisma.abilityEffectText,
       'abilityId',
@@ -3207,15 +2836,10 @@ export class PokemonDataSeeder {
       ['shortEffect', 'effect'],
     );
     // Create ability flavor texts
-    if (
-      abilityData.flavor_text_entries &&
-      Array.isArray(abilityData.flavor_text_entries)
-    ) {
+    if (abilityData.flavor_text_entries && Array.isArray(abilityData.flavor_text_entries)) {
       for (const flavorEntry of abilityData.flavor_text_entries) {
         const languageId = this.extractIdFromUrl(flavorEntry.language?.url);
-        const versionGroupId = this.extractIdFromUrl(
-          flavorEntry.version_group?.url,
-        );
+        const versionGroupId = this.extractIdFromUrl(flavorEntry.version_group?.url);
 
         if (languageId && versionGroupId) {
           // Verify version group exists first
@@ -3253,14 +2877,9 @@ export class PokemonDataSeeder {
     }
 
     // Create ability change log entries
-    if (
-      abilityData.effect_changes &&
-      Array.isArray(abilityData.effect_changes)
-    ) {
+    if (abilityData.effect_changes && Array.isArray(abilityData.effect_changes)) {
       for (const effectChange of abilityData.effect_changes) {
-        const versionGroupId = this.extractIdFromUrl(
-          effectChange.version_group?.url,
-        );
+        const versionGroupId = this.extractIdFromUrl(effectChange.version_group?.url);
 
         if (versionGroupId) {
           // Verify version group exists first
@@ -3297,25 +2916,18 @@ export class PokemonDataSeeder {
     }
   }
 
-  private async processMove(
-    move: NamedAPIResource,
-    mode: 'premium' | 'standard',
-  ): Promise<void> {
+  private async processMove(move: NamedAPIResource, mode: 'premium' | 'standard'): Promise<void> {
     const moveData = await this.fetchWithProxy(move.url, mode);
 
     // Extract required IDs with null checks
     const generationId = moveData.generation
       ? this.extractIdFromUrl(moveData.generation.url)
       : null;
-    const typeId = moveData.type
-      ? this.extractIdFromUrl(moveData.type.url)
-      : null;
+    const typeId = moveData.type ? this.extractIdFromUrl(moveData.type.url) : null;
     const moveDamageClassId = moveData.damage_class
       ? this.extractIdFromUrl(moveData.damage_class.url)
       : null;
-    const moveTargetId = moveData.target
-      ? this.extractIdFromUrl(moveData.target.url)
-      : null;
+    const moveTargetId = moveData.target ? this.extractIdFromUrl(moveData.target.url) : null;
 
     // Extract optional contest-related IDs
     const contestTypeId = moveData.contest_type
@@ -3371,13 +2983,11 @@ export class PokemonDataSeeder {
     }
 
     // Create move effect entries from effect_entries
-    const effectEntries = moveData.effect_entries.map(
-      (entry: LanguageEntry) => ({
-        language: entry.language,
-        shortEffect: entry.short_effect,
-        effect: entry.effect,
-      }),
-    );
+    const effectEntries = moveData.effect_entries.map((entry: LanguageEntry) => ({
+      language: entry.language,
+      shortEffect: entry.short_effect,
+      effect: entry.effect,
+    }));
     await this.addJoinedRecordData(
       prisma.moveEffectEntry,
       'moveId',
@@ -3388,15 +2998,10 @@ export class PokemonDataSeeder {
     );
 
     // Create move flavor texts
-    if (
-      moveData.flavor_text_entries &&
-      Array.isArray(moveData.flavor_text_entries)
-    ) {
+    if (moveData.flavor_text_entries && Array.isArray(moveData.flavor_text_entries)) {
       for (const flavorEntry of moveData.flavor_text_entries) {
         const languageId = this.extractIdFromUrl(flavorEntry.language?.url);
-        const versionGroupId = this.extractIdFromUrl(
-          flavorEntry.version_group?.url,
-        );
+        const versionGroupId = this.extractIdFromUrl(flavorEntry.version_group?.url);
 
         if (languageId && versionGroupId) {
           await prisma.moveFlavorText.upsert({
@@ -3548,12 +3153,8 @@ export class PokemonDataSeeder {
     // Create move past values
     if (moveData.past_values && Array.isArray(moveData.past_values)) {
       for (const pastValue of moveData.past_values) {
-        const versionGroupId = this.extractIdFromUrl(
-          pastValue.version_group?.url,
-        );
-        const typeId = pastValue.type
-          ? this.extractIdFromUrl(pastValue.type.url)
-          : null;
+        const versionGroupId = this.extractIdFromUrl(pastValue.version_group?.url);
+        const typeId = pastValue.type ? this.extractIdFromUrl(pastValue.type.url) : null;
 
         if (versionGroupId) {
           await prisma.movePastValue.upsert({
@@ -3585,10 +3186,7 @@ export class PokemonDataSeeder {
     }
   }
 
-  private async processItem(
-    item: NamedAPIResource,
-    mode: 'premium' | 'standard',
-  ): Promise<void> {
+  private async processItem(item: NamedAPIResource, mode: 'premium' | 'standard'): Promise<void> {
     const itemData = await this.fetchWithProxy(item.url, mode);
 
     // Check for existing item with same name
@@ -3605,9 +3203,7 @@ export class PokemonDataSeeder {
       );
       this.log(
         `  - New: ID ${itemData.id}, name "${itemData.name}", generation: ${
-          itemData.generation
-            ? this.extractIdFromUrl(itemData.generation.url)
-            : 'null'
+          itemData.generation ? this.extractIdFromUrl(itemData.generation.url) : 'null'
         }`,
         'error',
       );
@@ -3734,15 +3330,10 @@ export class PokemonDataSeeder {
     }
 
     // Create item flavor texts
-    if (
-      itemData.flavor_text_entries &&
-      Array.isArray(itemData.flavor_text_entries)
-    ) {
+    if (itemData.flavor_text_entries && Array.isArray(itemData.flavor_text_entries)) {
       for (const flavorEntry of itemData.flavor_text_entries) {
         const languageId = this.extractIdFromUrl(flavorEntry.language.url);
-        const versionGroupId = this.extractIdFromUrl(
-          flavorEntry.version_group.url,
-        );
+        const versionGroupId = this.extractIdFromUrl(flavorEntry.version_group.url);
         if (languageId && versionGroupId) {
           await prisma.itemFlavorText.upsert({
             where: {
@@ -3871,9 +3462,7 @@ export class PokemonDataSeeder {
     // Extract and validate fields
     const itemId = this.extractIdFromUrl(machineData.item?.url);
     const moveId = this.extractIdFromUrl(machineData.move?.url);
-    const versionGroupId = this.extractIdFromUrl(
-      machineData.version_group?.url,
-    );
+    const versionGroupId = this.extractIdFromUrl(machineData.version_group?.url);
 
     if (!itemId || !moveId || !versionGroupId) {
       throw new Error(`Missing required fields for machine ${machineData.id}`);
@@ -3896,9 +3485,7 @@ export class PokemonDataSeeder {
     ]);
 
     if (!itemExists || !moveExists || !versionGroupExists) {
-      throw new Error(
-        `Referenced records not found for machine ${machineData.id}`,
-      );
+      throw new Error(`Referenced records not found for machine ${machineData.id}`);
     }
 
     // Create machine record
@@ -4129,15 +3716,9 @@ export class PokemonDataSeeder {
           continue;
         }
 
-        const generationId = this.extractIdFromUrl(
-          pastTypeEntry.generation.url,
-        );
+        const generationId = this.extractIdFromUrl(pastTypeEntry.generation.url);
 
-        if (
-          generationId &&
-          pastTypeEntry.types &&
-          Array.isArray(pastTypeEntry.types)
-        ) {
+        if (generationId && pastTypeEntry.types && Array.isArray(pastTypeEntry.types)) {
           for (const typeEntry of pastTypeEntry.types) {
             // ADD NULL CHECK FOR TYPE
             if (!typeEntry?.type?.url) {
@@ -4174,10 +3755,7 @@ export class PokemonDataSeeder {
     }
 
     // Pokemon Past Abilities
-    if (
-      pokemonData.past_abilities &&
-      Array.isArray(pokemonData.past_abilities)
-    ) {
+    if (pokemonData.past_abilities && Array.isArray(pokemonData.past_abilities)) {
       for (const pastAbilityEntry of pokemonData.past_abilities) {
         // ADD NULL CHECK FOR GENERATION
         if (!pastAbilityEntry?.generation?.url) {
@@ -4188,9 +3766,7 @@ export class PokemonDataSeeder {
           continue;
         }
 
-        const generationId = this.extractIdFromUrl(
-          pastAbilityEntry.generation.url,
-        );
+        const generationId = this.extractIdFromUrl(pastAbilityEntry.generation.url);
 
         if (
           generationId &&
@@ -4339,19 +3915,13 @@ export class PokemonDataSeeder {
     }
   }
 
-  async processPokemonEncounters(
-    pokemonData: any,
-    mode: 'premium' | 'standard',
-  ): Promise<void> {
+  async processPokemonEncounters(pokemonData: any, mode: 'premium' | 'standard'): Promise<void> {
     try {
       const encountersUrl = `${CONFIG.POKEAPI_BASE_URL}pokemon/${pokemonData.id}/encounters`;
       const encountersData = await this.fetchWithProxy(encountersUrl, mode);
 
       if (!Array.isArray(encountersData) || encountersData.length === 0) {
-        this.log(
-          `No encounters found for Pokemon ${pokemonData.name}`,
-          'debug',
-        );
+        this.log(`No encounters found for Pokemon ${pokemonData.name}`, 'debug');
         return;
       }
 
@@ -4372,9 +3942,7 @@ export class PokemonDataSeeder {
             continue;
           }
 
-          const locationAreaId = this.extractIdFromUrl(
-            locationEncounter.location_area.url,
-          );
+          const locationAreaId = this.extractIdFromUrl(locationEncounter.location_area.url);
 
           if (!locationAreaId) {
             this.log(
@@ -4410,9 +3978,7 @@ export class PokemonDataSeeder {
                 continue;
               }
 
-              const versionId = this.extractIdFromUrl(
-                versionDetail.version.url,
-              );
+              const versionId = this.extractIdFromUrl(versionDetail.version.url);
 
               if (!versionId) {
                 this.log(
@@ -4437,8 +4003,7 @@ export class PokemonDataSeeder {
               }
 
               // Process each specific encounter detail
-              for (const encounterDetail of versionDetail.encounter_details ||
-                []) {
+              for (const encounterDetail of versionDetail.encounter_details || []) {
                 try {
                   // Check if method exists and has url
                   if (!encounterDetail.method?.url) {
@@ -4449,9 +4014,7 @@ export class PokemonDataSeeder {
                     continue;
                   }
 
-                  const encounterMethodId = this.extractIdFromUrl(
-                    encounterDetail.method.url,
-                  );
+                  const encounterMethodId = this.extractIdFromUrl(encounterDetail.method.url);
 
                   if (!encounterMethodId) {
                     this.log(
@@ -4462,11 +4025,10 @@ export class PokemonDataSeeder {
                   }
 
                   // Verify encounter method exists
-                  const encounterMethodExists =
-                    await prisma.encounterMethod.findUnique({
-                      where: { id: encounterMethodId },
-                      select: { id: true, name: true },
-                    });
+                  const encounterMethodExists = await prisma.encounterMethod.findUnique({
+                    where: { id: encounterMethodId },
+                    select: { id: true, name: true },
+                  });
 
                   if (!encounterMethodExists) {
                     this.log(
@@ -4481,17 +4043,16 @@ export class PokemonDataSeeder {
 
                   try {
                     // Try to find existing encounter first
-                    const existingEncounter =
-                      await prisma.pokemonEncounter.findFirst({
-                        where: {
-                          pokemonId: pokemonData.id,
-                          locationAreaId,
-                          encounterMethodId,
-                          versionId,
-                          minLevel: encounterDetail.min_level,
-                          maxLevel: encounterDetail.max_level,
-                        },
-                      });
+                    const existingEncounter = await prisma.pokemonEncounter.findFirst({
+                      where: {
+                        pokemonId: pokemonData.id,
+                        locationAreaId,
+                        encounterMethodId,
+                        versionId,
+                        minLevel: encounterDetail.min_level,
+                        maxLevel: encounterDetail.max_level,
+                      },
+                    });
 
                     if (existingEncounter) {
                       pokemonEncounter = await prisma.pokemonEncounter.update({
@@ -4529,9 +4090,7 @@ export class PokemonDataSeeder {
                           continue;
                         }
 
-                        const conditionValueId = this.extractIdFromUrl(
-                          conditionValue.url,
-                        );
+                        const conditionValueId = this.extractIdFromUrl(conditionValue.url);
 
                         if (conditionValueId && pokemonEncounter) {
                           // Verify condition value exists
@@ -4545,12 +4104,10 @@ export class PokemonDataSeeder {
                             try {
                               await prisma.encounterConditionValueMap.upsert({
                                 where: {
-                                  pokemonEncounterId_encounterConditionValueId:
-                                    {
-                                      pokemonEncounterId: pokemonEncounter.id,
-                                      encounterConditionValueId:
-                                        conditionValueId,
-                                    },
+                                  pokemonEncounterId_encounterConditionValueId: {
+                                    pokemonEncounterId: pokemonEncounter.id,
+                                    encounterConditionValueId: conditionValueId,
+                                  },
                                 },
                                 update: {},
                                 create: {
@@ -4626,19 +4183,10 @@ export class PokemonDataSeeder {
 
           // Process each version group detail for detailed movesets
           for (const versionDetail of moveEntry.version_group_details) {
-            const versionGroupId = this.extractIdFromUrl(
-              versionDetail.version_group.url,
-            );
-            const moveLearnMethodId = this.extractIdFromUrl(
-              versionDetail.move_learn_method.url,
-            );
+            const versionGroupId = this.extractIdFromUrl(versionDetail.version_group.url);
+            const moveLearnMethodId = this.extractIdFromUrl(versionDetail.move_learn_method.url);
 
-            if (
-              !pokemonData.id ||
-              !versionGroupId ||
-              !moveId ||
-              !moveLearnMethodId
-            ) {
+            if (!pokemonData.id || !versionGroupId || !moveId || !moveLearnMethodId) {
               throw new Error(`Missing required fields for Pokemon move`);
             }
 
@@ -4721,19 +4269,13 @@ export class PokemonDataSeeder {
     }
   }
 
-  async processPokemonForms(
-    pokemonData: any,
-    mode: 'standard' | 'premium',
-  ): Promise<void> {
+  async processPokemonForms(pokemonData: any, mode: 'standard' | 'premium'): Promise<void> {
     try {
       if (pokemonData.forms && Array.isArray(pokemonData.forms)) {
         for (const formRef of pokemonData.forms) {
           // ADD NULL CHECK
           if (!formRef?.url) {
-            this.log(
-              `Skipping form with missing URL for Pokemon ${pokemonData.name}`,
-              'warn',
-            );
+            this.log(`Skipping form with missing URL for Pokemon ${pokemonData.name}`, 'warn');
             continue;
           }
 
@@ -4746,13 +4288,9 @@ export class PokemonDataSeeder {
               // Extract version group ID (optional) with null check
               let versionGroupId: number | undefined = undefined;
               if (formData.version_group?.url) {
-                const extractedVersionGroupId = this.extractIdFromUrl(
-                  formData.version_group.url,
-                );
+                const extractedVersionGroupId = this.extractIdFromUrl(formData.version_group.url);
                 versionGroupId =
-                  extractedVersionGroupId !== null
-                    ? extractedVersionGroupId
-                    : undefined;
+                  extractedVersionGroupId !== null ? extractedVersionGroupId : undefined;
               }
 
               // Create/update the Pokemon form
@@ -4769,13 +4307,11 @@ export class PokemonDataSeeder {
               });
 
               // Create form names with null checks
-              const formNameEntries = formData.names.map(
-                (entry: LanguageEntry) => ({
-                  language: entry.language,
-                  pokemon: entry.pokemon,
-                  pokemonName: entry.pokemon_name,
-                }),
-              );
+              const formNameEntries = formData.names.map((entry: LanguageEntry) => ({
+                language: entry.language,
+                pokemon: entry.pokemon,
+                pokemonName: entry.pokemon_name,
+              }));
               await this.addJoinedRecordData(
                 prisma.pokemonFormName,
                 'pokemonFormId',
@@ -4813,16 +4349,12 @@ export class PokemonDataSeeder {
 
               // Create form sprites (sprites shouldn't have URL issues, but being safe)
               if (formData.sprites) {
-                await this.upsertRecord(
-                  prisma.pokemonFormSprites,
-                  formData.id,
-                  {
-                    frontDefault: formData.sprites.front_default,
-                    frontShiny: formData.sprites.front_shiny,
-                    backDefault: formData.sprites.back_default,
-                    backShiny: formData.sprites.back_shiny,
-                  },
-                );
+                await this.upsertRecord(prisma.pokemonFormSprites, formData.id, {
+                  frontDefault: formData.sprites.front_default,
+                  frontShiny: formData.sprites.front_shiny,
+                  backDefault: formData.sprites.back_default,
+                  backShiny: formData.sprites.back_shiny,
+                });
               }
             } catch (formError) {
               this.log(
@@ -4900,18 +4432,11 @@ export class PokemonDataSeeder {
       }
     }
 
-    this.log(
-      `Pokemon species varieties: ${created} created, ${updated} updated`,
-    );
+    this.log(`Pokemon species varieties: ${created} created, ${updated} updated`);
   }
 
-  async processVersionGroupPokedexRelationships(
-    pokedexData: any,
-  ): Promise<void> {
-    if (
-      pokedexData.version_groups &&
-      Array.isArray(pokedexData.version_groups)
-    ) {
+  async processVersionGroupPokedexRelationships(pokedexData: any): Promise<void> {
+    if (pokedexData.version_groups && Array.isArray(pokedexData.version_groups)) {
       for (const vgRef of pokedexData.version_groups) {
         const versionGroupId = this.extractIdFromUrl(vgRef.url);
 
@@ -4996,9 +4521,7 @@ export class PokemonDataSeeder {
       }
     }
 
-    this.log(
-      `Completed evolution relationships: ${this.evolutionMappings.size} processed`,
-    );
+    this.log(`Completed evolution relationships: ${this.evolutionMappings.size} processed`);
   }
 
   private async processPokemonSpecies(
@@ -5015,9 +4538,7 @@ export class PokemonDataSeeder {
 
     // Validate required fields
     if (!generationId || !colorId || !shapeId || !growthRateId) {
-      throw new Error(
-        `Missing required fields for species ${speciesData.name}`,
-      );
+      throw new Error(`Missing required fields for species ${speciesData.name}`);
     }
 
     // OPTIONAL FIELDS (can be null)
@@ -5069,21 +4590,16 @@ export class PokemonDataSeeder {
 
     // Create species names and genera
     const genusMap = new Map(
-      speciesData.genera.map((entry: LanguageEntry) => [
-        entry.language.name,
-        entry.genus,
-      ]),
+      speciesData.genera.map((entry: LanguageEntry) => [entry.language.name, entry.genus]),
     );
-    const nameAndGenusEntries = speciesData.names.map(
-      (nameEntry: LanguageEntry) => {
-        const matchingGenus = genusMap.get(nameEntry.language.name) || null;
-        return {
-          language: nameEntry.language,
-          name: nameEntry.name,
-          genus: matchingGenus,
-        };
-      },
-    );
+    const nameAndGenusEntries = speciesData.names.map((nameEntry: LanguageEntry) => {
+      const matchingGenus = genusMap.get(nameEntry.language.name) || null;
+      return {
+        language: nameEntry.language,
+        name: nameEntry.name,
+        genus: matchingGenus,
+      };
+    });
     await this.addJoinedRecordData(
       prisma.pokemonSpeciesName,
       'pokemonSpeciesId',
@@ -5148,9 +4664,7 @@ export class PokemonDataSeeder {
     const pokedexData = await this.fetchWithProxy(pokedex.url, mode);
 
     // Extract region ID (optional)
-    const regionId = pokedexData.region
-      ? this.extractIdFromUrl(pokedexData.region.url)
-      : undefined;
+    const regionId = pokedexData.region ? this.extractIdFromUrl(pokedexData.region.url) : undefined;
 
     // Verify region exists if provided
     if (pokedexData.region && regionId) {
@@ -5197,14 +4711,9 @@ export class PokemonDataSeeder {
 
     // Collect Pokemon entries for later bulk processing
     const pokemonEntries: { pokedexId: number; pokedexNumber: number }[] = [];
-    if (
-      pokedexData.pokemon_entries &&
-      Array.isArray(pokedexData.pokemon_entries)
-    ) {
+    if (pokedexData.pokemon_entries && Array.isArray(pokedexData.pokemon_entries)) {
       for (const entry of pokedexData.pokemon_entries) {
-        const pokemonSpeciesId = this.extractIdFromUrl(
-          entry.pokemon_species.url,
-        );
+        const pokemonSpeciesId = this.extractIdFromUrl(entry.pokemon_species.url);
         if (pokemonSpeciesId) {
           pokemonEntries.push({
             pokedexId: pokemonSpeciesId,
@@ -5214,9 +4723,7 @@ export class PokemonDataSeeder {
       }
     }
 
-    this.log(
-      `Created pokedex: ${pokedexData.name} with ${pokemonEntries.length} Pokemon entries`,
-    );
+    this.log(`Created pokedex: ${pokedexData.name} with ${pokemonEntries.length} Pokemon entries`);
 
     return {
       pokedexId: pokedexData.id,
@@ -5225,10 +4732,7 @@ export class PokemonDataSeeder {
   }
 
   private async processPokemonSpeciesPokedexNumbers(
-    pokemonSpeciesUpdates: Map<
-      number,
-      { pokedexId: number; pokedexNumber: number }[]
-    >,
+    pokemonSpeciesUpdates: Map<number, { pokedexId: number; pokedexNumber: number }[]>,
   ): Promise<void> {
     let totalUpdates = 0;
     let successfulUpdates = 0;
@@ -5281,9 +4785,7 @@ export class PokemonDataSeeder {
 
       // Progress logging for large pokedexes
       if (pokemonEntries.length > 50) {
-        this.log(
-          `Updated ${pokemonEntries.length} Pokemon entries for pokedex ${pokedexId}`,
-        );
+        this.log(`Updated ${pokemonEntries.length} Pokemon entries for pokedex ${pokedexId}`);
       }
     }
 
@@ -5370,10 +4872,7 @@ export class PokemonDataSeeder {
     await processChainNode(chainData.chain);
   }
 
-  private async processEvolutionDetails(
-    fromSpeciesId: number,
-    evolvedForm: any,
-  ): Promise<void> {
+  private async processEvolutionDetails(fromSpeciesId: number, evolvedForm: any): Promise<void> {
     if (!evolvedForm.species || !evolvedForm.evolution_details) return;
 
     const toSpeciesId = this.extractIdFromUrl(evolvedForm.species.url);
@@ -5388,38 +4887,23 @@ export class PokemonDataSeeder {
           : null;
 
         if (!evolutionTriggerId) {
-          this.log(
-            `Missing evolution trigger for ${evolvedForm.species.name}, skipping`,
-            'warn',
-          );
+          this.log(`Missing evolution trigger for ${evolvedForm.species.name}, skipping`, 'warn');
           continue;
         }
 
         // Extract optional IDs
-        const evolutionItemId = detail.item
-          ? this.extractIdFromUrl(detail.item.url)
-          : null;
-        const genderId = detail.gender
-          ? this.extractIdFromUrl(detail.gender.url)
-          : null;
-        const locationId = detail.location
-          ? this.extractIdFromUrl(detail.location.url)
-          : null;
-        const heldItemId = detail.held_item
-          ? this.extractIdFromUrl(detail.held_item.url)
-          : null;
-        const knownMoveId = detail.known_move
-          ? this.extractIdFromUrl(detail.known_move.url)
-          : null;
+        const evolutionItemId = detail.item ? this.extractIdFromUrl(detail.item.url) : null;
+        const genderId = detail.gender ? this.extractIdFromUrl(detail.gender.url) : null;
+        const locationId = detail.location ? this.extractIdFromUrl(detail.location.url) : null;
+        const heldItemId = detail.held_item ? this.extractIdFromUrl(detail.held_item.url) : null;
+        const knownMoveId = detail.known_move ? this.extractIdFromUrl(detail.known_move.url) : null;
         const knownMoveTypeId = detail.known_move_type
           ? this.extractIdFromUrl(detail.known_move_type.url)
           : null;
         const partySpeciesId = detail.party_species
           ? this.extractIdFromUrl(detail.party_species.url)
           : null;
-        const partyTypeId = detail.party_type
-          ? this.extractIdFromUrl(detail.party_type.url)
-          : null;
+        const partyTypeId = detail.party_type ? this.extractIdFromUrl(detail.party_type.url) : null;
         const tradeSpeciesId = detail.trade_species
           ? this.extractIdFromUrl(detail.trade_species.url)
           : null;
@@ -5524,13 +5008,9 @@ export class PokemonDataSeeder {
     await this.upsertRecord(prisma.moveTarget, mtData.id, {
       name: mtData.name,
     });
-    await this.addJoinedRecordData(
-      prisma.moveTargetName,
-      'moveTargetId',
-      mtData.id,
-      mtData.names,
-      ['name'],
-    );
+    await this.addJoinedRecordData(prisma.moveTargetName, 'moveTargetId', mtData.id, mtData.names, [
+      'name',
+    ]);
     await this.addJoinedRecordData(
       prisma.moveTargetDescription,
       'moveTargetId',
@@ -5540,23 +5020,16 @@ export class PokemonDataSeeder {
     );
   }
 
-  private async processStat(
-    stat: NamedAPIResource,
-    mode: 'premium' | 'standard',
-  ): Promise<void> {
+  private async processStat(stat: NamedAPIResource, mode: 'premium' | 'standard'): Promise<void> {
     const statData = await this.fetchWithProxy(stat.url, mode);
     await this.upsertRecord(prisma.stat, statData.id, {
       name: statData.name,
       isBattleOnly: statData.is_battle_only,
       gameIndex: statData.game_index,
     });
-    await this.addJoinedRecordData(
-      prisma.statName,
-      'statId',
-      statData.id,
-      statData.names,
-      ['name'],
-    );
+    await this.addJoinedRecordData(prisma.statName, 'statId', statData.id, statData.names, [
+      'name',
+    ]);
   }
 
   private async processGender(
@@ -5596,22 +5069,13 @@ export class PokemonDataSeeder {
       likesFlavorId,
     });
     // Create nature names
-    await this.addJoinedRecordData(
-      prisma.natureName,
-      'natureId',
-      natureData.id,
-      natureData.names,
-      ['name'],
-    );
+    await this.addJoinedRecordData(prisma.natureName, 'natureId', natureData.id, natureData.names, [
+      'name',
+    ]);
     // Create nature pokeathlon stat affects (if any)
-    if (
-      natureData.pokeathlon_stat_changes &&
-      Array.isArray(natureData.pokeathlon_stat_changes)
-    ) {
+    if (natureData.pokeathlon_stat_changes && Array.isArray(natureData.pokeathlon_stat_changes)) {
       for (const statChange of natureData.pokeathlon_stat_changes) {
-        const pokeathlonStatId = this.extractIdFromUrl(
-          statChange.pokeathlon_stat.url,
-        );
+        const pokeathlonStatId = this.extractIdFromUrl(statChange.pokeathlon_stat.url);
         if (pokeathlonStatId) {
           // Verify pokeathlon stat exists
           const pokeathlonStatExists = await prisma.pokeathlonStat.findUnique({
@@ -5645,17 +5109,13 @@ export class PokemonDataSeeder {
       Array.isArray(natureData.move_battle_style_preferences)
     ) {
       for (const preference of natureData.move_battle_style_preferences) {
-        const moveBattleStyleId = this.extractIdFromUrl(
-          preference.move_battle_style.url,
-        );
+        const moveBattleStyleId = this.extractIdFromUrl(preference.move_battle_style.url);
         if (moveBattleStyleId) {
           // Verify MoveBattleStyle exists before creating relationship
-          const moveBattleStyleExists = await prisma.moveBattleStyle.findUnique(
-            {
-              where: { id: moveBattleStyleId },
-              select: { id: true },
-            },
-          );
+          const moveBattleStyleExists = await prisma.moveBattleStyle.findUnique({
+            where: { id: moveBattleStyleId },
+            select: { id: true },
+          });
 
           if (moveBattleStyleExists) {
             await prisma.natureBattleStylePreference.upsert({
@@ -5734,9 +5194,7 @@ export class PokemonDataSeeder {
     }
     const existingSpeciesIds = await this.getExistingIds('pokemonSpecies');
     for (const encounter of encountersToLink) {
-      const pokemonSpeciesId = this.extractIdFromUrl(
-        encounter.pokemon_species?.url,
-      );
+      const pokemonSpeciesId = this.extractIdFromUrl(encounter.pokemon_species?.url);
       if (pokemonSpeciesId && existingSpeciesIds.has(pokemonSpeciesId)) {
         const dataPayload = {
           baseScore: encounter.base_score,
@@ -5761,17 +5219,12 @@ export class PokemonDataSeeder {
     }
   }
 
-  private async processBerry(
-    berry: NamedAPIResource,
-    mode: 'premium' | 'standard',
-  ): Promise<void> {
+  private async processBerry(berry: NamedAPIResource, mode: 'premium' | 'standard'): Promise<void> {
     const berryData = await this.fetchWithProxy(berry.url, mode);
 
     // Extract required IDs
     const berryFirmnessId = this.extractIdFromUrl(berryData.firmness.url);
-    const naturalGiftTypeId = this.extractIdFromUrl(
-      berryData.natural_gift_type.url,
-    );
+    const naturalGiftTypeId = this.extractIdFromUrl(berryData.natural_gift_type.url);
     const itemId = this.extractIdFromUrl(berryData.item.url);
 
     if (!berryFirmnessId || !naturalGiftTypeId || !itemId) {
@@ -5833,11 +5286,7 @@ export class PokemonDataSeeder {
     mode: 'premium' | 'standard',
   ): Promise<void> {
     const eggGroupData = await this.fetchWithProxy(eggGroup.url, mode);
-    await this.upsertRecord(
-      prisma.eggGroup,
-      eggGroupData.id,
-      eggGroupData.name,
-    );
+    await this.upsertRecord(prisma.eggGroup, eggGroupData.id, eggGroupData.name);
 
     // Upsert egg group names
     await this.addJoinedRecordData(
@@ -5925,12 +5374,10 @@ export class PokemonDataSeeder {
       pkmnShapeData.names,
       ['name'],
     );
-    const awesomeNameEntries = pkmnShapeData.awesome_names.map(
-      (entry: LanguageEntry) => ({
-        language: entry.language,
-        awesomeName: entry.awesome_name,
-      }),
-    );
+    const awesomeNameEntries = pkmnShapeData.awesome_names.map((entry: LanguageEntry) => ({
+      language: entry.language,
+      awesomeName: entry.awesome_name,
+    }));
     await this.addJoinedRecordData(
       prisma.pokemonShapeAwesomeName,
       'pokemonShapeId',
@@ -6276,10 +5723,7 @@ export class PokemonDataSeeder {
         `✅ Final check - Ailment ID 0: ${!!finalAilment0}, Category ID 0: ${!!finalCategory0}`,
       );
     } catch (error: unknown) {
-      this.log(
-        `❌ Error debugging meta records: ${(error as Error).message}`,
-        'error',
-      );
+      this.log(`❌ Error debugging meta records: ${(error as Error).message}`, 'error');
       throw error;
     }
   }
@@ -6297,9 +5741,7 @@ export class PokemonDataSeeder {
     });
 
     if (!ailment0 || !category0) {
-      throw new Error(
-        'Default meta records with ID 0 not found - run debugMoveMetaRecords first',
-      );
+      throw new Error('Default meta records with ID 0 not found - run debugMoveMetaRecords first');
     }
 
     this.log(
