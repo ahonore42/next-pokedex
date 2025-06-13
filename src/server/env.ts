@@ -14,8 +14,7 @@ const _env = envSchema.safeParse(process.env);
 
 if (!_env.success) {
   throw new Error(
-    '❌ Invalid environment variables: ' +
-      JSON.stringify(_env.error.format(), null, 4),
+    '❌ Invalid environment variables: ' + JSON.stringify(_env.error.format(), null, 4),
   );
 }
 export const env = _env.data;

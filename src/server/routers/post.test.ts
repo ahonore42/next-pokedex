@@ -110,12 +110,10 @@ test('pokemon not found throws error', async () => {
   const caller = createCaller(ctx);
 
   // Test byId with non-existent ID
-  await expect(caller.pokemon.byId({ id: 999999 })).rejects.toThrow(
-    "No pokemon with id '999999'",
-  );
+  await expect(caller.pokemon.byId({ id: 999999 })).rejects.toThrow("No pokemon with id '999999'");
 
   // Test byName with non-existent name
-  await expect(
-    caller.pokemon.byName({ name: 'nonexistent-pokemon' }),
-  ).rejects.toThrow("No pokemon with name 'nonexistent-pokemon'");
+  await expect(caller.pokemon.byName({ name: 'nonexistent-pokemon' })).rejects.toThrow(
+    "No pokemon with name 'nonexistent-pokemon'",
+  );
 });

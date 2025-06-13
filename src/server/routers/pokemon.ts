@@ -175,12 +175,11 @@ export const pokemonRouter = router({
     }),
   featured: publicProcedure.query(async () => {
     const pokemonPoolIds = [
-      25, 6, 9, 3, 150, 151, 144, 145, 146, 243, 244, 245, 249, 250, 155, 158,
-      161, 384, 383, 382, 254, 257, 260, 448, 445, 483, 484, 487, 490, 491, 492,
-      493, 643, 644, 646, 494, 495, 498, 501, 716, 717, 718, 658, 654, 650, 789,
-      791, 792, 800, 785, 786, 787, 788, 888, 889, 890, 898, 894, 895, 896,
-      1007, 1008, 1009, 1010, 999, 1000, 1001, 94, 130, 149, 196, 197, 134, 135,
-      136, 448, 700, 282, 376, 373, 334, 445,
+      25, 6, 9, 3, 150, 151, 144, 145, 146, 243, 244, 245, 249, 250, 155, 158, 161, 384, 383, 382,
+      254, 257, 260, 448, 445, 483, 484, 487, 490, 491, 492, 493, 643, 644, 646, 494, 495, 498, 501,
+      716, 717, 718, 658, 654, 650, 789, 791, 792, 800, 785, 786, 787, 788, 888, 889, 890, 898, 894,
+      895, 896, 1007, 1008, 1009, 1010, 999, 1000, 1001, 94, 130, 149, 196, 197, 134, 135, 136, 448,
+      700, 282, 376, 373, 334, 445,
     ];
 
     const seed = Math.floor(Date.now() / (1000 * 60 * 60 * 24)); // Days since epoch
@@ -197,13 +196,12 @@ export const pokemonRouter = router({
     return { pokemon, date: new Date().toISOString().split('T')[0] };
   }),
   dbStats: publicProcedure.query(async () => {
-    const [pokemonSpeciesCount, typesCount, generationsCount, movesCount] =
-      await Promise.all([
-        prisma.pokemonSpecies.count(),
-        prisma.type.count(),
-        prisma.generation.count(),
-        prisma.move.count(),
-      ]);
+    const [pokemonSpeciesCount, typesCount, generationsCount, movesCount] = await Promise.all([
+      prisma.pokemonSpecies.count(),
+      prisma.type.count(),
+      prisma.generation.count(),
+      prisma.move.count(),
+    ]);
 
     return {
       pokemonSpecies: pokemonSpeciesCount,
