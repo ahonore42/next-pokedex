@@ -76,6 +76,18 @@ const defaultPokemonSelect = {
   },
 } satisfies Prisma.PokemonSelect;
 
+export const pokemonSearchSelect = {
+  id: true,
+  name: true,
+  sprites: { select: { frontDefault: true } },
+  types: { select: { type: { select: { name: true } } } },
+  pokemonSpecies: {
+    select: {
+      id: true,
+    },
+  },
+};
+
 export const pokemonRouter = router({
   list: publicProcedure
     .input(
@@ -200,4 +212,77 @@ export const pokemonRouter = router({
       moves: movesCount,
     };
   }),
+  search: publicProcedure
+    .input(
+      z.object({
+        query: z.string().min(1).max(50),
+        limit: z.number().min(1).max(50).default(10), // Configurable limit
+      }),
+    )
+    .query(async ({ input }) => {
+      const { query, limit } = input;
+      const searchTerm = query.trim().toLowerCase();
+
+      if (!searchTerm) {
+        return { pokemon: [] };
+      }
+
+      // Try exact match first (fastest)
+      const exactMatch = await prisma.pokemon.findFirst({
+        where: {
+          name: {
+            equals: searchTerm,
+            mode: 'insensitive',
+          },
+        },
+        select: pokemonSearchSelect,
+      });
+
+      // If exact match found, prioritize it
+      if (exactMatch) {
+        const remainingResults = await prisma.pokemon.findMany({
+          where: {
+            AND: [
+              {
+                name: {
+                  contains: searchTerm,
+                  mode: 'insensitive',
+                },
+              },
+              {
+                id: { not: exactMatch.id }, // Exclude exact match
+              },
+            ],
+          },
+          select: pokemonSearchSelect,
+          take: limit - 1, // Reserve one spot for exact match
+          orderBy: { name: 'asc' },
+        });
+
+        return {
+          pokemon: [exactMatch, ...remainingResults],
+          query: searchTerm,
+          limit,
+        };
+      }
+
+      // No exact match - do broader search
+      const results = await prisma.pokemon.findMany({
+        where: {
+          name: {
+            contains: searchTerm,
+            mode: 'insensitive',
+          },
+        },
+        select: pokemonSearchSelect,
+        take: limit,
+        orderBy: { name: 'asc' },
+      });
+
+      return {
+        pokemon: results,
+        query: searchTerm,
+        limit,
+      };
+    }),
 });
