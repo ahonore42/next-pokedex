@@ -1,12 +1,14 @@
 {
-  "name": "examples-trpc-next-prisma-starter",
+  "name": "next-pokedex",
+  "version": "0.1.0",
   "private": true,
+  "author": "Adam Honore",
   "scripts": {
     "generate": "prisma generate",
     "prisma-studio": "prisma studio",
     "db-seed": "prisma db seed",
     "db-reset": "prisma migrate dev reset",
-    "dx:next": "run-s migrate-dev db-seed && next dev",
+    "dx:next": "run-s migrate-dev && next dev",
     "dx:prisma-studio": "pnpm prisma-studio",
     "dx": "run-p dx:* --print-label",
     "dev": "pnpm dx:next",
@@ -26,9 +28,26 @@
     "seed": "tsx prisma/seed.ts"
   },
   "prettier": {
-    "printWidth": 80,
+    "printWidth": 100,
+    "tabWidth": 2,
+    "useTabs": false,
+    "semi": true,
+    "singleQuote": true,
+    "quoteProps": "as-needed",
+    "jsxSingleQuote": false,
     "trailingComma": "all",
-    "singleQuote": true
+    "bracketSpacing": true,
+    "bracketSameLine": false,
+    "arrowParens": "always",
+    "requirePragma": false,
+    "insertPragma": false,
+    "proseWrap": "preserve",
+    "htmlWhitespaceSensitivity": "css",
+    "vueIndentScriptAndStyle": false,
+    "endOfLine": "lf",
+    "embeddedLanguageFormatting": "auto",
+    "singleAttributePerLine": false,
+    "experimentalTernaries": false
   },
   "dependencies": {
     "@prisma/client": "^6.7.0",
@@ -68,6 +87,5 @@
   },
   "publishConfig": {
     "access": "restricted"
-  },
-  "version": "11.3.1"
+  }
 }
