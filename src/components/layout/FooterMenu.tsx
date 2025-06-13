@@ -1,4 +1,4 @@
-export default function Footer() {
+export default function FooterMenu() {
   return (
     <footer className="bg-gray-100 border-t border-gray-200 mt-12 w-full">
       <div className="mx-auto px-4 py-8 flex flex-col items-center w-full gap-y-8">
