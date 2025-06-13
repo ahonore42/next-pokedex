@@ -1,18 +1,14 @@
-import { FeaturedPokemon } from "@/lib/types/pokemon";
-import { getTypeColor, capitalizeName } from "@/lib/services/pokemon";
-import SectionCard from "../ui/SectionCard";
+import { getTypeColor, capitalizeName } from '~/lib/services/pokemon';
+import SectionCard from '../ui/SectionCard';
+import { PokemonArray } from '~/server/routers/_app';
 
 export default function FeaturedPokemonDisplay({
   pokemon,
 }: {
-  pokemon: FeaturedPokemon[];
+  pokemon: PokemonArray;
 }) {
   return (
-    <SectionCard
-      title="Featured Pokémon"
-      tag="Daily Rotation"
-
-    >
+    <SectionCard title="Featured Pokémon" tag="Daily Rotation">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-4">
         {pokemon.map((pkmn) => (
           <a
@@ -25,26 +21,26 @@ export default function FeaturedPokemonDisplay({
               active:scale-95
             "
             style={{
-              backgroundColor: "var(--color-pokemon-card-bg)",
-              borderColor: "var(--color-pokemon-card-border)",
+              backgroundColor: 'var(--color-pokemon-card-bg)',
+              borderColor: 'var(--color-pokemon-card-border)',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor =
-                "var(--color-pokemon-card-hover-bg)";
+                'var(--color-pokemon-card-hover-bg)';
               e.currentTarget.style.borderColor =
-                "var(--color-pokemon-card-hover-border)";
+                'var(--color-pokemon-card-hover-border)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor =
-                "var(--color-pokemon-card-bg)";
+                'var(--color-pokemon-card-bg)';
               e.currentTarget.style.borderColor =
-                "var(--color-pokemon-card-border)";
+                'var(--color-pokemon-card-border)';
             }}
             aria-label={`View details for ${capitalizeName(pkmn.name)}`}
           >
             <div className="flex items-start gap-3">
               <img
-                src={pkmn.image}
+                src={pkmn.sprites?.frontDefault || ''}
                 alt={pkmn.name}
                 className="w-16 h-16 object-contain flex-shrink-0 group-hover:scale-110 transition-transform duration-300"
               />
@@ -53,34 +49,36 @@ export default function FeaturedPokemonDisplay({
                   <span
                     className="text-sm font-medium"
                     style={{
-                      color: "var(--color-pokemon-card-text-secondary)",
+                      color: 'var(--color-pokemon-card-text-secondary)',
                     }}
                   >
-                    #{pkmn.id.toString().padStart(3, "0")}
+                    #{pkmn.id.toString().padStart(3, '0')}
                   </span>
                   <span
                     className="font-semibold"
-                    style={{ color: "var(--color-pokemon-card-text)" }}
+                    style={{ color: 'var(--color-pokemon-card-text)' }}
                   >
                     {capitalizeName(pkmn.name)}
                   </span>
                 </div>
                 <div className="flex gap-1 mb-2">
-                  {pkmn.types.map((type) => (
+                  {pkmn.types.map((pokemonType) => (
                     <span
-                      key={type}
+                      key={pokemonType.type.name}
                       className="px-2 py-0.5 text-xs rounded text-white font-medium hover:scale-105 transition-transform duration-200"
-                      style={{ backgroundColor: getTypeColor(type) }}
+                      style={{
+                        backgroundColor: getTypeColor(pokemonType.type.name),
+                      }}
                     >
-                      {type.toUpperCase()}
+                      {pokemonType.type.name.toUpperCase()}
                     </span>
                   ))}
                 </div>
                 <p
                   className="text-xs line-clamp-2"
-                  style={{ color: "var(--color-pokemon-card-text-secondary)" }}
+                  style={{ color: 'var(--color-pokemon-card-text-secondary)' }}
                 >
-                  {pkmn.description}
+                  {pkmn.pokemonSpecies.flavorTexts[0].flavorText}
                 </p>
               </div>
             </div>
