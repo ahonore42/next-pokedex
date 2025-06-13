@@ -9,6 +9,7 @@ export const DefaultLayout = ({ children }: DefaultLayoutProps) => {
       <Head>
         <title>Prisma Starter</title>
         <link rel="icon" href="/favicon.ico" />
+        <meta name="color-scheme" content="light dark" />
       </Head>
 
       <main className="h-screen">{children}</main>
