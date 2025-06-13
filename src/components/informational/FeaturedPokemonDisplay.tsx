@@ -1,12 +1,8 @@
-import { getTypeColor, capitalizeName } from '~/lib/services/pokemon';
+import { getTypeColor, capitalizeName } from '~/utils/pokemon';
 import SectionCard from '../ui/SectionCard';
 import { PokemonArray } from '~/server/routers/_app';
 
-export default function FeaturedPokemonDisplay({
-  pokemon,
-}: {
-  pokemon: PokemonArray;
-}) {
+export default function FeaturedPokemonDisplay({ pokemon }: { pokemon: PokemonArray }) {
   return (
     <SectionCard title="Featured Pokémon" tag="Daily Rotation">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-4">
@@ -25,16 +21,12 @@ export default function FeaturedPokemonDisplay({
               borderColor: 'var(--color-pokemon-card-border)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor =
-                'var(--color-pokemon-card-hover-bg)';
-              e.currentTarget.style.borderColor =
-                'var(--color-pokemon-card-hover-border)';
+              e.currentTarget.style.backgroundColor = 'var(--color-pokemon-card-hover-bg)';
+              e.currentTarget.style.borderColor = 'var(--color-pokemon-card-hover-border)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor =
-                'var(--color-pokemon-card-bg)';
-              e.currentTarget.style.borderColor =
-                'var(--color-pokemon-card-border)';
+              e.currentTarget.style.backgroundColor = 'var(--color-pokemon-card-bg)';
+              e.currentTarget.style.borderColor = 'var(--color-pokemon-card-border)';
             }}
             aria-label={`View details for ${capitalizeName(pkmn.name)}`}
           >

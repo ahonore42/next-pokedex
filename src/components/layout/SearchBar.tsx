@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { capitalizeName, getTypeColor } from '~/lib/services/pokemon';
+import { capitalizeName, getTypeColor } from '~/utils/pokemon';
 import { trpc } from '~/utils/trpc';
 
 export default function SearchBar() {
@@ -63,9 +63,7 @@ export default function SearchBar() {
                   <span className="font-medium text-gray-900">
                     #{pokemon.pokemonSpecies.id.toString().padStart(3, '0')}
                   </span>
-                  <span className="text-gray-700">
-                    {capitalizeName(pokemon.name)}
-                  </span>
+                  <span className="text-gray-700">{capitalizeName(pokemon.name)}</span>
                 </div>
                 <div className="flex gap-1 mt-1">
                   {pokemon.types.map((pokemonType) => (
