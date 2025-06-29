@@ -15,16 +15,23 @@ export const createCaller = createCallerFactory(appRouter);
 
 export type AppRouter = typeof appRouter;
 
-// Extract all router output types
+/**
+ * All router Outputs
+ */
 export type RouterOutputs = inferRouterOutputs<AppRouter>;
 
-// Specific Pokemon types
-export type PokemonListResponse = RouterOutputs['pokemon']['list'];
-export type PokemonById = RouterOutputs['pokemon']['byId'];
-export type PokemonByName = RouterOutputs['pokemon']['byName'];
-export type PokemonArray = PokemonListResponse['pokemon'];
-export type DbStats = RouterOutputs['pokemon']['dbStats'];
-// // Extract individual Pokemon type
-// type Pokemon = PokemonArray[number];
-// // or alternatively:
-// type Pokemon = PokemonListResponse['pokemon'][number];
+/**
+ * Pokemon-specific router Outputs
+ */
+export type PokemonRouterOutputs = RouterOutputs['pokemon'];
+export type PokemonListOutput = PokemonRouterOutputs['list'];
+export type PokemonByIdOutput = PokemonRouterOutputs['byId'];
+export type PokemonDetailedByIdOutput = PokemonRouterOutputs['detailedById'];
+export type PokemonByNameOutput = PokemonRouterOutputs['byName'];
+export type DbStatsOutput = RouterOutputs['pokemon']['dbStats'];
+
+/**
+ * Individual Pokemon types
+ */
+export type Pokemon = PokemonListOutput['pokemon'][number];
+export type PokemonDetailed = PokemonDetailedByIdOutput;
