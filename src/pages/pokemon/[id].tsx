@@ -84,7 +84,6 @@ const PokemonDetailPage: NextPageWithLayout = () => {
         className="min-h-screen transition-colors duration-300"
         style={{ backgroundColor: 'var(--color-background)' }}
       >
-        <HeaderMenu />
 
         <main className="mx-auto py-8">
           {/* Breadcrumb Navigation */}
@@ -161,7 +160,6 @@ const PokemonDetailPage: NextPageWithLayout = () => {
           </div>
         </main>
 
-        <FooterMenu />
       </div>
     </>
   );
