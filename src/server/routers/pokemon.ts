@@ -782,7 +782,6 @@ async function findOnePokemon<T extends Prisma.PokemonSelect>(
   return pokemon;
 }
 
-
 export const pokemonRouter = router({
   list: publicProcedure
     .input(
@@ -842,6 +841,26 @@ export const pokemonRouter = router({
     .query(({ input }) => {
       return findOnePokemon({ name: input.name }, defaultPokemonSelect);
     }),
+  allTypes: publicProcedure.query(async () => {
+    return await prisma.type.findMany({
+      where: {
+        name: {
+          notIn: ['shadow', 'unknown', 'stellar'],
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        names: {
+          where: { languageId: DEFAULT_LANGUAGE_ID },
+          select: { name: true },
+        },
+      },
+      orderBy: {
+        id: 'asc',
+      },
+    });
+  }),
   featured: publicProcedure.query(async () => {
     // 1. Get a pool of recently updated Pokémon
     const recentPokemon = await prisma.pokemon.findMany({
@@ -911,9 +930,7 @@ export const pokemonRouter = router({
       });
 
       // Move the exact match to the top of the list if it's not already there
-      const exactMatchIndex = results.findIndex(
-        (p) => p.name.toLowerCase() === searchTerm,
-      );
+      const exactMatchIndex = results.findIndex((p) => p.name.toLowerCase() === searchTerm);
 
       if (exactMatchIndex > 0) {
         const exactMatch = results.splice(exactMatchIndex, 1)[0];
