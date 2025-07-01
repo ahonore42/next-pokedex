@@ -3,7 +3,7 @@ import type { AppType, AppProps } from 'next/app';
 import type { ReactElement, ReactNode } from 'react';
 
 import { ThemeProvider } from '~/lib/contexts/ThemeContext';
-import { DefaultLayout } from '~/components/DefaultLayout';
+import { DefaultLayout } from '~/components/layout/DefaultLayout';
 import { trpc } from '~/utils/trpc';
 import '~/styles/globals.css';
 
