@@ -5,13 +5,13 @@ export default function QuickAccess() {
     {
       name: 'Pokédex',
       desc: 'Complete species information',
-      href: '/pokemon',
+      href: '/pokedex',
       icon: '📚',
     },
     {
       name: 'Movedex',
       desc: 'All moves and their effects',
-      href: '/moves',
+      href: '/movedex',
       icon: '⚔️',
     },
     {
@@ -23,13 +23,13 @@ export default function QuickAccess() {
     {
       name: 'Abilitydex',
       desc: 'All abilities and descriptions',
-      href: '/abilities',
+      href: '/abilitydex',
       icon: '✨',
     },
     {
       name: 'Itemdex',
       desc: 'Complete item information',
-      href: '/items',
+      href: '/itemdex',
       icon: '🍬',
     },
     {
@@ -41,7 +41,7 @@ export default function QuickAccess() {
     {
       name: 'Evolution Trees',
       desc: 'Evolution chains and methods',
-      href: '/evolution',
+      href: '/evolutions',
       icon: '🧬',
     },
     {
