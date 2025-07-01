@@ -1,22 +1,18 @@
-import { trpc } from '../utils/trpc';
-import type { NextPageWithLayout } from './_app';
-// import type { inferProcedureInput } from '@trpc/server';
-// import Link from 'next/link';
-// import type { AppRouter } from '~/server/routers/_app';
+import { trpc } from '~/utils/trpc';
 import { useEffect, useState } from 'react';
-import { DbStats, PokemonArray } from '~/server/routers/_app';
-import HeaderMenu from '~/components/layout/HeaderMenu';
+import { DbStatsOutput, Pokemon } from '~/server/routers/_app';
 import QuickAccess from '~/components/layout/QuickAccess';
 import SearchBar from '~/components/layout/SearchBar';
 import LatestUpdates from '~/components/informational/LatestUpdates';
-import FooterMenu from '~/components/layout/FooterMenu';
 import Pokeball from '~/components/ui/Pokeball';
 import DatabaseStats from '~/components/informational/DatabaseStats';
 import FeaturedPokemonDisplay from '~/components/informational/FeaturedPokemonDisplay';
+// import { DefaultLayout } from '~/components/DefaultLayout';
+import { NextPageWithLayout } from './_app';
 
 const IndexPage: NextPageWithLayout = () => {
-  const [pokemon, setPokemon] = useState<PokemonArray>([]);
-  const [dbStats, setDbStats] = useState<DbStats | undefined>(undefined);
+  const [pokemon, setPokemon] = useState<Pokemon[]>([]);
+  const [dbStats, setDbStats] = useState<DbStatsOutput | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const utils = trpc.useUtils();
   const pokemonQuery = trpc.pokemon.featured.useQuery();
@@ -37,18 +33,13 @@ const IndexPage: NextPageWithLayout = () => {
   }, [pokemonQuery.data, utils, pokemon.length, statsQuery.data]);
 
   return (
-    <div
-      className="min-h-screen transition-colors duration-300"
-      style={{ backgroundColor: 'var(--color-background)' }}
-    >
-      <HeaderMenu />
-
+    <>
       {isLoading ? (
         <div className="flex justify-center items-center h-screen">
           <Pokeball size="xl" endlessSpin spinSpeed={1.5} />
         </div>
       ) : (
-        <main className="mb-4 mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-8 md:py-12 xl:py-16 2xl:py-20 max-w-7xl 2xl:max-w-[1400px] self-center">
+        <>
           {/* Welcome Section */}
           <div className="sm:flex sm:items-start sm:gap-4 sm:py-8 mb-4">
             <div className="px-4 sm:px-0">
@@ -75,11 +66,9 @@ const IndexPage: NextPageWithLayout = () => {
             <FeaturedPokemonDisplay pokemon={pokemon} />
             <LatestUpdates />
           </div>
-        </main>
+        </>
       )}
-
-      <FooterMenu />
-    </div>
+    </>
   );
 };
 
