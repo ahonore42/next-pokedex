@@ -26,12 +26,17 @@ export type RouterOutputs = inferRouterOutputs<AppRouter>;
 export type PokemonRouterOutputs = RouterOutputs['pokemon'];
 export type PokemonListOutput = PokemonRouterOutputs['list'];
 export type PokemonByIdOutput = PokemonRouterOutputs['byId'];
-export type PokemonDetailedByIdOutput = PokemonRouterOutputs['detailedById'];
+export type PokemonDetailedById = PokemonRouterOutputs['detailedById'];
 export type PokemonByNameOutput = PokemonRouterOutputs['byName'];
-export type DbStatsOutput = RouterOutputs['pokemon']['dbStats'];
+export type DbStats = PokemonRouterOutputs['dbStats'];
+
+// New: Type for the output of pokemonByPokedex
+export type PokemonByPokedexOutput = PokemonRouterOutputs['pokemonByPokedex'];
+
+export type FeaturedPokemon = RouterOutputs['pokemon']['featured']['pokemon'][number];
 
 /**
  * Individual Pokemon types
  */
+// Use PokemonListOutput for the base Pokemon type, as it's the most comprehensive for lists
 export type Pokemon = PokemonListOutput['pokemon'][number];
-export type PokemonDetailed = PokemonDetailedByIdOutput;
