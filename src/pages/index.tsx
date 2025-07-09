@@ -1,18 +1,17 @@
 import { trpc } from '~/utils/trpc';
 import { useEffect, useState } from 'react';
-import { DbStatsOutput, Pokemon } from '~/server/routers/_app';
+import { DbStats, PokemonListOutput } from '~/server/routers/_app';
 import QuickAccess from '~/components/layout/QuickAccess';
 import SearchBar from '~/components/layout/SearchBar';
 import LatestUpdates from '~/components/informational/LatestUpdates';
-import Pokeball from '~/components/ui/Pokeball';
 import DatabaseStats from '~/components/informational/DatabaseStats';
 import FeaturedPokemonDisplay from '~/components/informational/FeaturedPokemonDisplay';
-// import { DefaultLayout } from '~/components/DefaultLayout';
 import { NextPageWithLayout } from './_app';
+import LoadingPage from '~/components/ui/LoadingPage';
 
 const IndexPage: NextPageWithLayout = () => {
-  const [pokemon, setPokemon] = useState<Pokemon[]>([]);
-  const [dbStats, setDbStats] = useState<DbStatsOutput | undefined>(undefined);
+  const [pokemon, setPokemon] = useState<PokemonListOutput['pokemon']>([]);
+  const [dbStats, setDbStats] = useState<DbStats | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const utils = trpc.useUtils();
   const pokemonQuery = trpc.pokemon.featured.useQuery();
@@ -32,42 +31,38 @@ const IndexPage: NextPageWithLayout = () => {
     setIsLoading(false);
   }, [pokemonQuery.data, utils, pokemon.length, statsQuery.data]);
 
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
   return (
     <>
-      {isLoading ? (
-        <div className="flex justify-center items-center h-screen">
-          <Pokeball size="xl" endlessSpin spinSpeed={1.5} />
+      {/* Welcome Section */}
+      <div className="sm:flex sm:items-start sm:gap-4 sm:py-8 mb-4">
+        <div className="px-4 sm:px-0">
+          <h1 className="text-3xl md:text-4xl xl:text-5xl 2xl:text-6xl font-bold text-primary tracking-tight xl:tracking-tighter mb-4 text-gradient">
+            Evolve Pokédex
+          </h1>
+          <div className="w-full max-w-md sm:max-w-lg lg:max-w-2xl xl:max-w-3xl mx-auto px-4">
+            <p className="text-lg xl:text-xl 2xl:text-2xl text-secondary mx-auto text-left">
+              Your comprehensive resource for Pokémon information. Search through our complete
+              database of Pokémon species, moves, abilities, and more.
+            </p>
+          </div>
         </div>
-      ) : (
-        <>
-          {/* Welcome Section */}
-          <div className="sm:flex sm:items-start sm:gap-4 sm:py-8 mb-4">
-            <div className="px-4 sm:px-0">
-              <h1 className="text-3xl md:text-4xl xl:text-5xl 2xl:text-6xl font-bold text-primary tracking-tight xl:tracking-tighter mb-4 text-gradient">
-                Evolve Pokédex
-              </h1>
-              <div className="w-full max-w-md sm:max-w-lg lg:max-w-2xl xl:max-w-3xl mx-auto px-4">
-                <p className="text-lg xl:text-xl 2xl:text-2xl text-secondary mx-auto text-left">
-                  Your comprehensive resource for Pokémon information. Search through our complete
-                  database of Pokémon species, moves, abilities, and more.
-                </p>
-              </div>
-            </div>
-            {dbStats && <DatabaseStats stats={dbStats} />}
-          </div>
+        {dbStats && <DatabaseStats stats={dbStats} />}
+      </div>
 
-          <div className="mb-4">
-            <SearchBar />
-          </div>
+      <div className="mb-4">
+        <SearchBar />
+      </div>
 
-          {/* Main Content */}
-          <div className="flex flex-col col-span-1 gap-4">
-            <QuickAccess />
-            <FeaturedPokemonDisplay pokemon={pokemon} />
-            <LatestUpdates />
-          </div>
-        </>
-      )}
+      {/* Main Content */}
+      <div className="flex flex-col col-span-1 gap-4">
+        <QuickAccess />
+        <FeaturedPokemonDisplay pokemon={pokemon} />
+        <LatestUpdates />
+      </div>
     </>
   );
 };
