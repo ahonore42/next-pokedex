@@ -17,7 +17,7 @@ export default function QuickAccess() {
     {
       name: 'Type Chart',
       desc: 'Effectiveness and resistances',
-      href: '/types',
+      href: '/pokemon-types',
       icon: '♻️',
     },
     {

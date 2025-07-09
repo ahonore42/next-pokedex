@@ -11,7 +11,7 @@ export default function HeaderMenu() {
     { href: '/pokemon', label: 'Pokémon' },
     { href: '/moves', label: 'Moves' },
     { href: '/abilities', label: 'Abilities' },
-    { href: '/types', label: 'Types' },
+    { href: '/pokemon-types', label: 'Types' },
     { href: '/items', label: 'Items' },
     { href: '/locations', label: 'Locations' },
   ];

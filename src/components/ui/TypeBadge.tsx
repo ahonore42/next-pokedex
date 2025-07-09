@@ -15,7 +15,7 @@ export const TypeBadge: React.FC<TypeBadgeProps> = ({ type }) => {
 
   return (
     <Link
-      href={`/types/${type.name}`}
+      href={`/pokemon-types/${type.name}`}
       className="px-2 py-0.5 text-xs rounded text-white font-medium hover:scale-105 transition-transform duration-200 capitalize"
       style={{
         backgroundColor: color,
