@@ -35,6 +35,10 @@ const defaultPokemonSelect = {
         select: {
           id: true,
           name: true,
+          names: {
+            where: { languageId: DEFAULT_LANGUAGE_ID },
+            select: { name: true },
+          },
         },
       },
     },
@@ -72,6 +76,17 @@ const defaultPokemonSelect = {
         },
         select: {
           flavorText: true,
+        },
+      },
+      pokedexNumbers: {
+        select: {
+          pokedexNumber: true,
+          pokedex: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       },
     },
@@ -884,6 +899,195 @@ export const pokemonRouter = router({
     });
 
     return { pokemon, date: new Date().toISOString().split('T')[0] };
+  }),
+  allRegions: publicProcedure.query(async () => {
+    return await prisma.region.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        id: 'asc',
+      },
+    });
+  }),
+  pokemonByPokedex: publicProcedure
+    .input(
+      z.object({
+        pokedexId: z.number().optional(),
+        pokedexName: z.string().optional(), // Added pokedexName
+        limit: z.number().min(1).max(100).nullish(),
+        cursor: z.number().nullish(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const limit = input.limit ?? 50;
+      const { cursor, pokedexId, pokedexName } = input;
+
+      let resolvedPokedexId: number | undefined; // Initialize as undefined
+
+      if (pokedexId) {
+        resolvedPokedexId = pokedexId;
+      } else if (pokedexName) {
+        // Resolve pokedexName to pokedexId
+        const namedPokedex = await prisma.pokedex.findUnique({
+          where: { name: pokedexName },
+          select: { id: true },
+        });
+        if (!namedPokedex) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: `Pokedex '${pokedexName}' not found.`,
+          });
+        }
+        resolvedPokedexId = namedPokedex.id;
+      }
+
+      // If no specific pokedex is requested, return empty list
+      if (!resolvedPokedexId) {
+        return { pokemon: [], nextCursor: undefined };
+      }
+
+      const finalSelect: Prisma.PokemonSelect = {
+        id: true,
+        name: true,
+        height: true,
+        weight: true,
+        baseExperience: true,
+        isDefault: true,
+        criesLatest: true,
+        criesLegacy: true,
+        sprites: defaultPokemonSelect.sprites,
+        types: defaultPokemonSelect.types,
+        abilities: defaultPokemonSelect.abilities,
+        stats: defaultPokemonSelect.stats,
+        pokemonSpecies: {
+          select: {
+            id: true,
+            flavorTexts: defaultPokemonSelect.pokemonSpecies.select.flavorTexts,
+            pokedexNumbers: {
+              select: {
+                pokedexNumber: true,
+                pokedex: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+              where: {
+                pokedexId: resolvedPokedexId,
+              },
+            },
+          },
+        },
+      };
+
+      // Step 1: Fetch PokemonSpeciesPokedexNumber records for the target Pokedex, ordered by pokedexNumber
+      // This is the primary query for ordering and pagination.
+      const orderedPokedexEntries = await prisma.pokemonSpeciesPokedexNumber.findMany({
+        where: {
+          pokedexId: resolvedPokedexId,
+          ...(cursor && {
+            pokedexNumber: { gt: cursor }, // For cursor-based pagination
+          }),
+        },
+        orderBy: {
+          pokedexNumber: 'asc',
+        },
+        select: {
+          pokemonSpeciesId: true,
+          pokedexNumber: true,
+        },
+        take: limit + 1, // Fetch one extra for the next cursor
+      });
+
+      // Extract ordered species IDs and their corresponding pokedex numbers
+      const orderedPokemonSpeciesIds = orderedPokedexEntries.map(entry => entry.pokemonSpeciesId);
+      const pokedexNumberMap = new Map<number, number>();
+      orderedPokedexEntries.forEach(item => {
+        pokedexNumberMap.set(item.pokemonSpeciesId, item.pokedexNumber);
+      });
+
+      // If no entries found, return empty
+      if (orderedPokemonSpeciesIds.length === 0) {
+        return { pokemon: [], nextCursor: undefined };
+      }
+
+      // Step 2: Fetch Pokemon records based on the ordered species IDs
+      const pokemonList = await prisma.pokemon.findMany({
+        where: {
+          pokemonSpeciesId: { in: orderedPokemonSpeciesIds },
+        },
+        select: finalSelect, // Use the finalSelect to get all required data
+      });
+
+      // Step 3: Sort the fetched pokemonList in memory based on the order of orderedPokemonSpeciesIds
+      // This is crucial because `in` operator does not guarantee order
+      const sortedPokemonList = orderedPokemonSpeciesIds.map(speciesId =>
+        pokemonList.find(p => p.pokemonSpecies.id === speciesId)
+      ).filter(Boolean) as typeof pokemonList; // Filter out any undefined and assert type
+
+      let nextCursor: typeof cursor | undefined = undefined;
+      if (sortedPokemonList.length > limit) {
+        const nextItem = sortedPokemonList.pop()!;
+        nextCursor = pokedexNumberMap.get(nextItem.pokemonSpecies.id); // Use the pokedexNumber of the last item as cursor
+      }
+
+      return {
+        pokemon: sortedPokemonList,
+        nextCursor,
+      }
+    }),
+  pokemonSpeciesPokedexNumbers: publicProcedure
+    .input(
+      z.object({
+        pokemonSpeciesId: z.number(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { pokemonSpeciesId } = input;
+      const pokedexNumbers = await prisma.pokemonSpeciesPokedexNumber.findMany({
+        where: { pokemonSpeciesId },
+        select: {
+          pokedexNumber: true,
+          pokedex: {
+            select: {
+              id: true,
+              name: true,
+              isMainSeries: true,
+              names: {
+                where: { languageId: DEFAULT_LANGUAGE_ID },
+                select: { name: true },
+              },
+            },
+          },
+        },
+        orderBy: { pokedexNumber: 'asc' },
+      });
+      return pokedexNumbers;
+    }),
+  allPokedexes: publicProcedure.query(async () => {
+    return await prisma.pokedex.findMany({
+      select: {
+        id: true,
+        name: true,
+        isMainSeries: true,
+        region: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        names: {
+          where: { languageId: DEFAULT_LANGUAGE_ID },
+          select: { name: true },
+        },
+      },
+      orderBy: {
+        id: 'asc',
+      },
+    });
   }),
   dbStats: publicProcedure.query(async () => {
     const [pokemonSpeciesCount, typesCount, generationsCount, movesCount] = await Promise.all([
