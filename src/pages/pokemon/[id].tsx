@@ -6,8 +6,6 @@ import Link from 'next/link';
 import { trpc } from '~/utils/trpc';
 import type { NextPageWithLayout } from '~/pages/_app';
 import { capitalizeName } from '~/utils/pokemon';
-import HeaderMenu from '~/components/layout/HeaderMenu';
-import FooterMenu from '~/components/layout/FooterMenu';
 import Pokeball from '~/components/ui/Pokeball';
 import PokemonHeader from '~/components/pokemon/PokemonHeader';
 import PokemonStats from '~/components/pokemon/PokemonStats';
