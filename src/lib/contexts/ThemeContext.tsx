@@ -23,20 +23,34 @@ export function ThemeProvider({ children, defaultTheme = 'light' }: ThemeProvide
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      // Check for saved theme preference
-      const savedTheme = localStorage.getItem('theme') as Theme | null;
+    const root = document.documentElement;
+    const applyTheme = (currentTheme: Theme) => {
+      root.classList.remove('light', 'dark');
+      root.classList.add(currentTheme);
+      root.style.transition = 'background-color 0.3s ease, color 0.3s ease';
 
+      let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+      if (!metaThemeColor) {
+        metaThemeColor = document.createElement('meta');
+        metaThemeColor.setAttribute('name', 'theme-color');
+        document.head.appendChild(metaThemeColor);
+      }
+      metaThemeColor.setAttribute('content', currentTheme === 'dark' ? '#0f172a' : '#ffffff');
+    };
+
+    try {
+      const savedTheme = localStorage.getItem('theme') as Theme | null;
       if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
         setThemeState(savedTheme);
+        applyTheme(savedTheme);
       } else {
-        // No saved preference, use default (light)
         setThemeState(defaultTheme);
+        applyTheme(defaultTheme);
       }
     } catch (error) {
-      // localStorage not available, use default
-      console.warn(`, errorTheme: localStorage not available, using default theme`, error);
+      console.warn('Theme: localStorage not available, using default theme', error);
       setThemeState(defaultTheme);
+      applyTheme(defaultTheme);
     } finally {
       setIsLoading(false);
     }
@@ -46,13 +60,10 @@ export function ThemeProvider({ children, defaultTheme = 'light' }: ThemeProvide
     try {
       setThemeState(newTheme);
       localStorage.setItem('theme', newTheme);
-
-      // Apply theme class to document
       const root = document.documentElement;
       root.classList.remove('light', 'dark');
       root.classList.add(newTheme);
 
-      // Update meta theme-color for mobile browsers
       const metaThemeColor = document.querySelector('meta[name="theme-color"]');
       if (metaThemeColor) {
         metaThemeColor.setAttribute('content', newTheme === 'dark' ? '#0f172a' : '#ffffff');
@@ -66,27 +77,6 @@ export function ThemeProvider({ children, defaultTheme = 'light' }: ThemeProvide
   const toggleTheme = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
-
-  // Apply theme class on mount and theme change
-  useEffect(() => {
-    if (!isLoading) {
-      const root = document.documentElement;
-      root.classList.remove('light', 'dark');
-      root.classList.add(theme);
-
-      // Add transition class for smooth theme switching
-      root.style.transition = 'background-color 0.3s ease, color 0.3s ease';
-
-      // Update meta theme-color
-      let metaThemeColor = document.querySelector('meta[name="theme-color"]');
-      if (!metaThemeColor) {
-        metaThemeColor = document.createElement('meta');
-        metaThemeColor.setAttribute('name', 'theme-color');
-        document.head.appendChild(metaThemeColor);
-      }
-      metaThemeColor.setAttribute('content', theme === 'dark' ? '#0f172a' : '#ffffff');
-    }
-  }, [theme, isLoading]);
 
   const value: ThemeContextType = {
     theme,
