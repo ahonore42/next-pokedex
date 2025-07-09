@@ -1,8 +1,9 @@
-import { getTypeColor, capitalizeName } from '~/utils/pokemon';
+import { capitalizeName } from '~/utils/pokemon';
 import SectionCard from '../ui/SectionCard';
-import { PokemonArray } from '~/server/routers/_app';
+import { PokemonListOutput } from '~/server/routers/_app';
+import { TypeBadge } from '../ui/TypeBadge';
 
-export default function FeaturedPokemonDisplay({ pokemon }: { pokemon: PokemonArray }) {
+export default function FeaturedPokemonDisplay({ pokemon }: { pokemon: PokemonListOutput['pokemon'] }) {
   return (
     <SectionCard title="Featured Pokémon" tag="Daily Rotation">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 m-4">
@@ -55,22 +56,14 @@ export default function FeaturedPokemonDisplay({ pokemon }: { pokemon: PokemonAr
                 </div>
                 <div className="flex gap-1 mb-2">
                   {pkmn.types.map((pokemonType) => (
-                    <span
-                      key={pokemonType.type.name}
-                      className="px-2 py-0.5 text-xs rounded text-white font-medium hover:scale-105 transition-transform duration-200"
-                      style={{
-                        backgroundColor: getTypeColor(pokemonType.type.name),
-                      }}
-                    >
-                      {pokemonType.type.name.toUpperCase()}
-                    </span>
+                    <TypeBadge key={pokemonType.type.name} type={pokemonType.type} />
                   ))}
                 </div>
                 <p
                   className="text-xs line-clamp-2"
                   style={{ color: 'var(--color-pokemon-card-text-secondary)' }}
                 >
-                  {pkmn.pokemonSpecies.flavorTexts[0].flavorText}
+                  {pkmn.pokemonSpecies.flavorTexts[0].flavorText ?? ''}
                 </p>
               </div>
             </div>
