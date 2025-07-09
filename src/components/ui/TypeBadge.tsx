@@ -16,10 +16,12 @@ export const TypeBadge: React.FC<TypeBadgeProps> = ({ type }) => {
   return (
     <Link
       href={`/types/${type.name}`}
-      className="flex items-center justify-center px-4 py-2 rounded-full text-white font-bold text-center shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 capitalize"
-      style={{ backgroundColor: color }}
+      className="px-2 py-0.5 text-xs rounded text-white font-medium hover:scale-105 transition-transform duration-200 capitalize"
+      style={{
+        backgroundColor: color,
+      }}
     >
-      {displayName}
+      {displayName.toUpperCase()}
     </Link>
   );
 };
