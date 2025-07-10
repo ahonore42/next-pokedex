@@ -1,3 +1,5 @@
+import { EvolutionDetail } from "~/server/routers/_app";
+
 // Utility function to capitalize Pokemon names
 export function capitalizeName(name: string): string {
   return name
@@ -5,6 +7,8 @@ export function capitalizeName(name: string): string {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
+
+export const capitalizeWords = (str: string) => str.replace(/\b\w/g, l => l.toUpperCase());
 
 // Utility function to get type color - Complete list
 export function getTypeColor(type: string): string {
@@ -59,4 +63,108 @@ export const getDamageClassColor = (damageClass: string) => {
     default:
       return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
   }
+};
+
+const specialEvolutionCases: Record<string, string> = {
+  'primeape-annihilape': 'Level up after using Rage Fist 20 times',
+  'pawmo-pawmot': "Level up after walking 1000 steps with Let's Go!",
+  'bramblin-brambleghast': "Level up after walking 1000 steps with Let's Go!",
+  'rellor-rabsca': "Level up after walking 1000 steps with Let's Go!",
+  'finizen-palafin': 'Level up to 38 while connected to another player via the Union Circle',
+  'bisharp-kingambit': "Level up after defeating three Bisharp that hold a Leader's Crest",
+  'gimmighoul-gholdengo': 'Level up with 999 Gimmighoul Coins in the bag',
+  'meltan-melmetal': 'Evolves with 400 Meltan Candies in Pokémon GO',
+  'magneton-magnezone': 'Level up in a special magnetic field or use a Thunder Stone',
+  'farfetchd-sirfetchd': 'Land three critical hits in a single battle with Galarian Farfetch\'d',
+};
+
+export const formatEvolutionConditions = (
+  evolution: EvolutionDetail,
+  speciesMap: Map<number, string>,
+  evolvingPokemonName: string,
+  evolvingToPokemonName: string,
+): string => {
+  const specialCaseKey = `${evolvingPokemonName}-${evolvingToPokemonName}`;
+  if (specialEvolutionCases[specialCaseKey]) {
+    return specialEvolutionCases[specialCaseKey];
+  }
+
+  const conditions: string[] = [];
+
+  if (evolution.minLevel) {
+    conditions.push(`Level ${evolution.minLevel}`);
+  }
+
+  if (evolution.evolutionTrigger?.name === 'trade') {
+    let tradeCondition = 'Trade';
+    if (evolution.tradeSpeciesId) {
+      const tradeSpeciesName = speciesMap.get(evolution.tradeSpeciesId);
+      tradeCondition += tradeSpeciesName ? ` With ${capitalizeWords(tradeSpeciesName)}` : ' With specific Pokémon';
+    }
+    conditions.push(tradeCondition);
+  } else if (evolution.evolutionTrigger?.name === 'use-item' && evolution.evolutionItem) {
+    const evolutionTriggerName = evolution.evolutionItem.name.replace(/-/g, ' ');
+    conditions.push(`Use ${capitalizeWords(evolutionTriggerName)}`);
+  } else if (evolution.evolutionTrigger?.name === 'level-up') {
+    if (evolution.timeOfDay) {
+      conditions.push(`During ${evolution.timeOfDay}`);
+    } else if (evolution.location) {
+      const locationName = evolution.location.name.replace(/-/g, ' ');
+      conditions.push(`at ${capitalizeWords(locationName)}`);
+    }
+  }
+
+  if (evolution.heldItem) {
+    const itemName = evolution.heldItem.name.replace(/-/g, ' ');
+    conditions.push(`Holding ${capitalizeWords(itemName)}`);
+  }
+  if (evolution.knownMove) {
+    const knownMoveName = evolution.knownMove.name.replace(/-/g, ' ');
+    conditions.push(`Knowing ${capitalizeWords(knownMoveName)}`);
+  }
+  if (evolution.knownMoveType) {
+    const knownMoveType = evolution.knownMoveType.name.replace(/-/g, ' ');
+    conditions.push(`Knowing a ${capitalizeWords(knownMoveType)} type move`);
+  }
+  if (evolution.minHappiness) {
+    conditions.push(`With ${evolution.minHappiness}+ Happiness`);
+  }
+  if (evolution.minBeauty) {
+    conditions.push(`With ${evolution.minBeauty}+ Beauty`);
+  }
+  if (evolution.minAffection) {
+    conditions.push(`With ${evolution.minAffection}+ Affection`);
+  }
+  if (evolution.needsOverworldRain) {
+    conditions.push(`During Rain`);
+  }
+  if (evolution.partySpeciesId) {
+    const partySpeciesName = speciesMap.get(evolution.partySpeciesId);
+    conditions.push(`With ${partySpeciesName ? capitalizeWords(partySpeciesName) : 'specific Pokémon'} in party`);
+  }
+  if (evolution.partyTypeId && evolution.partyType) {
+    const partyTypeName = evolution.partyType.names[0]?.name || evolution.partyType.name;
+    conditions.push(`With ${capitalizeWords(partyTypeName)} Type in party`);
+  }
+  if (evolution.relativePhysicalStats !== null && evolution.relativePhysicalStats !== undefined) {
+    let statComparison = '';
+    if (evolution.relativePhysicalStats === 1) {
+      statComparison = 'Attack > Defense';
+    } else if (evolution.relativePhysicalStats === 0) {
+      statComparison = 'Attack = Defense';
+    } else if (evolution.relativePhysicalStats === -1) {
+      statComparison = 'Attack < Defense';
+    }
+    if (statComparison) {
+      conditions.push(`When ${statComparison}`);
+    }
+  }
+  if (evolution.turnUpsideDown) {
+    conditions.push(`While holding console upside down`);
+  }
+
+  const displayString: string =
+    conditions.length > 0 ? conditions.join(' and ') : 'No special conditions';
+
+  return displayString;
 };
