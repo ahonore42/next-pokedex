@@ -6,6 +6,7 @@ import { ThemeProvider } from '~/lib/contexts/ThemeContext';
 import { DefaultLayout } from '~/components/layout/DefaultLayout';
 import { trpc } from '~/utils/trpc';
 import '~/styles/globals.css';
+import '@xyflow/react/dist/style.css';
 
 export type NextPageWithLayout<TProps = Record<string, unknown>, TInitialProps = TProps> = NextPage<
   TProps,
