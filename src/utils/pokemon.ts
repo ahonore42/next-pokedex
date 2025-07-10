@@ -32,3 +32,31 @@ export function getTypeColor(type: string): string {
   };
   return colors[type] || '#68A090';
 }
+
+// Get damage class icon
+export const getDamageClassIcon = (damageClass: string) => {
+  switch (damageClass) {
+    case 'physical':
+      return '💥'; // Physical
+    case 'special':
+      return '🌀'; // Special
+    case 'status':
+      return '⚡'; // Status
+    default:
+      return '❓';
+  }
+};
+
+// Get damage class color
+export const getDamageClassColor = (damageClass: string) => {
+  switch (damageClass) {
+    case 'physical':
+      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+    case 'special':
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+    case 'status':
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    default:
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+  }
+};
