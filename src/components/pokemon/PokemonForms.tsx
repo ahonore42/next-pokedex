@@ -1,4 +1,5 @@
-import { getTypeColor, capitalizeName } from '~/utils/pokemon';
+import { getTypeColor } from '~/utils/pokemon';
+import { capitalizeName } from '~/utils/text';
 import type { PokemonDetailedById } from '~/server/routers/_app';
 
 interface ComponentProps {
