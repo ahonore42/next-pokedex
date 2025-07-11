@@ -1,5 +1,5 @@
 import React from 'react';
-import { EdgeProps, BaseEdge, EdgeLabelRenderer, getSmoothStepPath } from '@xyflow/react';
+import { EdgeProps, BaseEdge, EdgeLabelRenderer, getSmoothStepPath, Position } from '@xyflow/react';
 import { useTheme } from '~/lib/contexts/ThemeContext';
 
 const EvolutionEdgeLabel: React.FC<EdgeProps> = ({
@@ -14,7 +14,10 @@ const EvolutionEdgeLabel: React.FC<EdgeProps> = ({
   targetPosition,
 }) => {
   const { theme } = useTheme();
-  const [edgePath, centerX] = getSmoothStepPath({
+  const hasManyDirectEvolutions = data?.hasManyDirectEvolutions as boolean;
+  sourcePosition = hasManyDirectEvolutions ? Position.Bottom : sourcePosition;
+  targetPosition = hasManyDirectEvolutions ? Position.Top : targetPosition;
+  const [edgePath, centerX, centerY] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -30,7 +33,7 @@ const EvolutionEdgeLabel: React.FC<EdgeProps> = ({
         <div
           style={{
             position: 'absolute',
-            transform: `translate(-50%, -50%) translate(${centerX}px, ${targetY}px)`,
+            transform: `translate(-50%, -50%) translate(${hasManyDirectEvolutions ? targetX : centerX}px, ${hasManyDirectEvolutions ? centerY : targetY}px)`,
             pointerEvents: 'all',
           }}
           className="nodrag nopan"
