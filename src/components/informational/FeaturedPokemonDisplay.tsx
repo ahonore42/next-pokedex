@@ -1,4 +1,4 @@
-import { capitalizeName } from '~/utils/pokemon';
+import { capitalizeName } from '~/utils/text';
 import SectionCard from '../ui/SectionCard';
 import { PokemonListOutput } from '~/server/routers/_app';
 import { TypeBadge } from '../ui/TypeBadge';
