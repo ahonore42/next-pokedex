@@ -5,14 +5,13 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { trpc } from '~/utils/trpc';
 import type { NextPageWithLayout } from '~/pages/_app';
-import { capitalizeName } from '~/utils/pokemon';
+import { capitalizeName } from '~/utils/text';
 import Pokeball from '~/components/ui/Pokeball';
 import PokemonHeader from '~/components/pokemon/PokemonHeader';
 import PokemonStats from '~/components/pokemon/PokemonStats';
 import { PokemonAbilities } from '~/components/pokemon/PokemonAbilities';
 import { PokemonForms } from '~/components/pokemon/PokemonForms';
 import { PokemonMoves } from '~/components/pokemon/PokemonMoves';
-import { EvolutionChain } from '~/components/pokemon/EvolutionChain';
 import { PokemonEncounters } from '~/components/pokemon/PokemonEncounters';
 import { PokemonBreeding } from '~/components/pokemon/PokemonBreeding';
 import { PokemonGameData } from '~/components/pokemon/PokemonGameData';
@@ -82,7 +81,6 @@ const PokemonDetailPage: NextPageWithLayout = () => {
         className="min-h-screen transition-colors duration-300"
         style={{ backgroundColor: 'var(--color-background)' }}
       >
-
         <main className="mx-auto py-8">
           {/* Breadcrumb Navigation */}
           <nav className="mb-6">
@@ -120,9 +118,6 @@ const PokemonDetailPage: NextPageWithLayout = () => {
 
             {/* Right Column - Secondary Info */}
             <div className="space-y-8">
-              {/* Evolution Chain */}
-              <EvolutionChain pokemon={pokemon} />
-
               {/* Breeding Info */}
               <PokemonBreeding pokemon={pokemon} />
 
@@ -157,7 +152,6 @@ const PokemonDetailPage: NextPageWithLayout = () => {
             </button>
           </div>
         </main>
-
       </div>
     </>
   );
