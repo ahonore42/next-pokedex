@@ -1,24 +1,23 @@
-import type { RouterOutputs } from '~/server/routers/_app';
-
-type PokemonDetailData = RouterOutputs['pokemon']['detailedById'];
+import { PokemonDetailedById } from '~/server/routers/_app';
+import { orderStatsWithSpeedLast } from '~/utils/pokemon';
 
 interface PokemonStatsProps {
-  pokemon: PokemonDetailData;
+  pokemon: PokemonDetailedById;
 }
 
 const PokemonStats: React.FC<PokemonStatsProps> = ({ pokemon }) => {
+  const orderedStats = orderStatsWithSpeedLast(pokemon.stats);
   // Calculate total stats
   const totalBaseStat = pokemon.stats.reduce((total, stat) => total + stat.baseStat, 0);
   const totalEffort = pokemon.stats.reduce((total, stat) => total + stat.effort, 0);
 
   // Get stat color based on value
   const getStatColor = (baseStat: number) => {
-    if (baseStat >= 120) return 'bg-red-500';
-    if (baseStat >= 100) return 'bg-orange-500';
+    if (baseStat >= 120) return 'bg-green-500';
+    if (baseStat >= 100) return 'bg-lime-500';
     if (baseStat >= 80) return 'bg-yellow-500';
-    if (baseStat >= 60) return 'bg-green-500';
-    if (baseStat >= 40) return 'bg-blue-500';
-    return 'bg-gray-500';
+    if (baseStat >= 50) return 'bg-orange-500';
+    return 'bg-red-500';
   };
 
   // Get stat abbreviation for mobile
@@ -35,7 +34,7 @@ const PokemonStats: React.FC<PokemonStatsProps> = ({ pokemon }) => {
   };
 
   // Get full stat name
-  const getStatName = (stat: PokemonDetailData['stats'][0]) => {
+  const getStatName = (stat: PokemonDetailedById['stats'][0]) => {
     return stat.stat.names[0]?.name || stat.stat.name;
   };
 
@@ -50,7 +49,7 @@ const PokemonStats: React.FC<PokemonStatsProps> = ({ pokemon }) => {
       </div>
 
       <div className="space-y-4">
-        {pokemon.stats.map((pokemonStat) => {
+        {orderedStats.map((pokemonStat) => {
           const statName = getStatName(pokemonStat);
           const statAbbr = getStatAbbr(pokemonStat.stat.name);
           const percentage = (pokemonStat.baseStat / 180) * 100; // 180 is roughly max base stat
@@ -58,11 +57,11 @@ const PokemonStats: React.FC<PokemonStatsProps> = ({ pokemon }) => {
           return (
             <div key={pokemonStat.stat.id} className="grid grid-cols-12 gap-4 items-center">
               {/* Stat Name */}
-              <div className="col-span-3 sm:col-span-2">
-                <span className="hidden sm:inline font-medium text-gray-700 dark:text-gray-300">
+              <div className="col-span-2 lg:col-span-3">
+                <span className="hidden md:inline font-medium text-gray-700 dark:text-gray-300 text-nowrap">
                   {statName}
                 </span>
-                <span className="sm:hidden font-medium text-gray-700 dark:text-gray-300">
+                <span className="md:hidden font-medium text-gray-700 dark:text-gray-300">
                   {statAbbr}
                 </span>
               </div>
@@ -75,7 +74,7 @@ const PokemonStats: React.FC<PokemonStatsProps> = ({ pokemon }) => {
               </div>
 
               {/* Stat Bar */}
-              <div className="col-span-6 sm:col-span-8">
+              <div className="col-span-6 sm:col-span-7">
                 <div className="relative">
                   <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-6">
                     <div
