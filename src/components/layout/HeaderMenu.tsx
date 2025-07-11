@@ -8,7 +8,7 @@ export default function HeaderMenu() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigationItems = [
-    { href: '/pokemon', label: 'Pokémon' },
+    { href: '/pokedex', label: 'Pokédex' },
     { href: '/moves', label: 'Moves' },
     { href: '/abilities', label: 'Abilities' },
     { href: '/pokemon-types', label: 'Types' },
