@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { capitalizeName, getTypeColor } from '~/utils/pokemon';
+import { getTypeColor } from '~/utils/pokemon';
+import { capitalizeName } from '~/utils/text';
 import { trpc } from '~/utils/trpc';
 
 export default function SearchBar() {
