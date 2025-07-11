@@ -1,5 +1,5 @@
 import type { PokemonDetailedById } from '~/server/routers/_app';
-import { capitalizeName } from '~/utils/pokemon';
+import { capitalizeName } from '~/utils/text';
 import MoveTable from './MoveTable';
 
 interface ComponentProps {
