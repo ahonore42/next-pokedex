@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
-import { getTypeColor, capitalizeName } from '~/utils/pokemon';
+import { getTypeColor, getDamageClassIcon, getDamageClassColor } from '~/utils/pokemon';
+import { capitalizeName } from '~/utils/text';
+import { DataTable, Column } from '~/components/ui/DataTable';
 import type { RouterOutputs } from '~/server/routers/_app';
 
 type PokemonDetailData = RouterOutputs['pokemon']['detailedById'];
@@ -13,8 +15,6 @@ interface MoveTableProps {
 
 const MoveTable: React.FC<MoveTableProps> = ({ moves, learnMethod, learnMethodName }) => {
   const [selectedGeneration, setSelectedGeneration] = useState<number | 'all'>('all');
-  const [sortBy, setSortBy] = useState<'level' | 'name' | 'power' | 'accuracy'>('level');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // Filter moves by learn method
   const filteredMoves = useMemo(() => {
@@ -30,96 +30,125 @@ const MoveTable: React.FC<MoveTableProps> = ({ moves, learnMethod, learnMethodNa
     return Array.from(genSet).sort((a, b) => a - b);
   }, [filteredMoves]);
 
-  // Filter and sort moves
-  const processedMoves = useMemo(() => {
-    let processed = filteredMoves;
-
-    // Filter by generation
-    if (selectedGeneration !== 'all') {
-      processed = processed.filter(
-        (move) => move.versionGroup.generation.id === selectedGeneration,
-      );
-    }
-
-    // Remove duplicates (same move in different version groups)
-    const moveMap = new Map<number, PokemonMove>();
-    processed.forEach((move) => {
-      const existingMove = moveMap.get(move.move.id);
-      if (
-        !existingMove ||
-        move.versionGroup.generation.id > existingMove.versionGroup.generation.id
-      ) {
-        moveMap.set(move.move.id, move);
-      }
-    });
-    processed = Array.from(moveMap.values());
-
-    // Sort moves
-    processed.sort((a, b) => {
-      let comparison = 0;
-
-      switch (sortBy) {
-        case 'level':
-          comparison = a.levelLearnedAt - b.levelLearnedAt;
-          break;
-        case 'name':
-          comparison = (a.move.names[0]?.name || a.move.name).localeCompare(
-            b.move.names[0]?.name || b.move.name,
+  const moveTableColumns = useMemo(() => {
+    const baseColumns: Column<PokemonMove>[] = [
+      {
+        header: 'Move',
+        accessor: (row: PokemonMove) => {
+          const moveName = row.move.names[0]?.name || capitalizeName(row.move.name);
+          return (
+            <>
+              <div className="font-medium text-gray-900 dark:text-white">{moveName}</div>
+              {row.move.priority !== 0 && (
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  Priority: {row.move.priority > 0 ? '+' : ''}
+                  {row.move.priority}
+                </div>
+              )}
+            </>
           );
-          break;
-        case 'power':
-          comparison = (a.move.power || 0) - (b.move.power || 0);
-          break;
-        case 'accuracy':
-          comparison = (a.move.accuracy || 0) - (b.move.accuracy || 0);
-          break;
-      }
+        },
+        className: 'p-3',
+        sortable: true,
+        sortKey: (row: PokemonMove) => row.move.name,
+      },
+      {
+        header: 'Type',
+        accessor: (row: PokemonMove) => (
+          <span
+            className="inline-block px-2 py-1 rounded text-white text-xs font-medium min-w-0"
+            style={{ backgroundColor: getTypeColor(row.move.type.name) }}
+          >
+            {row.move.type.name.toUpperCase()}
+          </span>
+        ),
+        className: 'p-3',
+        sortable: true,
+        sortKey: (row: PokemonMove) => row.move.type.name,
+      },
+      {
+        header: 'Category',
+        accessor: (row: PokemonMove) => {
+          const damageClass = row.move.moveDamageClass?.name || 'status';
+          return (
+            <span
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${getDamageClassColor(damageClass)}`}
+            >
+              <span>{getDamageClassIcon(damageClass)}</span>
+              <span className="hidden sm:inline">
+                {row.move.moveDamageClass?.names[0]?.name || capitalizeName(damageClass)}
+              </span>
+            </span>
+          );
+        },
+        className: 'p-3',
+        sortable: true,
+        sortKey: (row: PokemonMove) => row.move.moveDamageClass?.name || 'status',
+      },
+      {
+        header: 'Power',
+        accessor: (row: PokemonMove) => <>{row.move.power || '—'}</>,
+        className: 'p-3 font-medium text-gray-900 dark:text-white',
+        sortable: true,
+        sortKey: (row: PokemonMove) => row.move.power || 0,
+      },
+      {
+        header: 'Accuracy',
+        accessor: (row: PokemonMove) => <>{row.move.accuracy ? `${row.move.accuracy}%` : '—'}</>,
+        className: 'p-3 font-medium text-gray-900 dark:text-white',
+        sortable: true,
+        sortKey: (row: PokemonMove) => row.move.accuracy || 0,
+      },
+      {
+        header: 'Effect Chance',
+        accessor: (row: PokemonMove) => <>{row.move.effectChance ? `${row.move.effectChance}%` : '—'}</>,
+        className: 'p-3 font-medium text-gray-900 dark:text-gray-300',
+        sortable: true,
+        sortKey: (row: PokemonMove) => row.move.effectChance || 0,
+      },
+      {
+        header: 'PP',
+        accessor: (row: PokemonMove) => <>{row.move.pp}</>,
+        className: 'p-3 font-medium text-gray-900 dark:text-white',
+        sortable: true,
+        sortKey: (row: PokemonMove) => row.move.pp || 0,
+      },
+      {
+        header: 'Description',
+        accessor: (row: PokemonMove) => {
+          const description =
+            row.move.effectEntries[0]?.shortEffect ||
+            row.move.flavorTexts[0]?.flavorText ||
+            'No description available';
+          return (
+            <div className="line-clamp-2">{description}</div>
+          );
+        },
+        className: 'p-3 text-sm text-gray-600 dark:text-gray-300 max-w-xs',
+        sortable: false,
+      },
+    ];
 
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
-
-    return processed;
-  }, [filteredMoves, selectedGeneration, sortBy, sortOrder]);
-
-  // Get damage class icon
-  const getDamageClassIcon = (damageClass: string) => {
-    switch (damageClass) {
-      case 'physical':
-        return '💥'; // Physical
-      case 'special':
-        return '🌀'; // Special
-      case 'status':
-        return '⚡'; // Status
-      default:
-        return '❓';
+    if (learnMethod === 'level-up') {
+      return [
+        {
+          header: 'Level',
+          accessor: (row: PokemonMove) => (
+            <p className="p-3 font-medium text-gray-900 dark:text-white">
+              {row.levelLearnedAt === 0 ? 'Evo' : row.levelLearnedAt}
+            </p>
+          ),
+          className: 'p-3 font-medium text-gray-900 dark:text-white',
+          sortable: true,
+          sortKey: (row: PokemonMove) => row.levelLearnedAt,
+        },
+        ...baseColumns,
+      ];
     }
-  };
+    return baseColumns;
+  }, [learnMethod]);
 
-  // Get damage class color
-  const getDamageClassColor = (damageClass: string) => {
-    switch (damageClass) {
-      case 'physical':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      case 'special':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'status':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-    }
-  };
-
-  // Handle sort change
-  const handleSort = (newSortBy: typeof sortBy) => {
-    if (sortBy === newSortBy) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(newSortBy);
-      setSortOrder('asc');
-    }
-  };
-
-  if (processedMoves.length === 0) {
+  if (filteredMoves.length === 0) {
     return null;
   }
 
@@ -130,7 +159,7 @@ const MoveTable: React.FC<MoveTableProps> = ({ moves, learnMethod, learnMethodNa
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-0">
           {learnMethodName || capitalizeName(learnMethod)} Moves
           <span className="ml-2 text-sm font-normal text-gray-600 dark:text-gray-400">
-            ({processedMoves.length} moves)
+            ({filteredMoves.length} moves)
           </span>
         </h3>
 
@@ -158,165 +187,17 @@ const MoveTable: React.FC<MoveTableProps> = ({ moves, learnMethod, learnMethodNa
               </select>
             </div>
           )}
-
-          {/* Sort Controls */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Sort by:</label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              {learnMethod === 'level-up' && <option value="level">Level</option>}
-              <option value="name">Name</option>
-              <option value="power">Power</option>
-              <option value="accuracy">Accuracy</option>
-            </select>
-            <button
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
-              title={`Sort ${sortOrder === 'asc' ? 'descending' : 'ascending'}`}
-            >
-              {sortOrder === 'asc' ? '↑' : '↓'}
-            </button>
-          </div>
         </div>
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden lg:block overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b-2 border-gray-200 dark:border-gray-600">
-              {learnMethod === 'level-up' && (
-                <th className="text-left p-3 font-semibold text-gray-900 dark:text-white">
-                  <button
-                    onClick={() => handleSort('level')}
-                    className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400"
-                  >
-                    Level
-                    {sortBy === 'level' && (
-                      <span className="text-xs">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
-                  </button>
-                </th>
-              )}
-              <th className="text-left p-3 font-semibold text-gray-900 dark:text-white">
-                <button
-                  onClick={() => handleSort('name')}
-                  className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400"
-                >
-                  Move
-                  {sortBy === 'name' && (
-                    <span className="text-xs">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                  )}
-                </button>
-              </th>
-              <th className="text-left p-3 font-semibold text-gray-900 dark:text-white">Type</th>
-              <th className="text-left p-3 font-semibold text-gray-900 dark:text-white">
-                Category
-              </th>
-              <th className="text-left p-3 font-semibold text-gray-900 dark:text-white">
-                <button
-                  onClick={() => handleSort('power')}
-                  className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400"
-                >
-                  Power
-                  {sortBy === 'power' && (
-                    <span className="text-xs">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                  )}
-                </button>
-              </th>
-              <th className="text-left p-3 font-semibold text-gray-900 dark:text-white">
-                <button
-                  onClick={() => handleSort('accuracy')}
-                  className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400"
-                >
-                  Accuracy
-                  {sortBy === 'accuracy' && (
-                    <span className="text-xs">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                  )}
-                </button>
-              </th>
-              <th className="text-left p-3 font-semibold text-gray-900 dark:text-white">
-                Effect Chance
-              </th>
-              <th className="text-left p-3 font-semibold text-gray-900 dark:text-white">PP</th>
-              <th className="text-left p-3 font-semibold text-gray-900 dark:text-white">
-                Description
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {processedMoves.map((pokemonMove, index) => {
-              const move = pokemonMove.move;
-              const moveName = move.names[0]?.name || capitalizeName(move.name);
-              const damageClass = move.moveDamageClass?.name || 'status';
-              const description =
-                move.effectEntries[0]?.shortEffect ||
-                move.flavorTexts[0]?.flavorText ||
-                'No description available';
-
-              return (
-                <tr
-                  key={`${move.id}-${index}`}
-                  className="border-b border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  {learnMethod === 'level-up' && (
-                    <td className="p-3 font-medium text-gray-900 dark:text-white">
-                      {pokemonMove.levelLearnedAt === 0 ? 'Evo' : pokemonMove.levelLearnedAt}
-                    </td>
-                  )}
-                  <td className="p-3">
-                    <div className="font-medium text-gray-900 dark:text-white">{moveName}</div>
-                    {move.priority !== 0 && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Priority: {move.priority > 0 ? '+' : ''}
-                        {move.priority}
-                      </div>
-                    )}
-                  </td>
-                  <td className="p-3">
-                    <span
-                      className="inline-block px-2 py-1 rounded text-white text-xs font-medium min-w-0"
-                      style={{ backgroundColor: getTypeColor(move.type.name) }}
-                    >
-                      {move.type.name.toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${getDamageClassColor(damageClass)}`}
-                    >
-                      <span>{getDamageClassIcon(damageClass)}</span>
-                      <span className="hidden sm:inline">
-                        {move.moveDamageClass?.names[0]?.name || capitalizeName(damageClass)}
-                      </span>
-                    </span>
-                  </td>
-                  <td className="p-3 font-medium text-gray-900 dark:text-white">
-                    {move.power || '—'}
-                  </td>
-                  <td className="p-3 font-medium text-gray-900 dark:text-white">
-                    {move.accuracy ? `${move.accuracy}%` : '—'}
-                  </td>
-                  <td className="p-3 font-medium text-gray-900 dark:text-white">
-                    {move.effectChance ? `${move.effectChance}%` : '—'}
-                  </td>
-                  <td className="p-3 font-medium text-gray-900 dark:text-white">{move.pp}</td>
-                  <td className="p-3 text-sm text-gray-600 dark:text-gray-300 max-w-xs">
-                    <div className="line-clamp-2">{description}</div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="hidden lg:block">
+        <DataTable data={filteredMoves} columns={moveTableColumns} initialSortBy="name" />
       </div>
 
       {/* Mobile Cards */}
       <div className="lg:hidden space-y-4">
-        {processedMoves.map((pokemonMove, index) => {
+        {filteredMoves.map((pokemonMove: PokemonMove, index: number) => {
           const move = pokemonMove.move;
           const moveName = move.names[0]?.name || capitalizeName(move.name);
           const damageClass = move.moveDamageClass?.name || 'status';
@@ -398,7 +279,7 @@ const MoveTable: React.FC<MoveTableProps> = ({ moves, learnMethod, learnMethodNa
       </div>
 
       {/* Empty State */}
-      {processedMoves.length === 0 && (
+      {filteredMoves.length === 0 && (
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <p>No moves found for the selected criteria.</p>
         </div>
