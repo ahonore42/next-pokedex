@@ -4,11 +4,15 @@
 import { inferRouterOutputs } from '@trpc/server';
 import { createCallerFactory, publicProcedure, router } from '../trpc';
 import { pokemonRouter } from './pokemon';
+import { pokemonTypesRouter } from './pokemon-types';
+import { evolutionChainsRouter } from './evolution-chains';
 
 export const appRouter = router({
   healthcheck: publicProcedure.query(() => 'yay!'),
 
   pokemon: pokemonRouter,
+  types: pokemonTypesRouter,
+  evolutionChains: evolutionChainsRouter,
 });
 
 export const createCaller = createCallerFactory(appRouter);
@@ -29,14 +33,26 @@ export type PokemonByIdOutput = PokemonRouterOutputs['byId'];
 export type PokemonDetailedById = PokemonRouterOutputs['detailedById'];
 export type PokemonByNameOutput = PokemonRouterOutputs['byName'];
 export type DbStats = PokemonRouterOutputs['dbStats'];
-
-// New: Type for the output of pokemonByPokedex
 export type PokemonByPokedexOutput = PokemonRouterOutputs['pokemonByPokedex'];
-
 export type FeaturedPokemon = RouterOutputs['pokemon']['featured']['pokemon'][number];
+export type Pokemon = PokemonListOutput['pokemon'][number];
 
 /**
- * Individual Pokemon types
+ * Evolution Chains router Outputs
  */
-// Use PokemonListOutput for the base Pokemon type, as it's the most comprehensive for lists
-export type Pokemon = PokemonListOutput['pokemon'][number];
+export type EvolutionChainsRouterOutputs = RouterOutputs['evolutionChains'];
+export type EvolutionChainsAllOutput = EvolutionChainsRouterOutputs['all'];
+export type EvolutionChainsPaginatedOutput = EvolutionChainsRouterOutputs['paginated'];
+export type EvolutionChainsBySpeciesIdOutput = EvolutionChainsRouterOutputs['bySpeciesId'];
+export type EvolutionChainSingle = RouterOutputs['evolutionChains']['all'][number];
+export type EvolutionSpecies = EvolutionChainSingle['pokemonSpecies'][number];
+export type EvolutionConditions = EvolutionSpecies['pokemonEvolutions'][number];
+
+/**
+ * Pokemon types router Outputs
+ */
+export type TypeOutput = RouterOutputs['types'];
+export type AllTypesOutput = TypeOutput['allTypes'];
+export type AllEfficaciesOutput = TypeOutput['getAllTypeEfficacies'];
+export type PokemonByTypeOutput = TypeOutput['getPokemonByType'];
+export type MovesByTypeOutput = TypeOutput['getMovesByType'];
