@@ -3,7 +3,7 @@ import SectionCard from '~/components/ui/SectionCard';
 import { trpc } from '~/utils/trpc';
 import { useRouter } from 'next/router';
 import LoadingPage from '~/components/ui/LoadingPage';
-import { capitalizeName } from '~/utils/pokemon';
+import { capitalizeName } from '~/utils/text';
 
 const PokedexSelectionPage: NextPage = () => {
   const router = useRouter();
