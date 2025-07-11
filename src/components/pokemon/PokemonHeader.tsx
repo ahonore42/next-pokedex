@@ -1,20 +1,20 @@
 import { useState } from 'react';
-import { capitalizeName, getTypeColor } from '~/utils/pokemon';
-import type { RouterOutputs } from '~/server/routers/_app';
-
-type PokemonDetailData = RouterOutputs['pokemon']['detailedById'];
+import { capitalizeName } from '~/utils/text';
+import { getTypeColor } from '~/utils/pokemon';
+import EvolutionChain from './EvolutionChain';
+import { PokemonDetailedById } from '~/server/routers/_app';
 
 interface PokemonHeaderProps {
-  pokemon: PokemonDetailData;
+  pokemon: PokemonDetailedById;
 }
 
 const PokemonHeader: React.FC<PokemonHeaderProps> = ({ pokemon }) => {
   const [currentSprite, setCurrentSprite] = useState<string>('front');
   const [isShiny, setIsShiny] = useState<boolean>(false);
-  const species = pokemon.pokemonSpecies;
   const pokemonName = capitalizeName(pokemon.name);
   const speciesName = pokemon.pokemonSpecies.names[0]?.name || pokemonName;
   const genus = pokemon.pokemonSpecies.names[0]?.genus || '';
+  const evolutionChain = pokemon.pokemonSpecies.evolutionChain;
 
   // Get sprite URLs based on current selection
   const getSpriteUrl = () => {
@@ -50,6 +50,17 @@ const PokemonHeader: React.FC<PokemonHeaderProps> = ({ pokemon }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Side - Sprites and Controls */}
         <div className="flex flex-col items-center space-y-4">
+          {/* Title and Basic Info */}
+          <div className="self-start">
+            <div className="flex items-center space-x-3 mb-2">
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{speciesName}</h1>
+              <span className="text-2xl font-semibold text-gray-500 dark:text-gray-400">
+                #{nationalDexNumber.toString().padStart(3, '0')}
+              </span>
+            </div>
+
+            {genus && <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">{genus}</p>}
+          </div>
           {/* Main Sprite Display */}
           <div className="relative">
             <div className="w-64 h-64 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
@@ -162,55 +173,29 @@ const PokemonHeader: React.FC<PokemonHeaderProps> = ({ pokemon }) => {
 
         {/* Right Side - Pokemon Info */}
         <div className="space-y-6">
-          {/* Title and Basic Info */}
-          <div>
-            <div className="flex items-center space-x-3 mb-2">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{speciesName}</h1>
-              <span className="text-2xl font-semibold text-gray-500 dark:text-gray-400">
-                #{nationalDexNumber.toString().padStart(3, '0')}
+          {/* Types */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {pokemon.types.map((pokemonType) => (
+              <span
+                key={pokemonType.type.name}
+                className="px-3 py-1 rounded-full text-white font-medium text-sm"
+                style={{ backgroundColor: getTypeColor(pokemonType.type.name) }}
+              >
+                {pokemonType.type.names[0]?.name || pokemonType.type.name.toUpperCase()}
               </span>
-            </div>
-
-            {genus && <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">{genus}</p>}
-
-            {/* Types */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {pokemon.types.map((pokemonType) => (
-                <span
-                  key={pokemonType.type.name}
-                  className="px-3 py-1 rounded-full text-white font-medium text-sm"
-                  style={{ backgroundColor: getTypeColor(pokemonType.type.name) }}
-                >
-                  {pokemonType.type.names[0]?.name || pokemonType.type.name.toUpperCase()}
-                </span>
-              ))}
-            </div>
-
-            {/* Generation and Region */}
-            <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-300">
-              <span>Generation {pokemon.pokemonSpecies.generation.name}</span>
-              {pokemon.pokemonSpecies.generation.mainRegion && (
-                <>
-                  <span>•</span>
-                  <span>{pokemon.pokemonSpecies.generation.mainRegion.name} Region</span>
-                </>
-              )}
-            </div>
+            ))}
           </div>
 
-          {/* Flavor Text */}
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Pokédex Entry</h3>
-            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{flavorText}</p>
-            {pokemon.pokemonSpecies.flavorTexts[0]?.version && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                —{' '}
-                {pokemon.pokemonSpecies.flavorTexts[0].version.names[0]?.name ||
-                  pokemon.pokemonSpecies.flavorTexts[0].version.name}
-              </p>
+          {/* Generation and Region */}
+          <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-300">
+            <span>Generation {pokemon.pokemonSpecies.generation.name}</span>
+            {pokemon.pokemonSpecies.generation.mainRegion && (
+              <>
+                <span>•</span>
+                <span>{pokemon.pokemonSpecies.generation.mainRegion.name} Region</span>
+              </>
             )}
           </div>
-
           {/* Physical Characteristics */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
@@ -228,6 +213,19 @@ const PokemonHeader: React.FC<PokemonHeaderProps> = ({ pokemon }) => {
               <p className="text-lg text-gray-700 dark:text-gray-300">{weightInKg.toFixed(1)} kg</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">{weightInLbs} lbs</p>
             </div>
+          </div>
+
+          {/* Flavor Text */}
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Pokédex Entry</h3>
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{flavorText}</p>
+            {pokemon.pokemonSpecies.flavorTexts[0]?.version && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                —{' '}
+                {pokemon.pokemonSpecies.flavorTexts[0].version.names[0]?.name ||
+                  pokemon.pokemonSpecies.flavorTexts[0].version.name}
+              </p>
+            )}
           </div>
 
           {/* Special Attributes */}
@@ -254,52 +252,13 @@ const PokemonHeader: React.FC<PokemonHeaderProps> = ({ pokemon }) => {
             )}
           </div>
         </div>
-
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Breeding</h2>
-
-          <div className="space-y-4">
-            {/* Egg Groups */}
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Egg Groups</h3>
-              <div className="flex flex-wrap gap-2">
-                {species.eggGroups.map((eggGroupEntry) => (
-                  <span
-                    key={eggGroupEntry.eggGroup.id}
-                    className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm"
-                  >
-                    {eggGroupEntry.eggGroup.names[0]?.name ||
-                      capitalizeName(eggGroupEntry.eggGroup.name)}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Gender Rate */}
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Gender Ratio</h3>
-              <div className="text-gray-700 dark:text-gray-300">
-                {species.genderRate === -1 ? (
-                  <span>Genderless</span>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <span>♂ {(((8 - species.genderRate) / 8) * 100).toFixed(1)}%</span>
-                    <span>♀ {((species.genderRate / 8) * 100).toFixed(1)}%</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Hatch Counter */}
-            <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Hatch Time</h3>
-              <p className="text-gray-700 dark:text-gray-300">
-                {species.hatchCounter} cycles ({species.hatchCounter * 256} steps)
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
+      {/* Evolution Chain */}
+      {evolutionChain && (
+        <div className="mt-8">
+          <EvolutionChain chain={evolutionChain} />
+        </div>
+      )}
     </div>
   );
 };
