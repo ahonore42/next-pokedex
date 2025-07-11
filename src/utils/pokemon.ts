@@ -1,14 +1,7 @@
-import { EvolutionDetail } from "~/server/routers/_app";
-
-// Utility function to capitalize Pokemon names
-export function capitalizeName(name: string): string {
-  return name
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
-
-export const capitalizeWords = (str: string) => str.replace(/\b\w/g, l => l.toUpperCase());
+import { EvolutionConditions } from '~/server/routers/_app';
+import { capitalizeWords } from '~/utils/text';
+import { PokemonDetailedById } from '~/server/routers/_app';
+type PokemonStat = PokemonDetailedById['stats'][0];
 
 // Utility function to get type color - Complete list
 export function getTypeColor(type: string): string {
@@ -65,21 +58,31 @@ export const getDamageClassColor = (damageClass: string) => {
   }
 };
 
+export function orderStatsWithSpeedLast(stats: readonly PokemonStat[]): PokemonStat[] {
+  if (!stats || stats.length === 0) {
+    return [];
+  }
+  const speedStat = stats.find((stat) => stat.stat.name === 'speed');
+  const nonSpeedStats = stats.filter((stat) => stat.stat.name !== 'speed');
+  return speedStat ? [...nonSpeedStats, speedStat] : [...nonSpeedStats];
+}
+
+// Evolution chain utilities
 const specialEvolutionCases: Record<string, string> = {
-  'primeape-annihilape': 'Level up after using Rage Fist 20 times',
-  'pawmo-pawmot': "Level up after walking 1000 steps with Let's Go!",
-  'bramblin-brambleghast': "Level up after walking 1000 steps with Let's Go!",
-  'rellor-rabsca': "Level up after walking 1000 steps with Let's Go!",
-  'finizen-palafin': 'Level up to 38 while connected to another player via the Union Circle',
-  'bisharp-kingambit': "Level up after defeating three Bisharp that hold a Leader's Crest",
-  'gimmighoul-gholdengo': 'Level up with 999 Gimmighoul Coins in the bag',
-  'meltan-melmetal': 'Evolves with 400 Meltan Candies in Pokémon GO',
-  'magneton-magnezone': 'Level up in a special magnetic field or use a Thunder Stone',
-  'farfetchd-sirfetchd': 'Land three critical hits in a single battle with Galarian Farfetch\'d',
+  "primeape-annihilape": "Level up after using Rage Fist 20 times",
+  "pawmo-pawmot": "Level up after walking 1000 steps with Let's Go!",
+  "bramblin-brambleghast": "Level up after walking 1000 steps with Let's Go!",
+  "rellor-rabsca": "Level up after walking 1000 steps with Let's Go!",
+  "finizen-palafin": "Level up to 38 while connected to another player via the Union Circle",
+  "bisharp-kingambit": "Level up after defeating three Bisharp that hold a Leader's Crest",
+  "gimmighoul-gholdengo": "Level up with 999 Gimmighoul Coins in the bag",
+  "meltan-melmetal": "Evolves with 400 Meltan Candies in Pokémon GO",
+  "magneton-magnezone": "Level up in a special magnetic field or use a Thunder Stone",
+  "farfetchd-sirfetchd": "Land three critical hits in a single battle with Galarian Farfetch'd",
 };
 
 export const formatEvolutionConditions = (
-  evolution: EvolutionDetail,
+  evolution: EvolutionConditions,
   speciesMap: Map<number, string>,
   evolvingPokemonName: string,
   evolvingToPokemonName: string,
@@ -99,7 +102,9 @@ export const formatEvolutionConditions = (
     let tradeCondition = 'Trade';
     if (evolution.tradeSpeciesId) {
       const tradeSpeciesName = speciesMap.get(evolution.tradeSpeciesId);
-      tradeCondition += tradeSpeciesName ? ` With ${capitalizeWords(tradeSpeciesName)}` : ' With specific Pokémon';
+      tradeCondition += tradeSpeciesName
+        ? ` With ${capitalizeWords(tradeSpeciesName)}`
+        : ' With specific Pokémon';
     }
     conditions.push(tradeCondition);
   } else if (evolution.evolutionTrigger?.name === 'use-item' && evolution.evolutionItem) {
@@ -140,7 +145,9 @@ export const formatEvolutionConditions = (
   }
   if (evolution.partySpeciesId) {
     const partySpeciesName = speciesMap.get(evolution.partySpeciesId);
-    conditions.push(`With ${partySpeciesName ? capitalizeWords(partySpeciesName) : 'specific Pokémon'} in party`);
+    conditions.push(
+      `With ${partySpeciesName ? capitalizeWords(partySpeciesName) : 'specific Pokémon'} in party`,
+    );
   }
   if (evolution.partyTypeId && evolution.partyType) {
     const partyTypeName = evolution.partyType.names[0]?.name || evolution.partyType.name;
@@ -168,3 +175,62 @@ export const formatEvolutionConditions = (
 
   return displayString;
 };
+
+export interface ComputeNodesepOptions {
+  rankdir: 'TB' | 'LR';
+  containerWidth: number;
+  containerHeight: number;
+  nodeWidth: number;
+  nodeHeight: number;
+  maxSiblings: number;
+}
+
+export function computeNodesep(options: ComputeNodesepOptions): number {
+  const { rankdir, containerWidth, containerHeight, nodeWidth, nodeHeight, maxSiblings } = options;
+
+  if (maxSiblings <= 1) return 50;
+
+  if (rankdir === 'LR') {
+    // Vertical spacing between siblings
+    const totalHeight = maxSiblings * nodeHeight;
+    const available = containerHeight - totalHeight;
+    return Math.max(30, available / (maxSiblings - 1));
+  } else {
+    // Horizontal spacing between siblings
+    const totalWidth = maxSiblings * nodeWidth;
+    const available = containerWidth - totalWidth;
+    if (maxSiblings > 3) {
+      // If there are many siblings, allow less space
+      return Math.max(10, available / maxSiblings);
+    }
+    return Math.max(50, available / (maxSiblings - 1));
+  }
+}
+
+export interface ComputeRanksepOptions {
+  rankdir: 'TB' | 'LR';
+  containerWidth: number;
+  containerHeight: number;
+  nodeWidth: number;
+  nodeHeight: number;
+  rankCount: number;
+}
+
+export function computeRanksep(options: ComputeRanksepOptions): number {
+  const { rankdir, containerWidth, containerHeight, nodeWidth, nodeHeight, rankCount } = options;
+
+  if (rankCount <= 1) return 50;
+
+  if (rankdir === 'LR') {
+    // Horizontal spacing between evolution steps
+    const totalWidth = rankCount * nodeWidth;
+    const available = containerWidth - totalWidth;
+
+    return Math.min(180, available / (rankCount - 1));
+  } else {
+    // Vertical spacing between evolution steps
+    const totalHeight = rankCount * nodeHeight;
+    const available = containerHeight - totalHeight;
+    return Math.max(180, available / (rankCount - 1));
+  }
+}
