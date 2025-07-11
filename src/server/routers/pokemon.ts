@@ -3,773 +3,210 @@ import type { Prisma } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { prisma } from '~/server/prisma';
+import {
+  defaultPokemonSelect,
+  detailedPokemonSelect,
+  evolutionSpeciesSelect,
+  pokemonSearchSelect,
+} from './query-selectors';
+import type { inferRouterOutputs } from '@trpc/server';
+import { evolutionChainsRouter } from './evolution-chains';
+
+// Infer types directly from evolution-chains router
+type EvolutionChainsOutputs = inferRouterOutputs<typeof evolutionChainsRouter>;
+type EvolutionChainSingle = EvolutionChainsOutputs['all'][number];
+type EvolutionSpecies = EvolutionChainSingle['pokemonSpecies'][number];
 
 const DEFAULT_LANGUAGE_ID = 9; // English
 
-/**
- * It's important to always explicitly say which fields you want to return in order to not leak extra information
- * @see https://github.com/prisma/prisma/issues/9353
- */
-
-const defaultPokemonSelect = {
-  id: true,
-  name: true,
-  height: true,
-  weight: true,
-  baseExperience: true,
-  isDefault: true,
-  criesLatest: true,
-  criesLegacy: true,
-  sprites: {
-    select: {
-      frontDefault: true,
-      frontShiny: true,
-      backDefault: true,
-      backShiny: true,
-    },
-  },
-  types: {
-    select: {
-      slot: true,
-      type: {
-        select: {
-          id: true,
-          name: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-        },
-      },
-    },
-  },
-  abilities: {
-    select: {
-      slot: true,
-      isHidden: true,
-      ability: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  },
-  stats: {
-    select: {
-      baseStat: true,
-      effort: true,
-      stat: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  },
-  pokemonSpecies: {
-    select: {
-      id: true,
-      flavorTexts: {
-        where: {
-          languageId: DEFAULT_LANGUAGE_ID,
-        },
-        select: {
-          flavorText: true,
-        },
-      },
-      pokedexNumbers: {
-        select: {
-          pokedexNumber: true,
-          pokedex: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-    },
-  },
-} satisfies Prisma.PokemonSelect;
-
-const detailedPokemonSelect = {
-  id: true,
-  name: true,
-  height: true,
-  weight: true,
-  baseExperience: true,
-  order: true,
-  isDefault: true,
-  criesLatest: true,
-  criesLegacy: true,
-  createdAt: true,
-  updatedAt: true,
-
-  // Basic sprite data
-  sprites: {
-    select: {
-      frontDefault: true,
-      frontShiny: true,
-      frontFemale: true,
-      frontShinyFemale: true,
-      backDefault: true,
-      backShiny: true,
-      backFemale: true,
-      backShinyFemale: true,
-    },
-  },
-
-  // Current types
-  types: {
-    select: {
-      slot: true,
-      type: {
-        select: {
-          id: true,
-          name: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-        },
-      },
-    },
-    orderBy: { slot: 'asc' },
-  },
-
-  // Historical types by generation
-  typePast: {
-    select: {
-      slot: true,
-      generation: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      type: {
-        select: {
-          id: true,
-          name: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-        },
-      },
-    },
-    orderBy: [{ generationId: 'asc' }, { slot: 'asc' }],
-  },
-
-  // Current abilities
-  abilities: {
-    select: {
-      slot: true,
-      isHidden: true,
-      ability: {
-        select: {
-          id: true,
-          name: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-          flavorTexts: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { flavorText: true },
-            orderBy: { versionGroupId: 'desc' },
-            take: 1,
-          },
-          effectTexts: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: {
-              effect: true,
-              shortEffect: true,
-            },
-            take: 1,
-          },
-        },
-      },
-    },
-    orderBy: { slot: 'asc' },
-  },
-
-  // Historical abilities by generation
-  abilityPast: {
-    select: {
-      slot: true,
-      isHidden: true,
-      generation: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      ability: {
-        select: {
-          id: true,
-          name: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-        },
-      },
-    },
-    orderBy: [{ generationId: 'asc' }, { slot: 'asc' }],
-  },
-
-  // Base stats
-  stats: {
-    select: {
-      baseStat: true,
-      effort: true,
-      stat: {
-        select: {
-          id: true,
-          name: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-          isBattleOnly: true,
-          gameIndex: true,
-        },
-      },
-    },
-    orderBy: { stat: { gameIndex: 'asc' } },
-  },
-
-  // All Pokemon forms
-  forms: {
-    select: {
-      id: true,
-      name: true,
-      order: true,
-      formOrder: true,
-      isDefault: true,
-      isBattleOnly: true,
-      isMega: true,
-      formName: true,
-      names: {
-        where: { languageId: DEFAULT_LANGUAGE_ID },
-        select: {
-          name: true,
-          pokemonName: true,
-        },
-      },
-      types: {
-        select: {
-          slot: true,
-          type: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-        orderBy: { slot: 'asc' },
-      },
-      sprites: {
-        select: {
-          frontDefault: true,
-          frontShiny: true,
-          backDefault: true,
-          backShiny: true,
-        },
-      },
-    },
-    orderBy: { formOrder: 'asc' },
-  },
-
-  // Comprehensive moveset
-  moves: {
-    select: {
-      levelLearnedAt: true,
-      order: true,
-      versionGroup: {
-        select: {
-          id: true,
-          name: true,
-          order: true,
-          generation: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-      moveLearnMethod: {
-        select: {
-          id: true,
-          name: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-          descriptions: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { description: true },
-          },
-        },
-      },
-      move: {
-        select: {
-          id: true,
-          name: true,
-          power: true,
-          pp: true,
-          accuracy: true,
-          priority: true,
-          effectChance: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-          type: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          moveDamageClass: {
-            select: {
-              id: true,
-              name: true,
-              names: {
-                where: { languageId: DEFAULT_LANGUAGE_ID },
-                select: { name: true },
-              },
-            },
-          },
-          effectEntries: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: {
-              effect: true,
-              shortEffect: true,
-            },
-            take: 1,
-          },
-          flavorTexts: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { flavorText: true },
-            orderBy: { versionGroupId: 'desc' },
-            take: 1,
-          },
-        },
-      },
-    },
-    orderBy: [
-      { versionGroup: { order: 'desc' } },
-      { moveLearnMethodId: 'asc' },
-      { levelLearnedAt: 'asc' },
-      { move: { name: 'asc' } },
-    ],
-  },
-
-  // Game indices across versions
-  gameIndices: {
-    select: {
-      gameIndex: true,
-      version: {
-        select: {
-          id: true,
-          name: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-          versionGroup: {
-            select: {
-              id: true,
-              name: true,
-              generation: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    orderBy: { version: { id: 'asc' } },
-  },
-
-  // Held items by version
-  heldItems: {
-    select: {
-      rarity: true,
-      version: {
-        select: {
-          id: true,
-          name: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-        },
-      },
-      item: {
-        select: {
-          id: true,
-          name: true,
-          cost: true,
-          flingPower: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-          flavorTexts: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { flavorText: true },
-            take: 1,
-          },
-          sprite: true,
-        },
-      },
-    },
-    orderBy: [{ version: { id: 'asc' } }, { rarity: 'desc' }],
-  },
-
-  // Location encounters
-  encounters: {
-    select: {
-      minLevel: true,
-      maxLevel: true,
-      chance: true,
-      locationArea: {
-        select: {
-          id: true,
-          name: true,
-          gameIndex: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-          location: {
-            select: {
-              id: true,
-              name: true,
-              names: {
-                where: { languageId: DEFAULT_LANGUAGE_ID },
-                select: { name: true },
-              },
-              region: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      },
-      version: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      encounterMethod: {
-        select: {
-          id: true,
-          name: true,
-          order: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-        },
-      },
-      conditionValueMap: {
-        select: {
-          encounterConditionValue: {
-            select: {
-              id: true,
-              name: true,
-              isDefault: true,
-              names: {
-                where: { languageId: DEFAULT_LANGUAGE_ID },
-                select: { name: true },
-              },
-              encounterCondition: {
-                select: {
-                  id: true,
-                  name: true,
-                  names: {
-                    where: { languageId: DEFAULT_LANGUAGE_ID },
-                    select: { name: true },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    orderBy: [{ locationArea: { location: { name: 'asc' } } }, { minLevel: 'asc' }],
-  },
-
-  // Species data with evolution and breeding info
-  pokemonSpecies: {
-    select: {
-      id: true,
-      name: true,
-      order: true,
-      genderRate: true,
-      captureRate: true,
-      baseHappiness: true,
-      isBaby: true,
-      isLegendary: true,
-      isMythical: true,
-      hatchCounter: true,
-      hasGenderDifferences: true,
-      formsSwitchable: true,
-
-      // Species names
-      names: {
-        where: { languageId: DEFAULT_LANGUAGE_ID },
-        select: {
-          name: true,
-          genus: true,
-        },
-      },
-
-      // Flavor texts (Pokedex entries)
-      flavorTexts: {
-        where: { languageId: DEFAULT_LANGUAGE_ID },
-        select: {
-          flavorText: true,
-          version: {
-            select: {
-              id: true,
-              name: true,
-              names: {
-                where: { languageId: DEFAULT_LANGUAGE_ID },
-                select: { name: true },
-              },
-              versionGroup: {
-                select: {
-                  id: true,
-                  name: true,
-                  generation: {
-                    select: {
-                      id: true,
-                      name: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        orderBy: { version: { id: 'desc' } },
-      },
-
-      // Generation info
-      generation: {
-        select: {
-          id: true,
-          name: true,
-          mainRegion: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-
-      // Color
-      pokemonColor: {
-        select: {
-          id: true,
-          name: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-        },
-      },
-
-      // Shape
-      pokemonShape: {
-        select: {
-          id: true,
-          name: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-          awesomeNames: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { awesomeName: true },
-          },
-        },
-      },
-
-      // Habitat
-      pokemonHabitat: {
-        select: {
-          id: true,
-          name: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-        },
-      },
-
-      // Growth rate
-      growthRate: {
-        select: {
-          id: true,
-          name: true,
-          formula: true,
-          descriptions: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { description: true },
-          },
-        },
-      },
-
-      // Egg groups
-      eggGroups: {
-        select: {
-          eggGroup: {
-            select: {
-              id: true,
-              name: true,
-              names: {
-                where: { languageId: DEFAULT_LANGUAGE_ID },
-                select: { name: true },
-              },
-            },
-          },
-        },
-      },
-
-      // Evolution chain
-      evolutionChain: {
-        select: {
-          id: true,
-          babyTriggerItem: {
-            select: {
-              id: true,
-              name: true,
-              names: {
-                where: { languageId: DEFAULT_LANGUAGE_ID },
-                select: { name: true },
-              },
-            },
-          },
-          // Get all species in this evolution chain
-          pokemonSpecies: {
-            select: {
-              id: true,
-              name: true,
-              order: true,
-              names: {
-                where: { languageId: DEFAULT_LANGUAGE_ID },
-                select: { name: true },
-              },
-              // Get varieties (different forms) for each species
-              varieties: {
-                select: {
-                  isDefault: true,
-                  pokemon: {
-                    select: {
-                      id: true,
-                      name: true,
-                      sprites: {
-                        select: {
-                          frontDefault: true,
-                        },
-                      },
-                      types: {
-                        select: {
-                          slot: true,
-                          type: {
-                            select: {
-                              id: true,
-                              name: true,
-                            },
-                          },
-                        },
-                        orderBy: { slot: 'asc' },
-                      },
-                    },
-                  },
-                },
-                where: { isDefault: true },
-              },
-            },
-            orderBy: { order: 'asc' },
-          },
-        },
-      },
-
-      // Pokedex numbers
-      pokedexNumbers: {
-        select: {
-          pokedexNumber: true,
-          pokedex: {
-            select: {
-              id: true,
-              name: true,
-              isMainSeries: true,
-              names: {
-                where: { languageId: DEFAULT_LANGUAGE_ID },
-                select: { name: true },
-              },
-              region: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: [{ pokedex: { isMainSeries: 'desc' } }, { pokedex: { id: 'asc' } }],
-      },
-
-      // Pal Park encounters
-      palParkEncounters: {
-        select: {
-          baseScore: true,
-          rate: true,
-          palParkArea: {
-            select: {
-              id: true,
-              name: true,
-              names: {
-                where: { languageId: DEFAULT_LANGUAGE_ID },
-                select: { name: true },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-} satisfies Prisma.PokemonSelect;
-
-export const pokemonSearchSelect = {
-  id: true,
-  name: true,
-  sprites: { select: { frontDefault: true } },
-  types: { select: { type: { select: { name: true } } } },
-  pokemonSpecies: {
-    select: {
-      id: true,
-    },
-  },
+// Type for species with evolution data (used in enhancement function)
+type SpeciesWithEvolutions = {
+  id: number;
+  evolvesToSpecies: Array<{
+    pokemonEvolutions: Array<{
+      partySpeciesId: number | null;
+      tradeSpeciesId: number | null;
+    }>;
+  }>;
 };
+
+// Type for evolution chain structure in detailed pokemon
+type DetailedEvolutionChain = {
+  pokemonSpecies: SpeciesWithEvolutions[];
+};
+
+// Type for pokemon with evolution chain
+type PokemonWithEvolutionChain = {
+  pokemonSpecies?: {
+    evolutionChain?: DetailedEvolutionChain | null;
+  } | null;
+};
+
+// Search result type
+type PokemonSearchResult = {
+  id: number;
+  name: string;
+  sprites: { frontDefault: string | null } | null;
+  types: Array<{ type: { name: string } }>;
+  pokemonSpecies: { id: number };
+};
+
+/**
+ * Helper function to enhance evolution chain with additional species (for use in resolvers)
+ */
+export async function enhanceEvolutionChainWithAdditionalSpecies<
+  T extends PokemonWithEvolutionChain,
+>(pokemon: T): Promise<T> {
+  const evolutionChain = pokemon.pokemonSpecies?.evolutionChain;
+  if (!evolutionChain) return pokemon;
+
+  // Collect required additional species IDs from evolution conditions
+  const requiredSpeciesIds = new Set<number>();
+
+  evolutionChain.pokemonSpecies.forEach((species: SpeciesWithEvolutions) => {
+    species.evolvesToSpecies.forEach((evolvesTo) => {
+      evolvesTo.pokemonEvolutions.forEach((evo) => {
+        if (evo.partySpeciesId) requiredSpeciesIds.add(evo.partySpeciesId);
+        if (evo.tradeSpeciesId) requiredSpeciesIds.add(evo.tradeSpeciesId);
+      });
+    });
+  });
+
+  // Cross-chain evolution detection (like Meltan → Melmetal)
+  // Get the evolution chain ID from the first species in the chain
+  const firstSpecies = evolutionChain.pokemonSpecies[0];
+  if (!firstSpecies) return pokemon;
+
+  // Find the evolution chain ID by querying for the first species
+  const speciesWithChain = await prisma.pokemonSpecies.findUnique({
+    where: { id: firstSpecies.id },
+    select: { evolutionChainId: true },
+  });
+
+  if (!speciesWithChain) return pokemon;
+
+  // Get all pokemon species in this evolution chain
+  const chainSpecies = await prisma.pokemonSpecies.findMany({
+    where: { evolutionChainId: speciesWithChain.evolutionChainId },
+    orderBy: { order: 'asc' },
+    select: evolutionSpeciesSelect,
+  });
+
+  if (!chainSpecies.length) return pokemon;
+
+  const speciesIdsInChain = chainSpecies.map((s) => s.id);
+  let crossChainEvolutions: any[] = [];
+
+  // Check if any evolvesToSpecies are missing from the current chain
+  const missingEvolutionTargets = new Set<number>();
+  chainSpecies.forEach((species) => {
+    species.evolvesToSpecies.forEach((evolvesTo) => {
+      const targetExists = chainSpecies.find((s) => s.id === evolvesTo.id);
+      if (!targetExists) {
+        missingEvolutionTargets.add(evolvesTo.id);
+      }
+    });
+  });
+
+  // Also check if any evolvesFromSpecies are missing from the current chain
+  const missingEvolutionSources = new Set<number>();
+  chainSpecies.forEach((species) => {
+    if (species.evolvesFromSpecies) {
+      const sourceExists = chainSpecies.find((s) => s.id === species.evolvesFromSpecies!.id);
+      if (!sourceExists) {
+        missingEvolutionSources.add(species.evolvesFromSpecies.id);
+      }
+    }
+  });
+
+  // Look for cross-chain evolutions if we have missing targets OR sources
+  if (missingEvolutionTargets.size > 0 || missingEvolutionSources.size > 0) {
+    // Find Pokemon that evolve TO species in this chain but are in different chains (evolution sources)
+    if (missingEvolutionSources.size > 0) {
+      const crossChainSources = await prisma.pokemonSpecies.findMany({
+        where: {
+          id: { in: Array.from(missingEvolutionSources) },
+          evolutionChainId: { not: speciesWithChain.evolutionChainId }, // Different chain
+        },
+        select: {
+          ...evolutionSpeciesSelect,
+          evolutionChainId: true,
+        },
+      });
+
+      crossChainSources.forEach((species) => {
+        const evolvesToSpecies = chainSpecies.find((s) => s.evolvesFromSpecies?.id === species.id);
+        const pokemonName =
+          (pokemon as any).name ||
+          (pokemon.pokemonSpecies as any)?.name ||
+          chainSpecies[0]?.name ||
+          'Unknown Pokemon';
+        console.log(
+          `Cross-chain evolution source found for ${pokemonName}: ${species.name} (chain ${species.evolutionChainId}) evolves to ${evolvesToSpecies?.name} (chain ${speciesWithChain.evolutionChainId})`,
+        );
+        requiredSpeciesIds.add(species.id);
+      });
+
+      crossChainEvolutions.push(...crossChainSources);
+    }
+
+    // Find Pokemon that evolve FROM species in this chain but are in different chains (evolution targets)
+    if (missingEvolutionTargets.size > 0) {
+      const crossChainTargets = await prisma.pokemonSpecies.findMany({
+        where: {
+          evolvesFromSpeciesId: { in: speciesIdsInChain },
+          evolutionChainId: { not: speciesWithChain.evolutionChainId }, // Different chain
+          id: { in: Array.from(missingEvolutionTargets) }, // Only missing targets
+        },
+        select: {
+          ...evolutionSpeciesSelect,
+          evolvesFromSpeciesId: true,
+          evolutionChainId: true,
+        },
+      });
+
+      crossChainTargets.forEach((species) => {
+        const evolvesFromSpecies = chainSpecies.find((s) => s.id === species.evolvesFromSpeciesId);
+        const pokemonName =
+          (pokemon as any).name ||
+          (pokemon.pokemonSpecies as any)?.name ||
+          chainSpecies[0]?.name ||
+          'Unknown Pokemon';
+        console.log(
+          `Cross-chain evolution target found for ${pokemonName}: ${species.name} (chain ${species.evolutionChainId}) evolves from ${evolvesFromSpecies?.name} (chain ${speciesWithChain.evolutionChainId})`,
+        );
+        requiredSpeciesIds.add(species.id);
+      });
+
+      crossChainEvolutions.push(...crossChainTargets);
+    }
+  }
+
+  // Only fetch additional species if there are any required
+  if (requiredSpeciesIds.size === 0 && crossChainEvolutions.length === 0) return pokemon;
+
+  const additionalSpecies: EvolutionSpecies[] = await prisma.pokemonSpecies.findMany({
+    where: {
+      id: { in: Array.from(requiredSpeciesIds) },
+    },
+    select: evolutionSpeciesSelect,
+  });
+
+  // Use the chain species data with cross-chain evolutions
+  const finalSpecies = [...chainSpecies, ...additionalSpecies, ...crossChainEvolutions];
+  const uniqueSpecies = Array.from(new Map(finalSpecies.map((s: any) => [s.id, s])).values());
+
+  return {
+    ...pokemon,
+    pokemonSpecies: {
+      ...pokemon.pokemonSpecies,
+      evolutionChain: {
+        ...evolutionChain,
+        pokemonSpecies: uniqueSpecies,
+      },
+    },
+  } as T;
+}
 
 /**
  * Fetches a single Pokemon record from the database.
@@ -781,7 +218,7 @@ export const pokemonSearchSelect = {
 async function findOnePokemon<T extends Prisma.PokemonSelect>(
   where: Prisma.PokemonWhereUniqueInput,
   select: T,
-) {
+): Promise<Prisma.PokemonGetPayload<{ select: T }>> {
   const pokemon = await prisma.pokemon.findUnique({
     where,
     select,
@@ -814,7 +251,7 @@ export const pokemonRouter = router({
         take: limit + 1,
         cursor: cursor ? { id: cursor } : undefined,
         orderBy: {
-          id: 'asc', // Order by ID for consistent pagination
+          id: 'asc',
         },
       });
 
@@ -829,6 +266,7 @@ export const pokemonRouter = router({
         nextCursor,
       };
     }),
+
   byId: publicProcedure
     .input(
       z.object({
@@ -838,15 +276,20 @@ export const pokemonRouter = router({
     .query(({ input }) => {
       return findOnePokemon({ id: input.id }, defaultPokemonSelect);
     }),
+
   detailedById: publicProcedure
     .input(
       z.object({
         id: z.number(),
       }),
     )
-    .query(({ input }) => {
-      return findOnePokemon({ id: input.id }, detailedPokemonSelect);
+    .query(async ({ input }) => {
+      const pokemon = await findOnePokemon({ id: input.id }, detailedPokemonSelect);
+
+      // Enhance evolution chain with additional species if needed
+      return await enhanceEvolutionChainWithAdditionalSpecies(pokemon);
     }),
+
   byName: publicProcedure
     .input(
       z.object({
@@ -856,26 +299,7 @@ export const pokemonRouter = router({
     .query(({ input }) => {
       return findOnePokemon({ name: input.name }, defaultPokemonSelect);
     }),
-  allTypes: publicProcedure.query(async () => {
-    return await prisma.type.findMany({
-      where: {
-        name: {
-          notIn: ['shadow', 'unknown', 'stellar'],
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        names: {
-          where: { languageId: DEFAULT_LANGUAGE_ID },
-          select: { name: true },
-        },
-      },
-      orderBy: {
-        id: 'asc',
-      },
-    });
-  }),
+
   featured: publicProcedure.query(async () => {
     // 1. Get a pool of recently updated Pokémon
     const recentPokemon = await prisma.pokemon.findMany({
@@ -900,6 +324,7 @@ export const pokemonRouter = router({
 
     return { pokemon, date: new Date().toISOString().split('T')[0] };
   }),
+
   allRegions: publicProcedure.query(async () => {
     return await prisma.region.findMany({
       select: {
@@ -911,11 +336,12 @@ export const pokemonRouter = router({
       },
     });
   }),
+
   pokemonByPokedex: publicProcedure
     .input(
       z.object({
         pokedexId: z.number().optional(),
-        pokedexName: z.string().optional(), // Added pokedexName
+        pokedexName: z.string().optional(),
         limit: z.number().min(1).max(100).nullish(),
         cursor: z.number().nullish(),
       }),
@@ -924,7 +350,7 @@ export const pokemonRouter = router({
       const limit = input.limit ?? 50;
       const { cursor, pokedexId, pokedexName } = input;
 
-      let resolvedPokedexId: number | undefined; // Initialize as undefined
+      let resolvedPokedexId: number | undefined;
 
       if (pokedexId) {
         resolvedPokedexId = pokedexId;
@@ -983,13 +409,12 @@ export const pokemonRouter = router({
         },
       };
 
-      // Step 1: Fetch PokemonSpeciesPokedexNumber records for the target Pokedex, ordered by pokedexNumber
-      // This is the primary query for ordering and pagination.
+      // Step 1: Fetch PokemonSpeciesPokedexNumber records for the target Pokedex
       const orderedPokedexEntries = await prisma.pokemonSpeciesPokedexNumber.findMany({
         where: {
           pokedexId: resolvedPokedexId,
           ...(cursor && {
-            pokedexNumber: { gt: cursor }, // For cursor-based pagination
+            pokedexNumber: { gt: cursor },
           }),
         },
         orderBy: {
@@ -999,13 +424,13 @@ export const pokemonRouter = router({
           pokemonSpeciesId: true,
           pokedexNumber: true,
         },
-        take: limit + 1, // Fetch one extra for the next cursor
+        take: limit + 1,
       });
 
       // Extract ordered species IDs and their corresponding pokedex numbers
-      const orderedPokemonSpeciesIds = orderedPokedexEntries.map(entry => entry.pokemonSpeciesId);
+      const orderedPokemonSpeciesIds = orderedPokedexEntries.map((entry) => entry.pokemonSpeciesId);
       const pokedexNumberMap = new Map<number, number>();
-      orderedPokedexEntries.forEach(item => {
+      orderedPokedexEntries.forEach((item) => {
         pokedexNumberMap.set(item.pokemonSpeciesId, item.pokedexNumber);
       });
 
@@ -1019,26 +444,26 @@ export const pokemonRouter = router({
         where: {
           pokemonSpeciesId: { in: orderedPokemonSpeciesIds },
         },
-        select: finalSelect, // Use the finalSelect to get all required data
+        select: finalSelect,
       });
 
-      // Step 3: Sort the fetched pokemonList in memory based on the order of orderedPokemonSpeciesIds
-      // This is crucial because `in` operator does not guarantee order
-      const sortedPokemonList = orderedPokemonSpeciesIds.map(speciesId =>
-        pokemonList.find(p => p.pokemonSpecies.id === speciesId)
-      ).filter(Boolean) as typeof pokemonList; // Filter out any undefined and assert type
+      // Step 3: Sort the fetched pokemonList based on the order of orderedPokemonSpeciesIds
+      const sortedPokemonList = orderedPokemonSpeciesIds
+        .map((speciesId) => pokemonList.find((p) => p.pokemonSpecies.id === speciesId))
+        .filter((pokemon): pokemon is NonNullable<typeof pokemon> => pokemon !== undefined);
 
       let nextCursor: typeof cursor | undefined = undefined;
       if (sortedPokemonList.length > limit) {
         const nextItem = sortedPokemonList.pop()!;
-        nextCursor = pokedexNumberMap.get(nextItem.pokemonSpecies.id); // Use the pokedexNumber of the last item as cursor
+        nextCursor = pokedexNumberMap.get(nextItem.pokemonSpecies.id);
       }
 
       return {
         pokemon: sortedPokemonList,
         nextCursor,
-      }
+      };
     }),
+
   pokemonSpeciesPokedexNumbers: publicProcedure
     .input(
       z.object({
@@ -1067,6 +492,7 @@ export const pokemonRouter = router({
       });
       return pokedexNumbers;
     }),
+
   allPokedexes: publicProcedure.query(async () => {
     return await prisma.pokedex.findMany({
       select: {
@@ -1089,6 +515,7 @@ export const pokemonRouter = router({
       },
     });
   }),
+
   dbStats: publicProcedure.query(async () => {
     const [pokemonSpeciesCount, typesCount, generationsCount, movesCount] = await Promise.all([
       prisma.pokemonSpecies.count(),
@@ -1104,6 +531,7 @@ export const pokemonRouter = router({
       moves: movesCount,
     };
   }),
+
   search: publicProcedure
     .input(
       z.object({
@@ -1119,7 +547,7 @@ export const pokemonRouter = router({
         return { pokemon: [] };
       }
 
-      const results = await prisma.pokemon.findMany({
+      const results: PokemonSearchResult[] = await prisma.pokemon.findMany({
         where: {
           name: {
             contains: searchTerm,
@@ -1137,7 +565,7 @@ export const pokemonRouter = router({
       const exactMatchIndex = results.findIndex((p) => p.name.toLowerCase() === searchTerm);
 
       if (exactMatchIndex > 0) {
-        const exactMatch = results.splice(exactMatchIndex, 1)[0];
+        const exactMatch = results.splice(exactMatchIndex, 1)[0]!;
         results.unshift(exactMatch);
       }
 
