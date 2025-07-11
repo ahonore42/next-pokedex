@@ -42,7 +42,7 @@ const PokemonTypeDetailPage: NextPage = () => {
   const pokemonColumns: Column<PokemonByTypeOutput[number]>[] = [
     // Use Column with the new type
     {
-      header: '#',
+      header: 'No.',
       accessor: (row) => row.pokemonSpecies.pokedexNumbers[0]?.pokedexNumber || '—',
       className: 'font-medium',
       sortable: true, // Add sortable
@@ -265,7 +265,7 @@ const PokemonTypeDetailPage: NextPage = () => {
                   <DataTable
                     data={pokemonOfType}
                     columns={pokemonColumns}
-                    initialSortBy="Pokémon"
+                    initialSortBy="No."
                   />
                 ) : (
                   <p>No Pokémon found for this type.</p>
