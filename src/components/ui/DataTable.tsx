@@ -81,7 +81,7 @@ export function DataTable<T>({
   const visibleColumns = columns.slice(0, maxColumns);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 w-full">
       {(initialSortBy || sortableColumns.length > 0) && (
         <div className="flex justify-end items-center"> {/* Use justify-between for sort and filter controls */}
           <div className="flex items-center gap-2">
@@ -108,7 +108,7 @@ export function DataTable<T>({
           </div>
         </div>
       )}
-      <div className="overflow-x-auto">
+      <div>
         <table className="w-full border-collapse divide-y divide-gray-200 dark:divide-gray-700">
           <thead>
             <tr className="border-b-2 border-gray-200 dark:border-gray-600">
