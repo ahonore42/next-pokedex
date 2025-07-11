@@ -1,9 +1,19 @@
 import { trpc } from '~/utils/trpc';
 import LoadingPage from '~/components/ui/LoadingPage';
-import EvolutionFlow from '~/components/pokemon/EvolutionFlow';
+import EvolutionChain from '~/components/pokemon/EvolutionChain';
+import { InfiniteScroll } from '~/components/ui/InfiniteScroll';
+import type { EvolutionChainsPaginatedOutput } from '~/server/routers/_app';
 
 const EvolutionTreesPage = () => {
-  const { data, isLoading, error } = trpc.evolutionChains.all.useQuery();
+  const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, error } =
+    trpc.evolutionChains.paginated.useInfiniteQuery(
+      {
+        limit: 20,
+      },
+      {
+        getNextPageParam: (lastPage: EvolutionChainsPaginatedOutput) => lastPage.nextCursor,
+      },
+    );
 
   if (isLoading) {
     return <LoadingPage />;
@@ -13,16 +23,22 @@ const EvolutionTreesPage = () => {
     return <div>Error: {error.message}</div>;
   }
 
-  // console.log('Evolution Chains Data:', data?.slice(0,10));
+  const allChains = data?.pages.flatMap((page) => page.chains) ?? [];
 
   return (
     <>
       <h1 className="text-4xl font-bold mb-8">Pokemon Evolution Trees</h1>
-      <div className="space-y-8 w-full">
-        {data?.map((chain) => (
-          <EvolutionFlow  key={chain.id} chain={chain} />
-        ))}
-      </div>
+      <InfiniteScroll
+        onLoadMore={fetchNextPage}
+        hasMore={hasNextPage ?? false}
+        isLoading={isFetchingNextPage}
+      >
+        <div className="space-y-8 w-full">
+          {allChains.map((chain) => (
+            <EvolutionChain key={chain.id} chain={chain} />
+          ))}
+        </div>
+      </InfiniteScroll>
     </>
   );
 };
