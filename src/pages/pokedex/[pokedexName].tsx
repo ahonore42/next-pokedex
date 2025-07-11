@@ -33,7 +33,7 @@ const PokedexDetailPage: NextPage = () => {
     );
 
   const { data: pokedexes, isLoading: isLoadingPokedexes } = trpc.pokemon.allPokedexes.useQuery();
-  const { data: allTypes, isLoading: isLoadingTypes } = trpc.pokemon.allTypes.useQuery();
+  const { data: allTypes, isLoading: isLoadingTypes } = trpc.types.allTypes.useQuery();
 
   const getType = (typeId: number) => {
     if (!allTypes) return undefined;
