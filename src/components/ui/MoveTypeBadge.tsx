@@ -1,4 +1,5 @@
-import { capitalizeName, getDamageClassColor, getDamageClassIcon } from '~/utils/pokemon';
+import { getDamageClassColor, getDamageClassIcon } from '~/utils/pokemon';
+import { capitalizeName } from '~/utils/text';
 
 interface MoveTypeBadgeProps {
   moveDamageClass: {
