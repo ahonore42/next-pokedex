@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getTypeColor } from '~/utils/pokemon';
 
-interface TypeBadgeProps {
+export interface TypeBadgeProps {
   type: {
     id: number;
     name: string;
