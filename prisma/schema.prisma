@@ -1386,15 +1386,17 @@ model PokemonItem {
 }
 
 model PokemonSprites {
-  pokemonId        Int     @id @map("pokemon_id")
-  frontDefault     String? @map("front_default")
-  frontShiny       String? @map("front_shiny")
-  frontFemale      String? @map("front_female")
-  frontShinyFemale String? @map("front_shiny_female")
-  backDefault      String? @map("back_default")
-  backShiny        String? @map("back_shiny")
-  backFemale       String? @map("back_female")
-  backShinyFemale  String? @map("back_shiny_female")
+  pokemonId              Int     @id @map("pokemon_id")
+  frontDefault           String? @map("front_default")
+  frontShiny             String? @map("front_shiny")
+  frontFemale            String? @map("front_female")
+  frontShinyFemale       String? @map("front_shiny_female")
+  backDefault            String? @map("back_default")
+  backShiny              String? @map("back_shiny")
+  backFemale             String? @map("back_female")
+  backShinyFemale        String? @map("back_shiny_female")
+  officialArtworkFront   String? @map("official_artwork_front")
+  officialArtworkShiny   String? @map("official_artwork_shiny")
 
   // Relations
   pokemon Pokemon @relation(fields: [pokemonId], references: [id], onDelete: Cascade)

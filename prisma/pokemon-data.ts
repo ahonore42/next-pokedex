@@ -156,81 +156,82 @@ export class PokemonDataSeeder {
       this.stats.startTime = new Date();
       // Test database connection
       await prisma.$queryRaw`SELECT 1`;
-      this.log('📡 Database connected successfully');
-      // Check current state
-      await this.getModelStatistics();
-      this.log('🌱 Seeding the database...');
-      // PHASE 1: Foundation (safe to re-run)
-      this.log('\n\n\n=== 🧩 PHASE 1: Foundational Data ===\n\n');
-      await this.delay(3000);
-      await this.seedLanguages('premium');
-      await this.seedRegions('premium');
-      await this.seedGenerations('premium');
+      // this.log('📡 Database connected successfully');
+      // // Check current state
+      // await this.getModelStatistics();
+      // this.log('🌱 Seeding the database...');
+      // // PHASE 1: Foundation (safe to re-run)
+      // this.log('\n\n\n=== 🧩 PHASE 1: Foundational Data ===\n\n');
+      // await this.delay(3000);
+      // await this.seedLanguages('premium');
+      // await this.seedRegions('premium');
+      // await this.seedGenerations('premium');
 
-      // PHASE 2: Game Infrastructure (safe to re-run)
-      this.log('\n\n\n=== 🧩 PHASE 2: Game Infrastructure ===\n\n');
-      await this.delay(3000);
-      await this.seedVersionGroups('premium');
+      // // PHASE 2: Game Infrastructure (safe to re-run)
+      // this.log('\n\n\n=== 🧩 PHASE 2: Game Infrastructure ===\n\n');
+      // await this.delay(3000);
+      // await this.seedVersionGroups('premium');
 
-      // PHASE 3: Supplementary Data (safe to re-run)
-      this.log('\n\n\n=== 🧩 PHASE 3: Supplementary Data ===\n\n');
-      await this.delay(3000);
-      await this.seedSupplementaryData('premium');
-      await this.seedItemSupplementaryData('premium');
-      await this.seedStats('premium');
-      await this.seedPokemonHabitats('premium');
-      // PHASE 4: Core Game Mechanics (safe to re-run)
-      this.log('\n\n\n=== 🧩 PHASE 4: Core Game Mechanics ===\n\n');
-      await this.delay(3000);
-      await this.seedTypes('premium');
-      await this.seedTypeEfficacyMatrix();
-      await this.seedAbilities('premium');
+      // // PHASE 3: Supplementary Data (safe to re-run)
+      // this.log('\n\n\n=== 🧩 PHASE 3: Supplementary Data ===\n\n');
+      // await this.delay(3000);
+      // await this.seedSupplementaryData('premium');
+      // await this.seedItemSupplementaryData('premium');
+      // await this.seedStats('premium');
+      // await this.seedPokemonHabitats('premium');
+      // // PHASE 4: Core Game Mechanics (safe to re-run)
+      // this.log('\n\n\n=== 🧩 PHASE 4: Core Game Mechanics ===\n\n');
+      // await this.delay(3000);
+      // await this.seedTypes('premium');
+      // await this.seedTypeEfficacyMatrix();
+      // await this.seedAbilities('premium');
 
-      // PHASE 5: Move System (check for existing meta records)
-      this.log('\n\n\n=== 🧩 PHASE 5: Move System ===\n\n');
-      await this.delay(3000);
-      await this.debugMoveMetaRecords();
-      await this.seedMoves('premium');
+      // // PHASE 5: Move System (check for existing meta records)
+      // this.log('\n\n\n=== 🧩 PHASE 5: Move System ===\n\n');
+      // await this.delay(3000);
+      // await this.debugMoveMetaRecords();
+      // await this.seedMoves('premium');
 
-      // PHASE 6: Item System (safe to re-run)
-      this.log('\n\n\n=== 🧩 PHASE 6: Item System ===\n\n');
-      await this.delay(3000);
-      await this.seedItems('premium');
-      await this.seedMachines('premium');
-      await this.seedItemAttributes('premium');
+      // // PHASE 6: Item System (safe to re-run)
+      // this.log('\n\n\n=== 🧩 PHASE 6: Item System ===\n\n');
+      // await this.delay(3000);
+      // await this.seedItems('premium');
+      // await this.seedMachines('premium');
+      // await this.seedItemAttributes('premium');
 
-      // PHASE 7: Additional Game Systems (safe to re-run)
-      this.log('\n\n\n=== 🧩 PHASE 7: Additional Game Systems ===\n\n');
-      await this.delay(3000);
-      await this.seedBerries('premium');
-      await this.seedNatures('premium');
-      await this.seedCharacteristics('premium');
-      await this.seedGenders('premium');
-      await this.seedPokeathlonStats('premium');
+      // // PHASE 7: Additional Game Systems (safe to re-run)
+      // this.log('\n\n\n=== 🧩 PHASE 7: Additional Game Systems ===\n\n');
+      // await this.delay(3000);
+      // await this.seedBerries('premium');
+      // await this.seedNatures('premium');
+      // await this.seedCharacteristics('premium');
+      // await this.seedGenders('premium');
+      // await this.seedPokeathlonStats('premium');
 
-      // PHASE 8: Location System (safe to re-run)
-      this.log('\n\n\n=== 🧩 PHASE 8: Location System ===\n\n');
-      await this.delay(3000);
-      await this.seedLocations('premium');
-      await this.seedLocationAreas('premium');
-      await this.seedPalParkAreas('premium');
+      // // PHASE 8: Location System (safe to re-run)
+      // this.log('\n\n\n=== 🧩 PHASE 8: Location System ===\n\n');
+      // await this.delay(3000);
+      // await this.seedLocations('premium');
+      // await this.seedLocationAreas('premium');
+      // await this.seedPalParkAreas('premium');
 
-      // PHASE 9: Encounter Setup (safe to re-run)
-      this.log('\n\n\n=== 🧩 PHASE 9: Encounter Setup ===\n\n');
-      await this.delay(3000);
-      await this.seedEncounterConditions('premium');
-      await this.seedEncounterMethods('premium');
-      await this.seedEvolutionTriggers('premium');
+      // // PHASE 9: Encounter Setup (safe to re-run)
+      // this.log('\n\n\n=== 🧩 PHASE 9: Encounter Setup ===\n\n');
+      // await this.delay(3000);
+      // await this.seedEncounterConditions('premium');
+      // await this.seedEncounterMethods('premium');
+      // await this.seedEvolutionTriggers('premium');
 
-      // PHASE 10: Pokemon Data (mostly safe with upsert)
-      this.log('\n\n\n=== 🧩 PHASE 10: Pokemon Data ===\n\n');
-      await this.delay(3000);
-      await this.seedPokemonSpecies('premium');
-      await this.seedEvolutionChains('premium');
-      await this.seedPokedexes('premium');
-      await this.seedPokemon('premium');
-      await this.seedPokemonSpeciesVarieties('premium');
-      await this.seedGenderSpeciesAssociations('premium');
+      // // PHASE 10: Pokemon Data (mostly safe with upsert)
+      // this.log('\n\n\n=== 🧩 PHASE 10: Pokemon Data ===\n\n');
+      // await this.delay(3000);
+      // await this.seedPokemonSpecies('premium');
+      // await this.seedEvolutionChains('premium');
+      // await this.seedPokedexes('premium');
+      // await this.seedPokemon('premium');
+      // await this.seedPokemonSpeciesVarieties('premium');
+      // await this.seedGenderSpeciesAssociations('premium');
+      await this.seedPokemonSpritesOfficialArtwork('premium');
 
       // // Final statistics
       await this.getModelStatistics();
@@ -2526,6 +2527,80 @@ export class PokemonDataSeeder {
     }
   }
 
+  // Add this method to your PokemonDataSeeder class
+
+  async seedPokemonSpritesOfficialArtwork(
+    mode: 'premium' | 'standard' = 'standard',
+  ): Promise<void> {
+    await this.seedGeneric(
+      {
+        endpoint: 'pokemon',
+        mode,
+        batchSize: CONFIG.BATCH_SIZE,
+        progressLogInterval: 50,
+      },
+      {
+        getExistingIds: async () => {
+          // Get Pokemon that already have both official artwork fields populated
+          const pokemonWithArtwork = await prisma.pokemonSprites.findMany({
+            where: {
+              AND: [
+                { officialArtworkFront: { not: null } },
+                { officialArtworkShiny: { not: null } },
+              ],
+            },
+            select: { pokemonId: true },
+          });
+          return new Set(pokemonWithArtwork.map((sprite) => sprite.pokemonId));
+        },
+
+        processItem: async (pokemonItem: NamedAPIResource, mode: 'premium' | 'standard') => {
+          const pokemonId = this.extractIdFromUrl(pokemonItem.url);
+          if (!pokemonId) return;
+
+          try {
+            // Fetch Pokemon data to get sprites
+            const pokemonData = await this.fetchWithProxy(pokemonItem.url, mode);
+
+            const officialArtwork = pokemonData.sprites?.other?.['official-artwork'];
+            const officialArtworkFront = officialArtwork?.front_default || null;
+            const officialArtworkShiny = officialArtwork?.front_shiny || null;
+
+            // Update the official artwork fields (will create sprites record if it doesn't exist)
+            await prisma.pokemonSprites.upsert({
+              where: { pokemonId },
+              update: {
+                officialArtworkFront,
+                officialArtworkShiny,
+              },
+              create: {
+                pokemonId,
+                frontDefault: pokemonData.sprites?.front_default || null,
+                frontShiny: pokemonData.sprites?.front_shiny || null,
+                frontFemale: pokemonData.sprites?.front_female || null,
+                frontShinyFemale: pokemonData.sprites?.front_shiny_female || null,
+                backDefault: pokemonData.sprites?.back_default || null,
+                backShiny: pokemonData.sprites?.back_shiny || null,
+                backFemale: pokemonData.sprites?.back_female || null,
+                backShinyFemale: pokemonData.sprites?.back_shiny_female || null,
+                officialArtworkFront,
+                officialArtworkShiny,
+              },
+            });
+
+            this.log(`✅ Updated official artwork for ${pokemonData.name} (ID: ${pokemonId})`);
+          } catch (error) {
+            this.log(
+              `❌ Failed to update sprites for Pokemon ID ${pokemonId}: ${(error as Error).message}`,
+              'error',
+            );
+            throw error; // Let seedGeneric handle the error
+          }
+        },
+      },
+    );
+  }
+
   // ======================================================
   //                Processing Methods
   // ======================================================
@@ -3609,6 +3684,11 @@ export class PokemonDataSeeder {
     // Create Pokemon sprites
     const sprites = pokemonData.sprites;
     if (sprites) {
+      // Extract official artwork URLs safely
+      const officialArtwork = sprites.other?.['official-artwork'];
+      const officialArtworkFront = officialArtwork?.front_default || null;
+      const officialArtworkShiny = officialArtwork?.front_shiny || null;
+
       await prisma.pokemonSprites.upsert({
         where: { pokemonId: pokemonData.id },
         update: {
@@ -3620,6 +3700,8 @@ export class PokemonDataSeeder {
           backShiny: sprites.back_shiny,
           backFemale: sprites.back_female,
           backShinyFemale: sprites.back_shiny_female,
+          officialArtworkFront: officialArtworkFront,
+          officialArtworkShiny: officialArtworkShiny,
         },
         create: {
           pokemonId: pokemonData.id,
@@ -3630,7 +3712,9 @@ export class PokemonDataSeeder {
           backDefault: sprites.back_default,
           backShiny: sprites.back_shiny,
           backFemale: sprites.back_female,
-          backShinyFemale: sprites.back_shiny_female,
+          backShinyFemale: sprites.front_shiny_female,
+          officialArtworkFront: officialArtworkFront,
+          officialArtworkShiny: officialArtworkShiny,
         },
       });
     }
@@ -3888,6 +3972,11 @@ export class PokemonDataSeeder {
     // Create Pokemon sprites
     const sprites = pokemonData.sprites;
     if (sprites) {
+      // Extract official artwork URLs safely
+      const officialArtwork = sprites.other?.['official-artwork'];
+      const officialArtworkFront = officialArtwork?.front_default || null;
+      const officialArtworkShiny = officialArtwork?.front_shiny || null;
+
       await prisma.pokemonSprites.upsert({
         where: { pokemonId: pokemonData.id },
         update: {
@@ -3899,6 +3988,8 @@ export class PokemonDataSeeder {
           backShiny: sprites.back_shiny,
           backFemale: sprites.back_female,
           backShinyFemale: sprites.back_shiny_female,
+          officialArtworkFront: officialArtworkFront,
+          officialArtworkShiny: officialArtworkShiny,
         },
         create: {
           pokemonId: pokemonData.id,
@@ -3909,7 +4000,9 @@ export class PokemonDataSeeder {
           backDefault: sprites.back_default,
           backShiny: sprites.back_shiny,
           backFemale: sprites.back_female,
-          backShinyFemale: sprites.back_shiny_female,
+          backShinyFemale: sprites.front_shiny_female,
+          officialArtworkFront: officialArtworkFront,
+          officialArtworkShiny: officialArtworkShiny,
         },
       });
     }
