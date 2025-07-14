@@ -27,7 +27,9 @@ export function ThemeProvider({ children, defaultTheme = 'light' }: ThemeProvide
     const applyTheme = (currentTheme: Theme) => {
       root.classList.remove('light', 'dark');
       root.classList.add(currentTheme);
-      root.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+
+      // Remove inline style transition since we're using Tailwind classes for transitions
+      root.style.removeProperty('transition');
 
       let metaThemeColor = document.querySelector('meta[name="theme-color"]');
       if (!metaThemeColor) {
@@ -85,7 +87,11 @@ export function ThemeProvider({ children, defaultTheme = 'light' }: ThemeProvide
     isLoading,
   };
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <div className="min-h-screen bg-background text-primary transition-all duration-300">
+      <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+    </div>
+  );
 }
 
 export function useTheme() {
