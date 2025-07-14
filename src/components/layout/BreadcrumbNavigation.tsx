@@ -33,22 +33,22 @@ export default function BreadcrumbNavigation({
 }: BreadcrumbNavigationProps) {
   return (
     <nav className={`mb-6 ${className}`} aria-label={ariaLabel}>
-      <div className="flex items-center space-x-2 text-sm ">
+      <div className="flex items-center space-x-2 text-sm">
         {/* Map through the links array */}
         {links.map((link, index) => (
           <div key={`${link.href}-${index}`} className="flex items-center space-x-2">
-            <Link href={link.href} className="text-blue-600 hover:text-blue-800 transition-colors">
+            <Link href={link.href} className="text-brand hover:text-brand-hover font-medium">
               {link.label}
             </Link>
             {/* Separator after each link */}
-            <span aria-hidden="true" style={{ color: 'var(--color-secondary)' }}>
+            <span aria-hidden="true" className="text-muted">
               {separator}
-            </span>{' '}
+            </span>
           </div>
         ))}
 
         {/* Current page - always rendered as non-clickable span */}
-        <span aria-current="page" style={{ color: 'var(--color-secondary)' }}>
+        <span aria-current="page" className="text-muted font-medium">
           {currentPage}
         </span>
       </div>

@@ -53,33 +53,20 @@ export default function QuickAccess() {
   ];
 
   return (
-    <SectionCard
-      title="Quick Access"
-      className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600"
-    >
+    <SectionCard title="Quick Access" className="border-border">
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {sections.map((section) => (
           <a
             key={section.name}
             href={section.href}
             className="
-              group p-4 border-1 rounded-lg
-              hover:shadow-md hover:-translate-y-1 
-              transition-all duration-200
-              active:scale-95
-            "
-            style={{
-              backgroundColor: 'var(--color-pokemon-card-bg)',
-              borderColor: 'var(--color-pokemon-card-border)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-pokemon-card-hover-bg)';
-              e.currentTarget.style.borderColor = 'var(--color-pokemon-card-hover-border)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-pokemon-card-bg)';
-              e.currentTarget.style.borderColor = 'var(--color-pokemon-card-border)';
-            }}
+          group p-4 border rounded-lg
+          bg-pokemon hover:bg-pokemon-hover
+          border-pokemon-border hover:border-pokemon-border-hover
+          hover:shadow-md hover:-translate-y-1 
+          active:scale-95
+          transition-all duration-300
+        "
             aria-label={`Navigate to ${section.name}: ${section.desc}`}
           >
             <div className="flex items-start gap-3 mb-2">
@@ -91,16 +78,10 @@ export default function QuickAccess() {
                 {section.icon}
               </span>
               <div className="min-w-0 flex-1">
-                <div
-                  className="font-bold text-base mb-1 group-hover:text-primary-hover transition-colors duration-200"
-                  style={{ color: 'var(--color-pokemon-card-text)' }}
-                >
+                <div className="font-bold text-base mb-1 text-pokemon-text group-hover:text-brand transition-colors duration-300">
                   {section.name}
                 </div>
-                <div
-                  className="text-sm group-hover:text-secondary transition-colors duration-200"
-                  style={{ color: 'var(--color-pokemon-card-text-secondary)' }}
-                >
+                <div className="text-sm text-pokemon-text-muted group-hover:text-muted transition-colors duration-300">
                   {section.desc}
                 </div>
               </div>
@@ -109,8 +90,7 @@ export default function QuickAccess() {
             {/* Arrow indicator */}
             <div className="flex justify-end mt-2">
               <svg
-                className="w-4 h-4 group-hover:text-primary transition-all duration-200 transform group-hover:translate-x-1"
-                style={{ color: 'var(--color-pokemon-card-text-secondary)' }}
+                className="w-4 h-4 text-pokemon-text-muted group-hover:text-brand transform group-hover:translate-x-1 transition-all duration-300"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
