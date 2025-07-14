@@ -120,19 +120,24 @@ export interface StatCalculationParams {
   isHpStat?: boolean; // Whether this is an HP stat calculation
 }
 
+export interface MinMaxStats {
+  min: number;
+  max: number;
+}
+
+export interface StatRange {
+  beneficial: MinMaxStats;
+  neutral: MinMaxStats;
+  hindering: MinMaxStats;
+}
+
 // Min/max stats for all nature types at levels 50 and 100
 export interface StatRanges {
-  level50: {
-    beneficial: { min: number; max: number };
-    neutral: { min: number; max: number };
-    hindering: { min: number; max: number };
-  };
-  level100: {
-    beneficial: { min: number; max: number };
-    neutral: { min: number; max: number };
-    hindering: { min: number; max: number };
-  };
+  level50: StatRange;
+  level100: StatRange;
 }
+
+export type NonHpStatRanges = Record<Exclude<keyof StatValues, 'hp'>, StatRange>;
 
 // --------------------------
 // Function Export Types
@@ -143,17 +148,11 @@ type MergedGroupedEncounters = Record<string, MergedEncounter>;
 export type ComprehensiveStatRanges = Record<keyof StatValues, StatRanges>;
 export type CompetitiveRanges = {
   level50: {
-    hp: number;
-  } & Record<
-    Exclude<keyof StatValues, 'hp'>,
-    { beneficial: number; neutral: number; hindering: number }
-  >;
+    hp: { neutral: MinMaxStats };
+  } & NonHpStatRanges;
   level100: {
-    hp: number;
-  } & Record<
-    Exclude<keyof StatValues, 'hp'>,
-    { beneficial: number; neutral: number; hindering: number }
-  >;
+    hp: { neutral: MinMaxStats };
+  } & NonHpStatRanges;
 };
 
 /**
@@ -192,7 +191,7 @@ const versionGroupIdRegionMap: Record<number, RegionInfo> = {
 };
 
 // Stat names for quick access
-const statNames: (keyof StatValues)[] = [
+export const statNames: (keyof StatValues)[] = [
   'hp',
   'attack',
   'defense',
@@ -201,7 +200,7 @@ const statNames: (keyof StatValues)[] = [
   'speed',
 ];
 // Stat nature modifiers
-const natureModifiers = { beneficial: 1.1, neutral: 1.0, hindering: 0.9 };
+export const natureModifiers = { beneficial: 1.1, neutral: 1.0, hindering: 0.9 };
 
 /**
  * Utility functions
@@ -687,11 +686,11 @@ export const getUniqueConditions = (encounter: PokemonEncounter): EncounterCondi
 
 // Get stat color based on value
 export function getStatColor(baseStat: number) {
-  if (baseStat >= 120) return 'bg-green-500';
-  if (baseStat >= 100) return 'bg-lime-500';
-  if (baseStat >= 80) return 'bg-yellow-500';
-  if (baseStat >= 50) return 'bg-orange-500';
-  return 'bg-red-500';
+  if (baseStat >= 120) return 'green-500';
+  if (baseStat >= 100) return 'lime-500';
+  if (baseStat >= 80) return 'yellow-500';
+  if (baseStat >= 50) return 'orange-500';
+  return 'red-500';
 }
 
 // Get stat abbreviation for mobile
@@ -883,7 +882,6 @@ export function calculateStatRanges(baseStats: StatValues): ComprehensiveStatRan
       }
     }
   }
-
   return results;
 }
 
@@ -912,18 +910,18 @@ export function getCompetitiveStatRanges(baseStats: StatValues): CompetitiveRang
 
   for (const statName of statNames) {
     if (statName === 'hp') {
-      result.level50[statName] = fullRanges[statName].level50.neutral.max;
-      result.level100[statName] = fullRanges[statName].level100.neutral.max;
+      result.level50[statName] = { neutral: fullRanges[statName].level50.neutral };
+      result.level100[statName] = { neutral: fullRanges[statName].level100.neutral };
     } else {
       result.level50[statName] = {
-        beneficial: fullRanges[statName].level50.beneficial.max,
-        neutral: fullRanges[statName].level50.neutral.max,
-        hindering: fullRanges[statName].level50.hindering.max,
+        beneficial: fullRanges[statName].level50.beneficial,
+        neutral: fullRanges[statName].level50.neutral,
+        hindering: fullRanges[statName].level50.hindering,
       };
       result.level100[statName] = {
-        beneficial: fullRanges[statName].level100.beneficial.max,
-        neutral: fullRanges[statName].level100.neutral.max,
-        hindering: fullRanges[statName].level100.hindering.max,
+        beneficial: fullRanges[statName].level100.beneficial,
+        neutral: fullRanges[statName].level100.neutral,
+        hindering: fullRanges[statName].level100.hindering,
       };
     }
   }
