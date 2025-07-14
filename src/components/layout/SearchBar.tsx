@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { getTypeColor } from '~/utils/pokemon';
 import { capitalizeName } from '~/utils/text';
@@ -28,11 +29,11 @@ export default function SearchBar() {
           onChange={(e) => {
             setSearchQuery(e.target.value);
           }}
-          className="w-full px-4 py-3 pl-10 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white text-gray-900"
+          className="w-full px-4 py-3 pl-10 border-2 border-border rounded-lg focus:outline-none focus:border-brand bg-surface text-primary transition-colors duration-300 placeholder:text-subtle"
         />
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
           <svg
-            className="w-5 h-5 text-gray-400"
+            className="w-5 h-5 text-subtle transition-colors duration-300"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -48,11 +49,13 @@ export default function SearchBar() {
       </div>
 
       {searchResults.data && (
-        <div className="absolute top-full mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg overflow-hidden z-50">
+        <div className="absolute top-full mt-1 w-full bg-surface border border-border rounded-lg shadow-lg overflow-hidden z-50 transition-colors duration-300">
           {searchResults.data.pokemon.map((pokemon) => (
-            <div
+            <Link
               key={pokemon.id}
-              className="flex items-center p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 cursor-pointer"
+              href={`/pokemon/${pokemon.id}`}
+              className="flex items-center p-3 hover:bg-interactive-hover border-b border-border last:border-b-0 cursor-pointer transition-colors duration-200 block"
+              onClick={() => setSearchQuery('')} // Clear search when clicking a result
             >
               <img
                 src={pokemon.sprites?.frontDefault || ''}
@@ -61,10 +64,12 @@ export default function SearchBar() {
               />
               <div className="ml-3 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-900">
+                  <span className="font-medium text-primary transition-colors duration-300">
                     #{pokemon.pokemonSpecies.id.toString().padStart(3, '0')}
                   </span>
-                  <span className="text-gray-700">{capitalizeName(pokemon.name)}</span>
+                  <span className="text-muted transition-colors duration-300">
+                    {capitalizeName(pokemon.name)}
+                  </span>
                 </div>
                 <div className="flex gap-1 mt-1">
                   {pokemon.types.map((pokemonType) => (
@@ -80,7 +85,7 @@ export default function SearchBar() {
                   ))}
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
