@@ -1,9 +1,9 @@
-import type { PokemonDetailedById } from '~/server/routers/_app';
+import type { PokemonInSpecies } from '~/server/routers/_app';
 import { capitalizeName } from '~/utils/text';
 import MoveTable from './MoveTable';
 
 interface ComponentProps {
-  pokemon: PokemonDetailedById;
+  pokemon: PokemonInSpecies;
 }
 
 // Pokemon Moves Component
