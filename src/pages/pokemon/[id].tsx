@@ -2,25 +2,30 @@ import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import NextError from 'next/error';
 import Head from 'next/head';
-import Link from 'next/link';
+import { useState, useMemo } from 'react';
 import { trpc } from '~/utils/trpc';
 import type { NextPageWithLayout } from '~/pages/_app';
+import type { PokemonInSpecies } from '~/server/routers/_app';
 import { capitalizeName } from '~/utils/text';
-import Pokeball from '~/components/ui/Pokeball';
 import PokemonHeader from '~/components/pokemon/PokemonHeader';
 import PokemonStats from '~/components/pokemon/PokemonStats';
-import { PokemonAbilities } from '~/components/pokemon/PokemonAbilities';
-import { PokemonForms } from '~/components/pokemon/PokemonForms';
 import { PokemonMoves } from '~/components/pokemon/PokemonMoves';
 import { PokemonEncounters } from '~/components/pokemon/PokemonEncounters';
-import { PokemonBreeding } from '~/components/pokemon/PokemonBreeding';
 import { PokemonGameData } from '~/components/pokemon/PokemonGameData';
+import LoadingPage from '~/components/ui/LoadingPage';
+import BreadcrumbNavigation from '~/components/layout/BreadcrumbNavigation';
+import { getRegionFromVersionGroup } from '~/utils/pokemon';
 
-const PokemonDetailPage: NextPageWithLayout = () => {
+const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
   const router = useRouter();
   const pokemonId = parseInt(router.query.id as string, 10);
 
-  const pokemonQuery = trpc.pokemon.detailedById.useQuery(
+  // State for selected Pokemon and form - MUST be at the top before any conditionals
+  const [selectedPokemonId, setSelectedPokemonId] = useState<number | null>(null);
+  const [selectedFormId, setSelectedFormId] = useState<number | null>(null);
+
+  // First, get the Pokemon to find its species ID
+  const pokemonQuery = trpc.pokemon.byId.useQuery(
     { id: pokemonId },
     {
       enabled: !isNaN(pokemonId),
@@ -28,110 +33,201 @@ const PokemonDetailPage: NextPageWithLayout = () => {
     },
   );
 
+  // Then get the full species data using the species ID
+  const speciesQuery = trpc.pokemon.speciesById.useQuery(
+    { id: pokemonQuery.data?.pokemonSpecies.id || 0 },
+    {
+      enabled: !!pokemonQuery.data?.pokemonSpecies.id,
+      retry: false,
+    },
+  );
+
+  /**
+   * Function to get the currently active Pokemon and form
+   * Priority: Selected Pokemon → Originally requested Pokemon → Primary Pokemon
+   * MUST be declared before any conditional returns to maintain hook order
+   */
+  const getActivePokemonAndForm = useMemo(() => {
+    // Early return if no species data yet
+    if (!speciesQuery.data) {
+      return { pokemon: null, form: null };
+    }
+
+    const species = speciesQuery.data;
+    // console.log(species)
+
+    const primaryPokemon = species.pokemon.find((p) => p.isDefault) || species.pokemon[0];
+
+    // Find the Pokemon to display
+    let activePokemon: PokemonInSpecies;
+
+    if (selectedPokemonId) {
+      // User has selected a specific Pokemon
+      activePokemon = species.pokemon.find((p) => p.id === selectedPokemonId) || primaryPokemon;
+    } else {
+      // Use the originally requested Pokemon, or fall back to primary
+      activePokemon = species.pokemon.find((p) => p.id === pokemonId) || primaryPokemon;
+    }
+
+    // Find the form to display
+    let activeForm = null;
+    if (selectedFormId && activePokemon.forms.length > 0) {
+      activeForm = activePokemon.forms.find((f) => f.id === selectedFormId) || null;
+    }
+
+    return {
+      pokemon: activePokemon,
+      form: activeForm,
+    };
+  }, [speciesQuery.data, selectedPokemonId, selectedFormId, pokemonId]);
+
+  /**
+   * Handler to switch Pokemon
+   */
+  const handlePokemonSwitch = (newPokemonId: number) => {
+    setSelectedPokemonId(newPokemonId);
+    setSelectedFormId(null); // Reset form when switching Pokemon
+  };
+
   // Handle loading state
-  if (pokemonQuery.isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Pokeball size="xl" endlessSpin spinSpeed={1.5} />
-          <p className="mt-4 text-lg text-gray-600">Loading Pokémon data...</p>
-        </div>
-      </div>
-    );
+  if (pokemonQuery.isLoading || speciesQuery.isLoading) {
+    return <LoadingPage />;
   }
 
   // Handle error state
-  if (pokemonQuery.error) {
+  if (pokemonQuery.error || speciesQuery.error) {
+    const error = pokemonQuery.error || speciesQuery.error;
     return (
       <NextError
-        title={pokemonQuery.error.message}
-        statusCode={pokemonQuery.error.data?.httpStatus ?? 404}
+        title={error?.message || 'Error loading Pokemon data'}
+        statusCode={error?.data?.httpStatus ?? 404}
       />
     );
   }
 
   // Handle invalid ID or no data
-  if (isNaN(pokemonId) || !pokemonQuery.data) {
+  if (isNaN(pokemonId) || !pokemonQuery.data || !speciesQuery.data) {
     return <NextError statusCode={404} title="Pokemon not found" />;
   }
 
-  const pokemon = pokemonQuery.data;
-  const pokemonName = capitalizeName(pokemon.name);
-  // const speciesName = pokemon.pokemonSpecies.names[0]?.name || pokemonName;
+  const species = speciesQuery.data;
+
+  // Get the default/primary Pokemon for this species, or the first one if no default
+  const primaryPokemon = species.pokemon.find((p) => p.isDefault) || species.pokemon[0];
+
+  // If somehow no Pokemon exist for this species, show error
+  if (!primaryPokemon) {
+    return <NextError statusCode={404} title="No Pokemon found for this species" />;
+  }
+
+  const { pokemon: activePokemon } = getActivePokemonAndForm;
+
+  // Additional null check for activePokemon since useMemo can return null during loading
+  if ((!species && !activePokemon) || !activePokemon?.forms[0]?.versionGroup) {
+    return <LoadingPage />;
+  }
+
+  const activePokemonName = capitalizeName(activePokemon.name);
+
+  // Get species-level flavor text
+  const speciesFlavorText = species.flavorTexts[0]?.flavorText;
+
+  const activePokemonRegion = getRegionFromVersionGroup(activePokemon.forms[0].versionGroup);
+
+  const genus = species.names[0]?.genus || '';
+
+  // Get main dex number (National Dex)
+  const nationalDexNumber =
+    species.pokedexNumbers.find(
+      (entry) => entry.pokedex.isMainSeries && entry.pokedex.name === 'national',
+    )?.pokedexNumber || primaryPokemon.id;
 
   return (
     <>
       <Head>
-        <title>{pokemonName} - Pokédex</title>
+        <title>{activePokemonName} - Pokédex</title>
         <meta
           name="description"
-          content={`Complete information about ${pokemonName} including stats, abilities, moves, evolution, and more.`}
+          content={`Complete information about ${activePokemonName} including stats, abilities, moves, evolution, and more.`}
         />
-        <meta property="og:title" content={`${pokemonName} - Pokédex`} />
+        <meta property="og:title" content={`${activePokemonName} - Pokédex`} />
         <meta
           property="og:description"
-          content={
-            pokemon.pokemonSpecies.flavorTexts[0]?.flavorText || `Information about ${pokemonName}`
-          }
+          content={speciesFlavorText || `Information about ${activePokemonName}`}
         />
-        <meta property="og:image" content={pokemon.sprites?.frontDefault || ''} />
+        <meta property="og:image" content={activePokemon.sprites?.frontDefault || ''} />
       </Head>
 
       <div
         className="min-h-screen transition-colors duration-300"
         style={{ backgroundColor: 'var(--color-background)' }}
       >
-        <main className="mx-auto py-8">
-          {/* Breadcrumb Navigation */}
-          <nav className="mb-6">
-            <div className="flex items-center space-x-2 text-sm">
-              <Link href="/" className="text-blue-600 hover:text-blue-800 transition-colors">
-                Home
-              </Link>
-              <span>/</span>
-              <Link href="/pokemon" className="text-blue-600 hover:text-blue-800 transition-colors">
-                Pokédex
-              </Link>
-              <span>/</span>
-              <span className="text-gray-500">
-                #{pokemon.id.toString().padStart(3, '0')} {pokemonName}
-              </span>
+        <main className="mx-auto">
+          <div className="flex justify-between items-start">
+            {/* Left Column - Breadcrumb Navigation */}
+            <div className="flex-shrink-0 self-end">
+              <BreadcrumbNavigation
+                links={[
+                  { label: 'Home', href: '/' },
+                  {
+                    label: `${activePokemonRegion?.displayName} Pokédex`,
+                    href: `/pokedex/${activePokemonRegion?.name}`,
+                  },
+                ]}
+                currentPage={activePokemonName}
+              />
             </div>
-          </nav>
 
-          {/* Main Pokemon Header */}
-          <PokemonHeader pokemon={pokemon} />
+            {/* Right Column - Title and Info */}
+            <div className="flex-1 text-right">
+              <div className="flex items-center justify-end space-x-3 mb-2">
+                <h1 className="text-4xl font-bold text-gray-900 dark:text-white capitalize">
+                  {activePokemonName}
+                </h1>
+                <span className="text-2xl font-semibold text-gray-500 dark:text-gray-400">
+                  #{nationalDexNumber.toString().padStart(3, '0')}
+                </span>
+              </div>
+              {genus && <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">{genus}</p>}
+            </div>
+          </div>
 
-          {/* Content Grid */}
+          {/* Pokemon Header - using the active Pokemon with species data */}
+          <PokemonHeader
+            pokemon={activePokemon}
+            species={species}
+            onPokemonSwitch={handlePokemonSwitch}
+          />
+
+          {/* Content Grid - Focus on Active Pokemon */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
             {/* Left Column - Primary Info */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Abilities Section */}
-              <PokemonAbilities pokemon={pokemon} />
-
-              {/* Stats Section */}
-              <PokemonStats pokemon={pokemon} />
-
-              {/* Forms Section */}
-              {pokemon.forms.length > 1 && <PokemonForms pokemon={pokemon} />}
+              {/* Stats Section - Active Pokemon */}
+              <PokemonStats
+                stats={activePokemon.stats}
+                baseExperience={activePokemon.baseExperience}
+              />
             </div>
 
             {/* Right Column - Secondary Info */}
             <div className="space-y-8">
-              {/* Breeding Info */}
-              <PokemonBreeding pokemon={pokemon} />
-
-              {/* Game Data */}
-              <PokemonGameData pokemon={pokemon} />
-
-              {/* Encounters */}
-              <PokemonEncounters pokemon={pokemon} />
+              {/* Game Data - Active Pokemon */}
+              <PokemonGameData
+                pokedexNumbers={species.pokedexNumbers}
+                captureRate={species.captureRate}
+                baseHappiness={species.baseHappiness}
+              />
             </div>
           </div>
-
-          {/* Moves Section */}
+          {/* Encounters - Active Pokemon */}
           <div className="mt-8">
-            <PokemonMoves pokemon={pokemon} />
+            <PokemonEncounters encounters={activePokemon.encounters} />
+          </div>
+
+          {/* Moves Section - Active Pokemon */}
+          <div className="mt-8">
+            <PokemonMoves pokemon={activePokemon} />
           </div>
 
           {/* Back to Top Button */}
@@ -157,7 +253,7 @@ const PokemonDetailPage: NextPageWithLayout = () => {
   );
 };
 
-export default PokemonDetailPage;
+export default PokemonSpeciesDetailPage;
 
 // Server-side rendering for SEO and performance
 export const getServerSideProps: GetServerSideProps = async (context) => {
