@@ -6,7 +6,9 @@ import { prisma } from '~/server/prisma';
 import {
   defaultPokemonSelect,
   detailedPokemonSelect,
+  detailedPokemonSpeciesSelect,
   evolutionSpeciesSelect,
+  pokemonEvolutionsSelect,
   pokemonSearchSelect,
 } from './query-selectors';
 import type { inferRouterOutputs } from '@trpc/server';
@@ -22,12 +24,18 @@ const DEFAULT_LANGUAGE_ID = 9; // English
 // Type for species with evolution data (used in enhancement function)
 type SpeciesWithEvolutions = {
   id: number;
-  evolvesToSpecies: Array<{
-    pokemonEvolutions: Array<{
+  evolvesToSpecies: {
+    pokemonEvolutions: {
       partySpeciesId: number | null;
       tradeSpeciesId: number | null;
-    }>;
-  }>;
+    }[];
+  }[];
+};
+
+type SpeciesEvolutionChain = {
+  evolutionChain?: {
+    pokemonSpecies: SpeciesWithEvolutions[];
+  } | null;
 };
 
 // Type for evolution chain structure in detailed pokemon
@@ -47,10 +55,193 @@ type PokemonSearchResult = {
   id: number;
   name: string;
   sprites: { frontDefault: string | null } | null;
-  types: Array<{ type: { name: string } }>;
+  types: { type: { name: string } }[];
   pokemonSpecies: { id: number };
 };
+/**
+ * Helper function to enhance evolution chain for species queries
+ * Ensures every species has complete pokemonEvolutions data
+ */
+async function enhanceEvolutionChainForSpecies<T extends SpeciesEvolutionChain>(
+  species: T,
+): Promise<T> {
+  const evolutionChain = species.evolutionChain;
+  if (!evolutionChain) return species;
 
+  // Collect required additional species IDs from evolution conditions
+  const requiredSpeciesIds = new Set<number>();
+
+  evolutionChain.pokemonSpecies.forEach((chainSpecies: SpeciesWithEvolutions) => {
+    chainSpecies.evolvesToSpecies.forEach((evolvesTo) => {
+      evolvesTo.pokemonEvolutions.forEach((evo) => {
+        if (evo.partySpeciesId) requiredSpeciesIds.add(evo.partySpeciesId);
+        if (evo.tradeSpeciesId) requiredSpeciesIds.add(evo.tradeSpeciesId);
+      });
+    });
+  });
+
+  // Cross-chain evolution detection
+  const firstSpecies = evolutionChain.pokemonSpecies[0];
+  if (!firstSpecies) return species;
+
+  // Get evolution chain ID
+  const speciesWithChain = await prisma.pokemonSpecies.findUnique({
+    where: { id: firstSpecies.id },
+    select: { evolutionChainId: true },
+  });
+
+  if (!speciesWithChain) return species;
+
+  // Get all pokemon species in this evolution chain
+  const chainSpecies = await prisma.pokemonSpecies.findMany({
+    where: { evolutionChainId: speciesWithChain.evolutionChainId },
+    orderBy: { order: 'asc' },
+    select: evolutionSpeciesSelect,
+  });
+
+  if (!chainSpecies.length) return species;
+
+  const speciesIdsInChain = chainSpecies.map((s) => s.id);
+  const crossChainEvolutions: any[] = [];
+
+  // Check for missing evolution targets and sources
+  const missingEvolutionTargets = new Set<number>();
+  const missingEvolutionSources = new Set<number>();
+
+  chainSpecies.forEach((chainSpeciesItem) => {
+    chainSpeciesItem.evolvesToSpecies.forEach((evolvesTo) => {
+      const targetExists = chainSpecies.find((s) => s.id === evolvesTo.id);
+      if (!targetExists) {
+        missingEvolutionTargets.add(evolvesTo.id);
+      }
+    });
+
+    if (chainSpeciesItem.evolvesFromSpecies) {
+      const sourceExists = chainSpecies.find(
+        (s) => s.id === chainSpeciesItem.evolvesFromSpecies!.id,
+      );
+      if (!sourceExists) {
+        missingEvolutionSources.add(chainSpeciesItem.evolvesFromSpecies.id);
+      }
+    }
+  });
+
+  // Handle cross-chain evolutions
+  if (missingEvolutionTargets.size > 0 || missingEvolutionSources.size > 0) {
+    if (missingEvolutionSources.size > 0) {
+      const crossChainSources = await prisma.pokemonSpecies.findMany({
+        where: {
+          id: { in: Array.from(missingEvolutionSources) },
+          evolutionChainId: { not: speciesWithChain.evolutionChainId },
+        },
+        select: {
+          ...evolutionSpeciesSelect,
+          evolutionChainId: true,
+        },
+      });
+
+      crossChainSources.forEach((sourceSpecies) => {
+        const evolvesToSpecies = chainSpecies.find(
+          (s) => s.evolvesFromSpecies?.id === sourceSpecies.id,
+        );
+        const speciesName = (species as any).name || chainSpecies[0]?.name || 'Unknown Species';
+        console.log(
+          `Cross-chain evolution source found for ${speciesName}: ${sourceSpecies.name} (chain ${sourceSpecies.evolutionChainId}) evolves to ${evolvesToSpecies?.name} (chain ${speciesWithChain.evolutionChainId})`,
+        );
+        requiredSpeciesIds.add(sourceSpecies.id);
+      });
+
+      crossChainEvolutions.push(...crossChainSources);
+    }
+
+    if (missingEvolutionTargets.size > 0) {
+      const crossChainTargets = await prisma.pokemonSpecies.findMany({
+        where: {
+          evolvesFromSpeciesId: { in: speciesIdsInChain },
+          evolutionChainId: { not: speciesWithChain.evolutionChainId },
+          id: { in: Array.from(missingEvolutionTargets) },
+        },
+        select: {
+          ...evolutionSpeciesSelect,
+          evolvesFromSpeciesId: true,
+          evolutionChainId: true,
+        },
+      });
+
+      crossChainTargets.forEach((targetSpecies) => {
+        const evolvesFromSpecies = chainSpecies.find(
+          (s) => s.id === targetSpecies.evolvesFromSpeciesId,
+        );
+        const speciesName = (species as any).name || chainSpecies[0]?.name || 'Unknown Species';
+        console.log(
+          `Cross-chain evolution target found for ${speciesName}: ${targetSpecies.name} (chain ${targetSpecies.evolutionChainId}) evolves from ${evolvesFromSpecies?.name} (chain ${speciesWithChain.evolutionChainId})`,
+        );
+        requiredSpeciesIds.add(targetSpecies.id);
+      });
+
+      crossChainEvolutions.push(...crossChainTargets);
+    }
+  }
+
+  // Fetch additional species
+  const additionalSpecies: EvolutionSpecies[] =
+    requiredSpeciesIds.size > 0
+      ? await prisma.pokemonSpecies.findMany({
+          where: {
+            id: { in: Array.from(requiredSpeciesIds) },
+          },
+          select: evolutionSpeciesSelect,
+        })
+      : [];
+
+  // Combine all species
+  const allSpecies = [...chainSpecies, ...additionalSpecies, ...crossChainEvolutions];
+  const allSpeciesIds = allSpecies.map((s) => s.id);
+
+  // Fetch evolution data where pokemonSpeciesId is the TARGET species
+  const evolutionRecords = await prisma.pokemonEvolution.findMany({
+    where: {
+      pokemonSpeciesId: { in: allSpeciesIds },
+    },
+    ...pokemonEvolutionsSelect,
+  });
+
+  // Map evolution conditions to SOURCE species
+  const evolutionsBySourceSpecies = new Map<number, any[]>();
+
+  evolutionRecords.forEach((evolution) => {
+    const { pokemonSpeciesId: targetSpeciesId, ...evolutionConditions } = evolution;
+
+    // Find which species evolves TO this target
+    const sourceSpecies = allSpecies.find((s: any) =>
+      s.evolvesToSpecies?.some((evolvesTo: any) => evolvesTo.id === targetSpeciesId),
+    );
+
+    if (sourceSpecies) {
+      if (!evolutionsBySourceSpecies.has(sourceSpecies.id)) {
+        evolutionsBySourceSpecies.set(sourceSpecies.id, []);
+      }
+      evolutionsBySourceSpecies.get(sourceSpecies.id)!.push(evolutionConditions);
+    }
+  });
+
+  // Enhance each species with correct pokemonEvolutions
+  const enhancedSpecies = allSpecies.map((speciesItem: any) => ({
+    ...speciesItem,
+    pokemonEvolutions: evolutionsBySourceSpecies.get(speciesItem.id) || [],
+  }));
+
+  // Remove duplicates
+  const uniqueSpecies = Array.from(new Map(enhancedSpecies.map((s: any) => [s.id, s])).values());
+
+  return {
+    ...species,
+    evolutionChain: {
+      ...evolutionChain,
+      pokemonSpecies: uniqueSpecies,
+    },
+  } as T;
+}
 /**
  * Helper function to enhance evolution chain with additional species (for use in resolvers)
  */
@@ -95,7 +286,7 @@ export async function enhanceEvolutionChainWithAdditionalSpecies<
   if (!chainSpecies.length) return pokemon;
 
   const speciesIdsInChain = chainSpecies.map((s) => s.id);
-  let crossChainEvolutions: any[] = [];
+  const crossChainEvolutions: any[] = [];
 
   // Check if any evolvesToSpecies are missing from the current chain
   const missingEvolutionTargets = new Set<number>();
@@ -215,13 +406,12 @@ export async function enhanceEvolutionChainWithAdditionalSpecies<
  * @returns The Pokemon object.
  * @throws {TRPCError} with code 'NOT_FOUND' if the Pokemon is not found.
  */
-async function findOnePokemon<T extends Prisma.PokemonSelect>(
+async function findOnePokemon(
   where: Prisma.PokemonWhereUniqueInput,
-  select: T,
-): Promise<Prisma.PokemonGetPayload<{ select: T }>> {
+): Promise<Prisma.PokemonGetPayload<{ select: typeof detailedPokemonSelect }>> {
   const pokemon = await prisma.pokemon.findUnique({
     where,
-    select,
+    select: detailedPokemonSelect,
   });
 
   if (!pokemon) {
@@ -232,6 +422,30 @@ async function findOnePokemon<T extends Prisma.PokemonSelect>(
     });
   }
   return pokemon;
+}
+
+/**
+ * Fetches a single Pokemon Species record from the database with all associated Pokemon.
+ * @param where - The unique identifier for the Pokemon Species (e.g., { id: 1 } or { name: 'bulbasaur' }).
+ * @returns The Pokemon Species object with all associated Pokemon records.
+ * @throws {TRPCError} with code 'NOT_FOUND' if the Pokemon Species is not found.
+ */
+async function findOnePokemonSpecies(
+  where: Prisma.PokemonSpeciesWhereUniqueInput,
+): Promise<Prisma.PokemonSpeciesGetPayload<{ select: typeof detailedPokemonSpeciesSelect }>> {
+  const pokemonSpecies = await prisma.pokemonSpecies.findUnique({
+    where,
+    select: detailedPokemonSpeciesSelect,
+  });
+
+  if (!pokemonSpecies) {
+    const identifier = JSON.stringify(where);
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: `No Pokemon Species found with criteria: ${identifier}`,
+    });
+  }
+  return pokemonSpecies;
 }
 
 export const pokemonRouter = router({
@@ -274,7 +488,7 @@ export const pokemonRouter = router({
       }),
     )
     .query(({ input }) => {
-      return findOnePokemon({ id: input.id }, defaultPokemonSelect);
+      return findOnePokemon({ id: input.id });
     }),
 
   detailedById: publicProcedure
@@ -284,7 +498,7 @@ export const pokemonRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      const pokemon = await findOnePokemon({ id: input.id }, detailedPokemonSelect);
+      const pokemon = await findOnePokemon({ id: input.id });
 
       // Enhance evolution chain with additional species if needed
       return await enhanceEvolutionChainWithAdditionalSpecies(pokemon);
@@ -297,7 +511,7 @@ export const pokemonRouter = router({
       }),
     )
     .query(({ input }) => {
-      return findOnePokemon({ name: input.name }, defaultPokemonSelect);
+      return findOnePokemon({ name: input.name });
     }),
 
   featured: publicProcedure.query(async () => {
@@ -390,6 +604,7 @@ export const pokemonRouter = router({
         pokemonSpecies: {
           select: {
             id: true,
+            name: true,
             flavorTexts: defaultPokemonSelect.pokemonSpecies.select.flavorTexts,
             pokedexNumbers: {
               select: {
@@ -463,7 +678,6 @@ export const pokemonRouter = router({
         nextCursor,
       };
     }),
-
   pokemonSpeciesPokedexNumbers: publicProcedure
     .input(
       z.object({
@@ -565,7 +779,7 @@ export const pokemonRouter = router({
       const exactMatchIndex = results.findIndex((p) => p.name.toLowerCase() === searchTerm);
 
       if (exactMatchIndex > 0) {
-        const exactMatch = results.splice(exactMatchIndex, 1)[0]!;
+        const exactMatch = results.splice(exactMatchIndex, 1)[0];
         results.unshift(exactMatch);
       }
 
@@ -574,5 +788,30 @@ export const pokemonRouter = router({
         query: searchTerm,
         limit,
       };
+    }),
+  speciesById: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const species = await findOnePokemonSpecies({ id: input.id });
+
+      // Enhance evolution chain with additional species if needed
+      return await enhanceEvolutionChainForSpecies(species);
+    }),
+
+  speciesByName: publicProcedure
+    .input(
+      z.object({
+        name: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const species = await findOnePokemonSpecies({ name: input.name });
+
+      // Enhance evolution chain with additional species if needed
+      return await enhanceEvolutionChainForSpecies(species);
     }),
 });
