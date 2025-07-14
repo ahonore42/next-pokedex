@@ -68,6 +68,7 @@ export const evolutionBabyTriggerItemSelect = {
 
 export const pokemonEvolutionsSelect = {
   select: {
+    pokemonSpeciesId: true,
     evolutionTrigger: {
       select: {
         name: true,
@@ -249,6 +250,8 @@ export const extendedSpriteSelect = {
     backShiny: true,
     backFemale: true,
     backShinyFemale: true,
+    officialArtworkShiny: true,
+    officialArtworkFront: true,
   },
 };
 
@@ -323,9 +326,15 @@ export const versionGroupSelect = {
   select: {
     id: true,
     name: true,
+    order: true,
     generation: {
       select: {
         id: true,
+        name: true,
+      },
+    },
+    versions: {
+      select: {
         name: true,
       },
     },
@@ -341,7 +350,7 @@ export const defaultPokemonSelect = {
   isDefault: true,
   criesLatest: true,
   criesLegacy: true,
-  sprites: basicSpriteSelect,
+  sprites: extendedSpriteSelect,
   types: basicTypeSelect,
   abilities: basicAbilitySelect,
   stats: basicStatSelect,
@@ -605,6 +614,7 @@ export const pokemonFormsSelect = {
     },
     types: orderedTypeSelect,
     sprites: basicSpriteSelect,
+    versionGroup: versionGroupSelect,
   },
   orderBy: { formOrder: 'asc' as const },
 };
@@ -857,6 +867,7 @@ export const detailedPokemonSelect = {
         select: {
           id: true,
           name: true,
+          versionGroup: versionGroupSelect,
         },
       },
       encounterMethod: {
@@ -917,3 +928,330 @@ export const pokemonSearchSelect = {
     },
   },
 };
+
+/**
+ * Enhanced item selection for detailed queries
+ */
+const detailedItemSelect = {
+  select: {
+    id: true,
+    name: true,
+    cost: true,
+    sprite: true,
+    itemCategory: {
+      select: {
+        id: true,
+        name: true,
+        names: {
+          where: { languageId: DEFAULT_LANGUAGE_ID },
+          select: { name: true },
+        },
+      },
+    },
+    names: {
+      where: { languageId: DEFAULT_LANGUAGE_ID },
+      select: { name: true },
+    },
+    flavorTexts: {
+      where: { languageId: DEFAULT_LANGUAGE_ID },
+      select: { flavorText: true },
+      orderBy: { versionGroupId: 'desc' as const },
+      take: 1,
+    },
+  },
+};
+
+/**
+ * Enhanced location selection for encounter data
+ */
+const detailedLocationSelect = {
+  select: {
+    id: true,
+    name: true,
+    region: {
+      select: {
+        id: true,
+        name: true,
+      },
+    },
+    names: {
+      where: { languageId: DEFAULT_LANGUAGE_ID },
+      select: { name: true },
+    },
+  },
+};
+
+/**
+ * Enhanced location area selection
+ */
+const detailedLocationAreaSelect = {
+  select: {
+    id: true,
+    name: true,
+    gameIndex: true,
+    location: detailedLocationSelect,
+    names: {
+      where: { languageId: DEFAULT_LANGUAGE_ID },
+      select: { name: true },
+    },
+  },
+};
+
+/**
+ * Enhanced encounter method selection
+ */
+const detailedEncounterMethodSelect = {
+  select: {
+    id: true,
+    name: true,
+    order: true,
+    names: {
+      where: { languageId: DEFAULT_LANGUAGE_ID },
+      select: { name: true },
+    },
+  },
+};
+
+/**
+ * Enhanced encounter condition selection
+ */
+const detailedEncounterConditionSelect = {
+  select: {
+    encounterConditionValue: {
+      select: {
+        id: true,
+        name: true,
+        isDefault: true,
+        names: {
+          where: { languageId: DEFAULT_LANGUAGE_ID },
+          select: { name: true },
+        },
+        encounterCondition: {
+          select: {
+            id: true,
+            name: true,
+            names: {
+              where: { languageId: DEFAULT_LANGUAGE_ID },
+              select: { name: true },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+/**
+ * Enhanced encounter selection
+ */
+const detailedEncounterSelect = {
+  select: {
+    minLevel: true,
+    maxLevel: true,
+    chance: true,
+    pokemonId: true,
+    locationArea: detailedLocationAreaSelect,
+    version: {
+      select: {
+        id: true,
+        name: true,
+        versionGroup: versionGroupSelect,
+      },
+    },
+    encounterMethod: detailedEncounterMethodSelect,
+    conditionValueMap: detailedEncounterConditionSelect,
+  },
+  orderBy: [{ locationArea: { location: { name: 'asc' as const } } }, { minLevel: 'asc' as const }],
+};
+
+/**
+ * Enhanced held items selection
+ */
+const detailedHeldItemsSelect = {
+  select: {
+    rarity: true,
+    version: {
+      select: {
+        id: true,
+        name: true,
+      },
+    },
+    item: detailedItemSelect,
+  },
+};
+
+/**
+ * Enhanced game indices selection
+ */
+const detailedGameIndicesSelect = {
+  select: {
+    gameIndex: true,
+    version: {
+      select: {
+        id: true,
+        name: true,
+      },
+    },
+  },
+};
+
+/**
+ * Select object for Pokemon within a species query (excludes pokemonSpecies to avoid circular reference)
+ */
+const detailedPokemonInSpeciesSelect = {
+  id: true,
+  name: true,
+  height: true,
+  weight: true,
+  baseExperience: true,
+  order: true,
+  isDefault: true,
+  criesLatest: true,
+  criesLegacy: true,
+  createdAt: true,
+  updatedAt: true,
+
+  // Use your existing sprite selector
+  sprites: extendedSpriteSelect,
+
+  // Use your existing type selectors
+  types: orderedTypeSelect,
+  typePast: typePastSelect,
+
+  // Use your existing ability selectors
+  abilities: detailedAbilitySelect,
+  abilityPast: abilityPastSelect,
+
+  // Use your existing stat selector
+  stats: detailedStatSelect,
+
+  // Use your existing forms selector
+  forms: pokemonFormsSelect,
+
+  // Use your existing moveset selector
+  moves: movesetSelect,
+
+  // Enhanced selections for comprehensive data
+  heldItems: detailedHeldItemsSelect,
+  gameIndices: detailedGameIndicesSelect,
+  encounters: detailedEncounterSelect,
+} satisfies Prisma.PokemonSelect;
+
+/**
+ * Enhanced evolution chain selection building on your existing selectors
+ */
+const detailedEvolutionChainSelect = {
+  select: {
+    id: true,
+    babyTriggerItem: evolutionBabyTriggerItemSelect,
+    // Get all species in this evolution chain with enhanced data
+    pokemonSpecies: {
+      select: {
+        ...evolutionSpeciesSelect,
+        // Add evolution relationships using your existing selector
+        evolvesToSpecies: evolvesToSpeciesSelect,
+      },
+      orderBy: { order: 'asc' as const },
+    },
+  },
+};
+
+/**
+ * Enhanced varieties selection
+ */
+const detailedVarietiesSelect = {
+  select: {
+    isDefault: true,
+    pokemon: {
+      select: {
+        id: true,
+        name: true,
+        order: true,
+        isDefault: true,
+      },
+    },
+  },
+  orderBy: { pokemon: { order: 'asc' as const } },
+};
+
+/**
+ * Enhanced gender details selection
+ */
+const detailedGenderDetailsSelect = {
+  select: {
+    gender: {
+      select: {
+        id: true,
+        name: true,
+      },
+    },
+  },
+};
+
+/**
+ * Enhanced evolution relationships selection
+ */
+const detailedEvolutionRelationshipsSelect = {
+  select: {
+    id: true,
+    name: true,
+    names: extendedSpeciesNamesSelect,
+  },
+};
+
+/**
+ * Comprehensive select object for Pokemon Species with all related data
+ * Built using your existing selectors wherever possible
+ */
+export const detailedPokemonSpeciesSelect = {
+  id: true,
+  name: true,
+  generationId: true,
+  evolvesFromSpeciesId: true,
+  evolutionChainId: true,
+  colorId: true,
+  shapeId: true,
+  habitatId: true,
+  genderRate: true,
+  captureRate: true,
+  baseHappiness: true,
+  isBaby: true,
+  hatchCounter: true,
+  hasGenderDifferences: true,
+  growthRateId: true,
+  formsSwitchable: true,
+  isLegendary: true,
+  isMythical: true,
+  order: true,
+  createdAt: true,
+  updatedAt: true,
+
+  // Use your existing species selectors
+  names: extendedSpeciesNamesSelect,
+  flavorTexts: detailedFlavorTextSelect,
+  generation: generationSelect,
+  pokemonColor: pokemonColorSelect,
+  pokemonShape: pokemonShapeSelect,
+  pokemonHabitat: pokemonHabitatSelect,
+  growthRate: growthRateSelect,
+  eggGroups: eggGroupSelect,
+  pokedexNumbers: detailedPokedexSelect,
+  palParkEncounters: palParkEncountersSelect,
+
+  // Enhanced evolution chain using your existing selectors as base
+  evolutionChain: detailedEvolutionChainSelect,
+
+  // Evolution relationships using your patterns
+  evolvesFromSpecies: detailedEvolutionRelationshipsSelect,
+  evolvesToSpecies: evolvesToSpeciesSelect,
+
+  // All Pokemon varieties/forms for this species
+  pokemon: {
+    select: detailedPokemonInSpeciesSelect,
+    orderBy: { order: 'asc' as const },
+  },
+
+  // Additional metadata
+  varieties: detailedVarietiesSelect,
+  genderDetails: detailedGenderDetailsSelect,
+} satisfies Prisma.PokemonSpeciesSelect;
