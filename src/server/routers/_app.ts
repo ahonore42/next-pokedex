@@ -32,10 +32,29 @@ export type PokemonListOutput = PokemonRouterOutputs['list'];
 export type PokemonByIdOutput = PokemonRouterOutputs['byId'];
 export type PokemonDetailedById = PokemonRouterOutputs['detailedById'];
 export type PokemonByNameOutput = PokemonRouterOutputs['byName'];
+export type PokemonSpeciesByIdOutput = PokemonRouterOutputs['speciesById'];
+export type PokemonSpeciesByNameOutput = PokemonRouterOutputs['speciesByName'];
 export type DbStats = PokemonRouterOutputs['dbStats'];
 export type PokemonByPokedexOutput = PokemonRouterOutputs['pokemonByPokedex'];
 export type FeaturedPokemon = RouterOutputs['pokemon']['featured']['pokemon'][number];
 export type Pokemon = PokemonListOutput['pokemon'][number];
+export type PokemonStats = PokemonDetailedById['stats'];
+
+/**
+ * Pokemon Species-specific types
+ */
+export type PokemonInSpecies = PokemonSpeciesByIdOutput['pokemon'][number];
+export type SpeciesEvolutionChain = NonNullable<PokemonSpeciesByIdOutput['evolutionChain']>;
+
+/**
+ * PokemonEncounters types
+ */
+export type PokemonEncounters = PokemonInSpecies['encounters'];
+export type PokemonEncounter = PokemonInSpecies['encounters'][number];
+export type EncounterLocationArea = PokemonEncounters[number]['locationArea'];
+export type EncounterLocation = EncounterLocationArea['location'];
+export type EncounterVersionGroup = PokemonEncounters[number]['version']['versionGroup'];
+export type EncounterConditions = PokemonEncounters[number]['conditionValueMap'];
 
 /**
  * Evolution Chains router Outputs

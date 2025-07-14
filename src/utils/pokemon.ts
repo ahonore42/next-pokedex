@@ -20,7 +20,7 @@ interface VersionGroup {
   name: string;
   order: number;
   generation: Generation;
-  version: { name: string }[];
+  versions: { name: string }[];
 }
 
 interface Generation {
@@ -315,7 +315,7 @@ export function computeNodesep(options: ComputeNodesepOptions): number {
     // Vertical spacing between siblings (HORIZONTAL layout)
     const totalHeight = maxSiblings * nodeHeight;
     const available = containerHeight - totalHeight;
-    
+
     // Only make this one change - responsive minimum spacing
     const minSpacing = containerWidth < 768 ? 40 : 50;
     return Math.max(minSpacing, available / (maxSiblings - 1));
@@ -323,7 +323,7 @@ export function computeNodesep(options: ComputeNodesepOptions): number {
     // Horizontal spacing between siblings (VERTICAL layout)
     const totalWidth = maxSiblings * nodeWidth;
     const available = containerWidth - totalWidth;
-    
+
     // Keep your original sibling count logic
     if (maxSiblings > 3) {
       return Math.max(10, available / maxSiblings);
@@ -350,7 +350,7 @@ export function computeRanksep(options: ComputeRanksepOptions): number {
     // Vertical spacing between evolution steps (VERTICAL layout)
     const totalHeight = rankCount * nodeHeight;
     const available = containerHeight - totalHeight;
-    
+
     // Keep your original vertical spacing logic
     return Math.max(180, available / (rankCount - 1));
   }
