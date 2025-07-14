@@ -12,21 +12,14 @@ const TypeBadgesDisplay: React.FC<TypeBadgesDisplayProps> = ({
   link = false,
   className = '',
 }) => {
-  const styles = {
-    container: 'gap-0 sm:gap-2',
-    scale: 'transform scale-90 sm:scale-100',
-  };
-
   if (!types || types.length === 0) {
     return null;
   }
 
   return (
-    <div
-      className={`flex w-fit min-w-24 justify-center flex-nowrap mt-1 px-1 ${styles.container} ${className}`}
-    >
+    <div className={`flex w-fit justify-center flex-nowrap mt-1 gap-2 ${className}`}>
       {types.map((typeInfo) => (
-        <div key={typeInfo.type.id} className={styles.scale}>
+        <div key={typeInfo.type.id}>
           <TypeBadge type={typeInfo.type} link={link} />
         </div>
       ))}
