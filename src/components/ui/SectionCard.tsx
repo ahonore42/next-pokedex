@@ -5,7 +5,11 @@ interface ContainerProps {
   title: string;
   tag?: string;
   className?: string;
-  variant?: 'default' | 'compact';
+  variant?: 'default' | 'compact' | 'info';
+  backgroundColor?: string;
+  borderColor?: string;
+  titleColor?: string;
+  titleSize?: string;
 }
 
 export default function SectionCard({
@@ -14,20 +18,36 @@ export default function SectionCard({
   tag = '',
   className = '',
   variant = 'default',
+  backgroundColor,
+  borderColor,
+  titleColor,
+  titleSize,
 }: ContainerProps) {
   // Define variant-specific styles
   const variantStyles = {
     default: {
       padding: 'p-6',
-      titleSize: 'text-lg',
+      titleSize: titleSize || 'text-lg',
       headerMargin: 'mb-4',
       tagSize: 'text-sm',
+      bg: 'surface-elevated',
+      text: 'text-primary dark:text-primary',
     },
     compact: {
       padding: 'p-4',
-      titleSize: 'text-base',
+      titleSize: titleSize || 'text-base',
       headerMargin: 'mb-2',
       tagSize: 'text-xs',
+      bg: 'surface-elevated',
+      text: 'text-primary dark:text-primary',
+    },
+    info: {
+      padding: 'p-4',
+      titleSize: titleSize || 'text-base',
+      headerMargin: 'mb-2',
+      tagSize: 'text-xs',
+      bg: 'bg-blue-50 dark:bg-blue-900/20',
+      text: 'text-blue-900 dark:text-blue-100',
     },
   };
 
@@ -35,18 +55,17 @@ export default function SectionCard({
 
   return (
     <div
-      className={`surface-elevated border-theme rounded-lg ${styles.padding} transition-all duration-300 hover:shadow-lg ${className}`}
+      className={`rounded-lg ${styles.padding} ${styles.bg} transition-all duration-300 ${className}`}
       style={{
-        backgroundColor: 'var(--color-surface-elevated)',
-        borderColor: 'var(--color-border)',
-        boxShadow: 'var(--shadow-sm)',
+        backgroundColor: backgroundColor || undefined,
+        borderColor: borderColor || undefined,
       }}
     >
-      <div className={`flex items-center justify-between ${styles.headerMargin}`}>
-        <h2 className={`${styles.titleSize} font-semibold text-primary`}>{title}</h2>
+      <div className={`${styles.headerMargin}`}>
+        <h4 className={`${styles.titleSize} font-medium ${titleColor || styles.text}`}>{title}</h4>
         {tag && (
           <span
-            className={`${styles.tagSize} text-tertiary px-2 py-1 rounded transition-colors duration-300`}
+            className={`${styles.tagSize} text-tertiary dark:text-tertiary px-2 py-1 rounded transition-colors duration-300`}
             style={{
               backgroundColor: 'var(--color-surface)',
               color: 'var(--color-text-tertiary)',
