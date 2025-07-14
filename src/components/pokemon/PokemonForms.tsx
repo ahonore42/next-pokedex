@@ -1,18 +1,18 @@
 import { getTypeColor } from '~/utils/pokemon';
 import { capitalizeName } from '~/utils/text';
-import type { PokemonDetailedById } from '~/server/routers/_app';
+import type { PokemonInSpecies } from '~/server/routers/_app';
 
 interface ComponentProps {
-  pokemon: PokemonDetailedById;
+  pokemonForms: PokemonInSpecies['forms'];
 }
 
 // Pokemon Forms Component
-export const PokemonForms: React.FC<ComponentProps> = ({ pokemon }) => {
+export const PokemonForms: React.FC<ComponentProps> = ({ pokemonForms }) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Forms</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {pokemon.forms.map((form) => (
+        {pokemonForms.map((form) => (
           <div key={form.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-gray-900 dark:text-white">
