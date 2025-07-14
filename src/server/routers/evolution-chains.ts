@@ -1,7 +1,58 @@
 import { router, publicProcedure } from '../trpc';
 import { prisma } from '~/server/prisma';
 import { z } from 'zod';
-import { evolutionBabyTriggerItemSelect, evolutionSpeciesSelect } from './query-selectors';
+import {
+  evolutionBabyTriggerItemSelect,
+  evolutionSpeciesSelect,
+  pokemonEvolutionsSelect,
+} from './query-selectors';
+
+/**
+ * Helper function to fix pokemonEvolutions data for a single evolution chain
+ * Ensures every species has complete pokemonEvolutions data showing how THAT species evolves
+ */
+async function enhanceEvolutionChainPokemonEvolutions(chain: any) {
+  const allSpecies = chain.pokemonSpecies;
+  const allSpeciesIds = allSpecies.map((s: any) => s.id);
+
+  // Fetch evolution data where pokemonSpeciesId is the TARGET species
+  const evolutionRecords = await prisma.pokemonEvolution.findMany({
+    where: {
+      pokemonSpeciesId: { in: allSpeciesIds },
+    },
+    ...pokemonEvolutionsSelect,
+  });
+
+  // Map evolution conditions to SOURCE species
+  const evolutionsBySourceSpecies = new Map<number, any[]>();
+
+  evolutionRecords.forEach((evolution) => {
+    const { pokemonSpeciesId: targetSpeciesId, ...evolutionConditions } = evolution;
+
+    // Find which species evolves TO this target
+    const sourceSpecies = allSpecies.find((s: any) =>
+      s.evolvesToSpecies?.some((evolvesTo: any) => evolvesTo.id === targetSpeciesId),
+    );
+
+    if (sourceSpecies) {
+      if (!evolutionsBySourceSpecies.has(sourceSpecies.id)) {
+        evolutionsBySourceSpecies.set(sourceSpecies.id, []);
+      }
+      evolutionsBySourceSpecies.get(sourceSpecies.id)!.push(evolutionConditions);
+    }
+  });
+
+  // Enhance each species with correct pokemonEvolutions
+  const enhancedSpecies = allSpecies.map((speciesItem: any) => ({
+    ...speciesItem,
+    pokemonEvolutions: evolutionsBySourceSpecies.get(speciesItem.id) || [],
+  }));
+
+  return {
+    ...chain,
+    pokemonSpecies: enhancedSpecies,
+  };
+}
 
 export const evolutionChainsRouter = router({
   all: publicProcedure.query(async () => {
@@ -30,7 +81,7 @@ export const evolutionChainsRouter = router({
 
     const speciesMap = new Map(allPokemonSpecies.map((s) => [s.id, s]));
 
-    return await Promise.all(
+    const processedChains = await Promise.all(
       chains.map(async (chain) => {
         const requiredSpeciesIds = new Set<number>();
 
@@ -44,11 +95,10 @@ export const evolutionChainsRouter = router({
         });
 
         // Edge case handler for cross-chain evolutions
-        // Only run this if standard evolutions are missing from the chain
         const speciesIdsInChain = chain.pokemonSpecies.map((s) => s.id);
         let crossChainEvolutions: any[] = [];
 
-        // First, check if any evolvesToSpecies are missing from the current chain
+        // Check if any evolvesToSpecies are missing from the current chain
         const missingEvolutionTargets = new Set<number>();
         chain.pokemonSpecies.forEach((species) => {
           species.evolvesToSpecies.forEach((evolvesTo) => {
@@ -93,39 +143,46 @@ export const evolutionChainsRouter = router({
         const finalSpecies = [...chain.pokemonSpecies, ...additionalSpecies];
         const uniqueSpecies = Array.from(new Map(finalSpecies.map((s) => [s.id, s])).values());
 
-        return {
+        const chainWithSpecies = {
           ...chain,
           pokemonSpecies: uniqueSpecies,
+        };
+
+        // Enhance pokemonEvolutions data
+        const enhancedChain = await enhanceEvolutionChainPokemonEvolutions(chainWithSpecies);
+
+        return {
+          ...enhancedChain,
           absorbedSpeciesIds: crossChainEvolutions.map((s) => s.id), // Track absorbed species
         };
       }),
-    ).then((processedChains) => {
-      // Filter out chains that have been absorbed into other chains
-      const validChains = processedChains.filter((chain) => {
-        // Check if ALL species in this chain exist in other chains
-        const allSpeciesIds = chain.pokemonSpecies.map((s) => s.id);
-        const speciesExistInOtherChains = allSpeciesIds.every((speciesId) => {
-          return processedChains.some(
-            (otherChain) =>
-              otherChain.id !== chain.id &&
-              otherChain.pokemonSpecies.some((s) => s.id === speciesId),
-          );
-        });
+    );
 
-        // If all species exist in other chains, this chain is redundant
-        if (speciesExistInOtherChains) {
-          console.log(
-            `Filtering out redundant chain ${chain.id} - all species absorbed into other chains`,
-          );
-          return false;
-        }
-
-        return true;
+    // Filter out chains that have been absorbed into other chains
+    const validChains = processedChains.filter((chain) => {
+      // Check if ALL species in this chain exist in other chains
+      const allSpeciesIds = chain.pokemonSpecies.map((s: any) => s.id);
+      const speciesExistInOtherChains = allSpeciesIds.every((speciesId: number) => {
+        return processedChains.some(
+          (otherChain) =>
+            otherChain.id !== chain.id &&
+            otherChain.pokemonSpecies.some((s: any) => s.id === speciesId),
+        );
       });
 
-      // Remove the absorbedSpeciesIds from the final result
-      return validChains.map(({ absorbedSpeciesIds, ...chain }) => chain);
+      // If all species exist in other chains, this chain is redundant
+      if (speciesExistInOtherChains) {
+        console.log(
+          `Filtering out redundant chain ${chain.id} - all species absorbed into other chains`,
+        );
+        return false;
+      }
+
+      return true;
     });
+
+    // Remove the absorbedSpeciesIds from the final result
+    return validChains.map(({ absorbedSpeciesIds: _, ...chain }) => chain);
   }),
   bySpeciesId: publicProcedure
     .input(
@@ -188,10 +245,13 @@ export const evolutionChainsRouter = router({
       const finalSpecies = [...chain.pokemonSpecies, ...additionalSpecies];
       const uniqueSpecies = Array.from(new Map(finalSpecies.map((s) => [s.id, s])).values());
 
-      return {
+      const chainWithSpecies = {
         ...chain,
         pokemonSpecies: uniqueSpecies,
       };
+
+      // Enhance pokemonEvolutions data
+      return await enhanceEvolutionChainPokemonEvolutions(chainWithSpecies);
     }),
   paginated: publicProcedure
     .input(
@@ -251,12 +311,11 @@ export const evolutionChainsRouter = router({
             });
           });
 
-          // NEW: Edge case handler for cross-chain evolutions (like Meltan → Melmetal)
-          // Only run this if standard evolutions are missing from the chain
+          // Edge case handler for cross-chain evolutions
           const speciesIdsInChain = chain.pokemonSpecies.map((s) => s.id);
           let crossChainEvolutions: any[] = [];
 
-          // First, check if any evolvesToSpecies are missing from the current chain
+          // Check if any evolvesToSpecies are missing from the current chain
           const missingEvolutionTargets = new Set<number>();
           chain.pokemonSpecies.forEach((species) => {
             species.evolvesToSpecies.forEach((evolvesTo) => {
@@ -304,9 +363,16 @@ export const evolutionChainsRouter = router({
           const finalSpecies = [...chain.pokemonSpecies, ...additionalSpecies];
           const uniqueSpecies = Array.from(new Map(finalSpecies.map((s) => [s.id, s])).values());
 
-          return {
+          const chainWithSpecies = {
             ...chain,
             pokemonSpecies: uniqueSpecies,
+          };
+
+          // Enhance pokemonEvolutions data
+          const enhancedChain = await enhanceEvolutionChainPokemonEvolutions(chainWithSpecies);
+
+          return {
+            ...enhancedChain,
             absorbedSpeciesIds: crossChainEvolutions.map((s) => s.id), // Track absorbed species
           };
         }),
@@ -315,12 +381,12 @@ export const evolutionChainsRouter = router({
       // Filter out chains that have been absorbed into other chains
       const validChains = processedChains.filter((chain) => {
         // Check if ALL species in this chain exist in other chains
-        const allSpeciesIds = chain.pokemonSpecies.map((s) => s.id);
-        const speciesExistInOtherChains = allSpeciesIds.every((speciesId) => {
+        const allSpeciesIds = chain.pokemonSpecies.map((s: any) => s.id);
+        const speciesExistInOtherChains = allSpeciesIds.every((speciesId: number) => {
           return processedChains.some(
             (otherChain) =>
               otherChain.id !== chain.id &&
-              otherChain.pokemonSpecies.some((s) => s.id === speciesId),
+              otherChain.pokemonSpecies.some((s: any) => s.id === speciesId),
           );
         });
 
@@ -336,7 +402,7 @@ export const evolutionChainsRouter = router({
       });
 
       // Remove the absorbedSpeciesIds from the final result
-      const finalChains = validChains.map(({ absorbedSpeciesIds, ...chain }) => chain);
+      const finalChains = validChains.map(({ absorbedSpeciesIds: _, ...chain }) => chain);
 
       return {
         chains: finalChains,
