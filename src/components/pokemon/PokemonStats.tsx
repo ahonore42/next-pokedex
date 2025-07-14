@@ -1,15 +1,16 @@
-import { PokemonDetailedById } from '~/server/routers/_app';
+import { PokemonInSpecies } from '~/server/routers/_app';
 import { orderStatsWithSpeedLast } from '~/utils/pokemon';
 
 interface PokemonStatsProps {
-  pokemon: PokemonDetailedById;
+  stats: PokemonInSpecies['stats'];
+  baseExperience: PokemonInSpecies['baseExperience'];
 }
 
-const PokemonStats: React.FC<PokemonStatsProps> = ({ pokemon }) => {
-  const orderedStats = orderStatsWithSpeedLast(pokemon.stats);
+const PokemonStats: React.FC<PokemonStatsProps> = ({ stats, baseExperience }) => {
+  const orderedStats = orderStatsWithSpeedLast(stats);
   // Calculate total stats
-  const totalBaseStat = pokemon.stats.reduce((total, stat) => total + stat.baseStat, 0);
-  const totalEffort = pokemon.stats.reduce((total, stat) => total + stat.effort, 0);
+  const totalBaseStat = stats.reduce((total, stat) => total + stat.baseStat, 0);
+  const totalEffort = stats.reduce((total, stat) => total + stat.effort, 0);
 
   // Get stat color based on value
   const getStatColor = (baseStat: number) => {
@@ -34,7 +35,7 @@ const PokemonStats: React.FC<PokemonStatsProps> = ({ pokemon }) => {
   };
 
   // Get full stat name
-  const getStatName = (stat: PokemonDetailedById['stats'][0]) => {
+  const getStatName = (stat: PokemonInSpecies['stats'][0]) => {
     return stat.stat.names[0]?.name || stat.stat.name;
   };
 
@@ -115,19 +116,19 @@ const PokemonStats: React.FC<PokemonStatsProps> = ({ pokemon }) => {
           <div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Average</p>
             <p className="text-xl font-bold text-gray-900 dark:text-white">
-              {Math.round(totalBaseStat / pokemon.stats.length)}
+              {Math.round(totalBaseStat / stats.length)}
             </p>
           </div>
           <div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Highest</p>
             <p className="text-xl font-bold text-gray-900 dark:text-white">
-              {Math.max(...pokemon.stats.map((s) => s.baseStat))}
+              {Math.max(...stats.map((s) => s.baseStat))}
             </p>
           </div>
           <div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Lowest</p>
             <p className="text-xl font-bold text-gray-900 dark:text-white">
-              {Math.min(...pokemon.stats.map((s) => s.baseStat))}
+              {Math.min(...stats.map((s) => s.baseStat))}
             </p>
           </div>
         </div>
@@ -144,7 +145,7 @@ const PokemonStats: React.FC<PokemonStatsProps> = ({ pokemon }) => {
             total:
           </p>
           <div className="flex flex-wrap gap-2 mt-2">
-            {pokemon.stats
+            {stats
               .filter((stat) => stat.effort > 0)
               .map((stat) => (
                 <span
@@ -159,13 +160,11 @@ const PokemonStats: React.FC<PokemonStatsProps> = ({ pokemon }) => {
       )}
 
       {/* Base Experience */}
-      {pokemon.baseExperience && (
+      {baseExperience && (
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Base Experience:{' '}
-            <span className="font-medium text-gray-900 dark:text-white">
-              {pokemon.baseExperience}
-            </span>
+            <span className="font-medium text-gray-900 dark:text-white">{baseExperience}</span>
           </p>
         </div>
       )}
