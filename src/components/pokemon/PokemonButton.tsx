@@ -27,30 +27,18 @@ const PokemonButton: React.FC<PokemonButtonProps> = ({
   const types = pokemon.types || [];
 
   const styles = {
-    container: 'p-4',
+    container: 'p-4 w-full',
     imageSize: 'w-16 h-16',
     spacing: 'space-x-4',
     nameSize: 'font-semibold',
     statusSize: 'text-sm',
   };
 
-  // // Base button classes
-  // const baseClasses = `
-  //   border rounded-lg transition-all text-left cursor-pointer
-  //   hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-  //   disabled:opacity-50 disabled:cursor-not-allowed
-  // `;
-
   const baseClasses = `border rounded-lg p-4 transition-all text-left ${
     isActive
       ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
       : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 hover:shadow-sm'
   }`;
-
-  // // Active/inactive state classes
-  // const stateClasses = isActive
-  //   ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
-  //   : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600';
 
   // Error handling for onClick
   const handleClick = () => {
@@ -106,7 +94,7 @@ const PokemonButton: React.FC<PokemonButtonProps> = ({
         </div>
 
         {/* Pokemon Info */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 flex flex-col items-start">
           {/* Name */}
           <h4 className={`${styles.nameSize} capitalize text-gray-900 dark:text-gray-100 truncate`}>
             {pokemonName}
