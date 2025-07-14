@@ -23,7 +23,7 @@ const MyApp = (({ Component, pageProps }: AppPropsWithLayout) => {
   const getLayout = Component.getLayout ?? ((page) => <DefaultLayout>{page}</DefaultLayout>);
 
   return (
-    <ThemeProvider defaultTheme="light">{getLayout(<Component {...pageProps} />)}</ThemeProvider>
+    <ThemeProvider defaultTheme="dark">{getLayout(<Component {...pageProps} />)}</ThemeProvider>
   );
 }) as AppType;
 
