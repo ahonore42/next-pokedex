@@ -6,7 +6,6 @@ import { useState, useMemo } from 'react';
 import { trpc } from '~/utils/trpc';
 import type { NextPageWithLayout } from '~/pages/_app';
 import type { PokemonInSpecies } from '~/server/routers/_app';
-import { capitalizeName } from '~/utils/text';
 import PokemonHeader from '~/components/pokemon/PokemonHeader';
 import PokemonStats from '~/components/pokemon/PokemonStats';
 import { PokemonMoves } from '~/components/pokemon/PokemonMoves';
@@ -42,6 +41,12 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
     },
   );
 
+  // Handler to switch Pokemon
+  const handlePokemonSwitch = (newPokemonId: number) => {
+    setSelectedPokemonId(newPokemonId);
+    setSelectedFormId(null); // Reset form when switching Pokemon
+  };
+
   /**
    * Function to get the currently active Pokemon and form
    * Priority: Selected Pokemon → Originally requested Pokemon → Primary Pokemon
@@ -54,10 +59,7 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
     }
 
     const species = speciesQuery.data;
-    // console.log(species)
-
     const primaryPokemon = species.pokemon.find((p) => p.isDefault) || species.pokemon[0];
-
     // Find the Pokemon to display
     let activePokemon: PokemonInSpecies;
 
@@ -81,19 +83,10 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
     };
   }, [speciesQuery.data, selectedPokemonId, selectedFormId, pokemonId]);
 
-  /**
-   * Handler to switch Pokemon
-   */
-  const handlePokemonSwitch = (newPokemonId: number) => {
-    setSelectedPokemonId(newPokemonId);
-    setSelectedFormId(null); // Reset form when switching Pokemon
-  };
-
   // Handle loading state
   if (pokemonQuery.isLoading || speciesQuery.isLoading) {
     return <LoadingPage />;
   }
-
   // Handle error state
   if (pokemonQuery.error || speciesQuery.error) {
     const error = pokemonQuery.error || speciesQuery.error;
@@ -104,39 +97,29 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
       />
     );
   }
-
   // Handle invalid ID or no data
   if (isNaN(pokemonId) || !pokemonQuery.data || !speciesQuery.data) {
     return <NextError statusCode={404} title="Pokemon not found" />;
   }
 
+  // Get the species and default/primary Pokemon for this species, or the first one if no default
   const species = speciesQuery.data;
-
-  // Get the default/primary Pokemon for this species, or the first one if no default
   const primaryPokemon = species.pokemon.find((p) => p.isDefault) || species.pokemon[0];
-
   // If somehow no Pokemon exist for this species, show error
   if (!primaryPokemon) {
     return <NextError statusCode={404} title="No Pokemon found for this species" />;
   }
 
   const { pokemon: activePokemon } = getActivePokemonAndForm;
-
   // Additional null check for activePokemon since useMemo can return null during loading
   if ((!species && !activePokemon) || !activePokemon?.forms[0]?.versionGroup) {
     return <LoadingPage />;
   }
 
-  const activePokemonName = capitalizeName(activePokemon.name);
-
-  // Get species-level flavor text
+  const activePokemonName = activePokemon.name;
   const speciesFlavorText = species.flavorTexts[0]?.flavorText;
-
   const activePokemonRegion = getRegionFromVersionGroup(activePokemon.forms[0].versionGroup);
-
   const genus = species.names[0]?.genus || '';
-
-  // Get main dex number (National Dex)
   const nationalDexNumber =
     species.pokedexNumbers.find(
       (entry) => entry.pokedex.isMainSeries && entry.pokedex.name === 'national',
@@ -145,7 +128,7 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
   return (
     <>
       <Head>
-        <title>{activePokemonName} - Pokédex</title>
+        <title className="capitalize">{activePokemonName} - Pokédex</title>
         <meta
           name="description"
           content={`Complete information about ${activePokemonName} including stats, abilities, moves, evolution, and more.`}
@@ -158,10 +141,7 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
         <meta property="og:image" content={activePokemon.sprites?.frontDefault || ''} />
       </Head>
 
-      <div
-        className="min-h-screen transition-colors duration-300"
-        style={{ backgroundColor: 'var(--color-background)' }}
-      >
+      <div className="min-h-screen bg-background">
         <main className="mx-auto">
           <div className="flex justify-between items-start">
             {/* Left Column - Breadcrumb Navigation */}
@@ -181,14 +161,12 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
             {/* Right Column - Title and Info */}
             <div className="flex-1 text-right">
               <div className="flex items-center justify-end space-x-3 mb-2">
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-white capitalize">
-                  {activePokemonName}
-                </h1>
-                <span className="text-2xl font-semibold text-gray-500 dark:text-gray-400">
+                <h1 className="text-4xl font-bold capitalize text-primary">{activePokemonName}</h1>
+                <span className="text-2xl font-semibold text-muted">
                   #{nationalDexNumber.toString().padStart(3, '0')}
                 </span>
               </div>
-              {genus && <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">{genus}</p>}
+              {genus && <p className="text-lg text-subtle mb-4">{genus}</p>}
             </div>
           </div>
 
@@ -200,8 +178,7 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
           />
 
           {/* Content Grid - Focus on Active Pokemon */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-            {/* Left Column - Primary Info */}
+          <div className="grid grid-cols-1 gap-8 mt-8">
             <div className="lg:col-span-2 space-y-8">
               {/* Stats Section - Active Pokemon */}
               <PokemonStats
@@ -209,17 +186,18 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
                 baseExperience={activePokemon.baseExperience}
               />
             </div>
-
-            {/* Right Column - Secondary Info */}
-            <div className="space-y-8">
-              {/* Game Data - Active Pokemon */}
-              <PokemonGameData
-                pokedexNumbers={species.pokedexNumbers}
-                captureRate={species.captureRate}
-                baseHappiness={species.baseHappiness}
-              />
-            </div>
           </div>
+
+          {/* Secondary Info */}
+          <div className="space-y-8 mt-8">
+            {/* Game Data - Active Pokemon */}
+            <PokemonGameData
+              pokedexNumbers={species.pokedexNumbers}
+              captureRate={species.captureRate}
+              baseHappiness={species.baseHappiness}
+            />
+          </div>
+
           {/* Encounters - Active Pokemon */}
           <div className="mt-8">
             <PokemonEncounters encounters={activePokemon.encounters} />
@@ -234,7 +212,7 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
           <div className="mt-12 text-center">
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-brand hover:bg-brand-hover text-brand-text rounded-lg shadow-sm hover:shadow-md"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
