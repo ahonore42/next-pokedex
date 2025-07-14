@@ -1,8 +1,8 @@
 import { capitalizeName } from '~/utils/text';
-import type { PokemonDetailedById } from '~/server/routers/_app';
+import type { PokemonInSpecies } from '~/server/routers/_app';
 
 interface ComponentProps {
-  pokemon: PokemonDetailedById;
+  pokemon: PokemonInSpecies;
 }
 // Pokemon Abilities
 export const PokemonAbilities: React.FC<ComponentProps> = ({ pokemon }) => {
@@ -10,9 +10,7 @@ export const PokemonAbilities: React.FC<ComponentProps> = ({ pokemon }) => {
   const hiddenAbilities = pokemon.abilities.filter((a) => a.isHidden);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Abilities</h2>
-
+    <>
       {/* Normal Abilities */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
@@ -34,7 +32,7 @@ export const PokemonAbilities: React.FC<ComponentProps> = ({ pokemon }) => {
                 </p>
               )}
               {pokemonAbility.ability.effectTexts[0]?.shortEffect && (
-                <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
+                <p className="text-gray-600 dark:text-gray-300 text-sm mt-2">
                   {pokemonAbility.ability.effectTexts[0].shortEffect}
                 </p>
               )}
@@ -67,11 +65,16 @@ export const PokemonAbilities: React.FC<ComponentProps> = ({ pokemon }) => {
                     {pokemonAbility.ability.flavorTexts[0].flavorText}
                   </p>
                 )}
+                {pokemonAbility.ability.effectTexts[0]?.shortEffect && (
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mt-2">
+                    {pokemonAbility.ability.effectTexts[0].shortEffect}
+                  </p>
+                )}
               </div>
             ))}
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
