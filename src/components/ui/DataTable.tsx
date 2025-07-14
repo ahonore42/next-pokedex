@@ -9,6 +9,20 @@ export interface Column<T> {
   noWrap?: boolean;
   sortable?: boolean;
   sortKey?: keyof T | ((data: T) => any);
+  rowspan?: (data: T, index: number) => number | undefined; // New optional rowspan function
+  skipRender?: (data: T, index: number) => boolean; // New optional skip render function for rowspan cells
+  dividerAfter?: boolean; // New optional vertical divider after this column
+  dividerBefore?: boolean | ((data: T) => boolean); // New optional vertical divider before this column, can be conditional
+  cellStyle?: (
+    data: T,
+    rowIndex: number,
+  ) =>
+    | {
+        className?: string;
+        style?: React.CSSProperties;
+        wrapper?: (content: React.ReactNode) => React.ReactNode;
+      }
+    | undefined; // New cell-specific styling function
 }
 
 interface DataTableProps<T> {
@@ -52,7 +66,7 @@ export function DataTable<T>({
       let valA: any;
       let valB: any;
 
-      const column = columns.find(col => col.header === sortBy);
+      const column = columns.find((col) => col.header === sortBy);
 
       if (!column) {
         // If column is not found, return 0 to maintain original order or handle as an error
@@ -83,24 +97,26 @@ export function DataTable<T>({
   return (
     <div className="flex flex-col gap-4 w-full">
       {(initialSortBy || sortableColumns.length > 0) && (
-        <div className="flex justify-end items-center"> {/* Use justify-between for sort and filter controls */}
+        <div className="flex justify-end items-center">
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Sort by:</label>
+            <label className="text-sm font-medium text-muted transition-colors duration-300">
+              Sort by:
+            </label>
             <select
               value={sortBy || ''}
               onChange={(e) => setSortBy(e.target.value === '' ? undefined : e.target.value)}
-              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="px-3 py-1 border border-border rounded-md text-sm bg-surface text-primary transition-colors duration-300 focus:border-brand focus:outline-none"
             >
-              {sortableColumns
-                .map((column, index) => (
-                  <option key={index} value={column.header as string}>
-                    {column.header}
-                  </option>
-                ))}
+              <option value="">None</option>
+              {sortableColumns.map((column, index) => (
+                <option key={index} value={column.header as string}>
+                  {column.header}
+                </option>
+              ))}
             </select>
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+              className="px-2 py-1 bg-interactive-hover rounded text-sm hover:bg-interactive-active transition-colors duration-200"
               title={`Sort ${sortOrder === 'asc' ? 'descending' : 'ascending'}`}
             >
               {sortOrder === 'asc' ? '↑' : '↓'}
@@ -109,25 +125,31 @@ export function DataTable<T>({
         </div>
       )}
       <div>
-        <table className="w-full border-collapse divide-y divide-gray-200 dark:divide-gray-700">
+        <table className="w-full border-collapse divide-y divide-border">
           <thead>
-            <tr className="border-b-2 border-gray-200 dark:border-gray-600">
+            <tr className="border-b-2 border-border">
               {visibleColumns.map((column, index) => (
                 <th
                   key={index}
                   className={clsx(
-                    'text-left p-3 font-semibold text-gray-900 dark:text-white',
+                    'text-left p-3 font-semibold text-primary transition-colors duration-300',
                     column.headerClassName,
-                    column.sortable && 'cursor-pointer', // Add cursor-pointer here
+                    column.sortable && 'cursor-pointer hover:text-brand',
+                    column.dividerAfter && 'border-r-2 border-border',
                   )}
-                  onClick={() => handleSort(column)} // Add onClick back to th
+                  onClick={() => handleSort(column)}
                 >
-                  <div className="flex items-center justify-between"> {/* Use justify-between */}
-                    <span className="flex-grow">{column.header}</span> {/* Wrap header in span and allow it to grow */}
-                    {column.sortable && ( // Always render the span if sortable
-                      <span className={clsx("text-xs ml-1 flex-shrink-0", {
-                        "opacity-0": sortBy !== column.header // Make it invisible if not sorted by this column
-                      })}>
+                  <div className="flex items-center justify-between">
+                    <span className="flex-grow">{column.header}</span>
+                    {column.sortable && (
+                      <span
+                        className={clsx(
+                          'text-xs ml-1 flex-shrink-0 transition-opacity duration-200',
+                          {
+                            'opacity-0': sortBy !== column.header,
+                          },
+                        )}
+                      >
                         {sortOrder === 'asc' ? '↑' : '↓'}
                       </span>
                     )}
@@ -136,31 +158,67 @@ export function DataTable<T>({
               ))}
             </tr>
           </thead>
-        <tbody className="">
-          {sortedData.map((row, rowIndex) => (
-            <tr
-              key={rowIndex}
-              className="border-b border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              {visibleColumns.map((column, colIndex) => (
-                <td
-                  key={colIndex}
-                  className={clsx(
-                    'px-3 py-2 text-sm text-gray-900 dark:text-white',
-                    column.noWrap && 'whitespace-nowrap',
-                    column.className,
-                  )}
-                >
-                  {typeof column.accessor === 'function'
-                    ? column.accessor(row)
-                    : (row[column.accessor] as React.ReactNode)}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          <tbody className="">
+            {sortedData.map((row, rowIndex) => (
+              <tr key={rowIndex} className="border-b border-border group">
+                {visibleColumns.map((column, colIndex) => {
+                  // Check if this cell should be skipped due to rowspan
+                  if (column.skipRender?.(row, rowIndex)) {
+                    return null;
+                  }
+
+                  // Get rowspan value if defined
+                  const rowspanValue = column.rowspan?.(row, rowIndex);
+
+                  // Check if divider should be shown before this column
+                  const showDividerBefore =
+                    typeof column.dividerBefore === 'function'
+                      ? column.dividerBefore(row)
+                      : column.dividerBefore;
+
+                  // Get cell-specific styling
+                  const cellStyling = column.cellStyle?.(row, rowIndex);
+
+                  // Get cell content
+                  const cellContent =
+                    typeof column.accessor === 'function'
+                      ? column.accessor(row)
+                      : (row[column.accessor] as React.ReactNode);
+
+                  // Apply wrapper if provided
+                  const finalContent = cellStyling?.wrapper
+                    ? cellStyling.wrapper(cellContent)
+                    : cellContent;
+
+                  return (
+                    <td
+                      key={colIndex}
+                      rowSpan={rowspanValue}
+                      className={clsx(
+                        'px-3 py-2 text-sm transition-colors duration-300',
+                        // Apply cell-specific classes first, then fallback to default colors
+                        cellStyling?.className || 'text-primary',
+                        column.noWrap && 'whitespace-nowrap',
+                        column.className,
+                        // Vertically center text for rowspan > 1, otherwise align top
+                        (rowspanValue ?? 0) > 1 ? 'align-middle' : 'align-top',
+                        column.dividerAfter && 'border-r-2 border-border',
+                        showDividerBefore && 'border-l-2 border-border',
+                        // Only apply hover effect if rowspan is 1 or undefined (single row)
+                        (!rowspanValue || rowspanValue === 1) &&
+                          'group-hover:bg-interactive-hover transition-colors duration-200',
+                      )}
+                      style={cellStyling?.style} // Add cell-specific inline styles
+                    >
+                      {finalContent}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
