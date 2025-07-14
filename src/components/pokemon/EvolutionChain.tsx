@@ -10,14 +10,14 @@ import {
   Node,
 } from '@xyflow/react';
 import * as dagre from '@dagrejs/dagre';
-import type { EvolutionChainSingle } from '~/server/routers/_app';
 import { formatEvolutionConditions } from '~/utils/pokemon';
 import EvolutionNode from './EvolutionNode';
 import EvolutionEdgeLabel from './EvolutionEdgeLabel';
 import { computeNodesep, computeRanksep } from '~/utils/pokemon';
+import type { SpeciesEvolutionChain } from '~/server/routers/_app';
 
 interface EvolutionChainProps {
-  chain: EvolutionChainSingle;
+  chain: SpeciesEvolutionChain;
 }
 
 interface GraphElements {
@@ -28,7 +28,7 @@ interface GraphElements {
 }
 
 const handleElementLayoutWithWidth = (
-  chain: EvolutionChainSingle,
+  chain: SpeciesEvolutionChain,
   containerWidth: number,
   containerHeight: number,
 ): GraphElements => {
@@ -142,8 +142,8 @@ const handleElementLayoutWithWidth = (
       height: nodeHeight,
     });
 
-    species.evolvesToSpecies.forEach((nextSpecies) => {
-      const evolutionDetail = nextSpecies.pokemonEvolutions[0];
+    species.evolvesToSpecies.forEach((nextSpecies, index) => {
+      const evolutionDetail = species.pokemonEvolutions?.[index] || species.pokemonEvolutions?.[0];
 
       // Always call formatEvolutionConditions, even with null/undefined evolution data
       const edgeLabel = formatEvolutionConditions(
