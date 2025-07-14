@@ -24,7 +24,7 @@ const PokemonCries: React.FC<PokemonCriesProps> = ({ criesLatest, criesLegacy })
       {criesLatest && (
         <button
           onClick={() => handlePlayCry(criesLatest)}
-          className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors text-nowrap"
           aria-label="Play latest cry"
         >
           <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -40,7 +40,7 @@ const PokemonCries: React.FC<PokemonCriesProps> = ({ criesLatest, criesLegacy })
       {criesLegacy && (
         <button
           onClick={() => handlePlayCry(criesLegacy)}
-          className="flex items-center px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+          className="flex items-center px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors text-nowrap"
           aria-label="Play legacy cry"
         >
           <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
