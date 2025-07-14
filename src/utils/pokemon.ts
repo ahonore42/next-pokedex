@@ -1,7 +1,149 @@
-import { EvolutionConditions } from '~/server/routers/_app';
-import { capitalizeWords } from '~/utils/text';
-import { PokemonDetailedById } from '~/server/routers/_app';
-type PokemonStat = PokemonDetailedById['stats'][0];
+import {
+  EvolutionConditions,
+  PokemonStats,
+  PokemonEncounters,
+  PokemonEncounter,
+  EncounterLocationArea,
+  EncounterLocation,
+  EncounterVersionGroup,
+  EncounterConditions,
+} from '~/server/routers/_app';
+import { capitalizeWords, romanToInteger } from '~/utils/text';
+// import { PokemonDetailedById } from '~/server/routers/_app';
+// type PokemonStat = PokemonDetailedById['stats'][0];
+
+// --------------------------
+// Core Domain Types
+// --------------------------
+interface VersionGroup {
+  id: number;
+  name: string;
+  order: number;
+  generation: Generation;
+  version: { name: string }[];
+}
+
+interface Generation {
+  id: number;
+  name: string;
+}
+
+interface RegionInfo {
+  id: number;
+  name: string;
+  displayName: string;
+}
+
+// --------------------------
+// Utility/Configuration Types
+// --------------------------
+type SeparationOptions = {
+  rankdir: 'TB' | 'LR';
+  containerWidth: number;
+  containerHeight: number;
+  nodeWidth: number;
+  nodeHeight: number;
+};
+
+type ComputeNodesepOptions = SeparationOptions & {
+  maxSiblings: number;
+};
+
+type ComputeRanksepOptions = SeparationOptions & {
+  rankCount: number;
+};
+
+export type LevelChancePair = {
+  minLevel: number;
+  maxLevel: number;
+  chance: number;
+};
+
+type LevelSection = {
+  minLevel: number;
+  maxLevel: number;
+  cumulativeChance: number;
+};
+
+// --------------------------
+// Location Types
+// --------------------------
+type LocationArea = {
+  locationName: string;
+  mainLocationName: string;
+  mainLocationId: number;
+  location: EncounterLocation;
+  locationArea: EncounterLocationArea;
+  encounters: PokemonEncounters;
+};
+
+type LocationGroupResult = {
+  mainLocationName: string;
+  mainLocationId: number;
+  locationAreas: LocationArea[];
+};
+
+// --------------------------
+// Grouped Encounter Types
+// --------------------------
+type GroupedEncounters = Record<string, PokemonEncounter & { allConditions: EncounterConditions }>;
+
+type MergedEncounter = PokemonEncounter & {
+  allConditions: EncounterConditions;
+  levelChancePairs: LevelChancePair[];
+};
+
+type VersionGroupEncounter = {
+  versionGroupName: string;
+  versionGroup: EncounterVersionGroup;
+  encounters: PokemonEncounters;
+};
+
+// --------------------------
+// Function Export Types
+// --------------------------
+type EncountersByVersionGroup = Record<number, VersionGroupEncounter>;
+type EncountersGroupedByLocation = Record<number, LocationGroupResult>;
+type MergedGroupedEncounters = Record<string, MergedEncounter>;
+
+/**
+ * Reusable mappings
+ */
+
+// Evolution chain utilities
+const specialEvolutionCases: Record<string, string> = {
+  'primeape-annihilape': 'Level up after using Rage Fist 20 times',
+  'pawmo-pawmot': "Level up after walking 1000 steps with Let's Go!",
+  'bramblin-brambleghast': "Level up after walking 1000 steps with Let's Go!",
+  'rellor-rabsca': "Level up after walking 1000 steps with Let's Go!",
+  'finizen-palafin': 'Level up to 38 while connected to another player via the Union Circle',
+  'bisharp-kingambit': "Level up after defeating three Bisharp that hold a Leader's Crest",
+  'gimmighoul-gholdengo': 'Level up with 999 Gimmighoul Coins in the bag',
+  'meltan-melmetal': 'Evolves with 400 Meltan Candies in Pokémon GO',
+  'magneton-magnezone': 'Level up in a special magnetic field or use a Thunder Stone',
+  'farfetchd-sirfetchd': "Land three critical hits in a single battle with Galarian Farfetch'd",
+  'applin-flapple': 'Use Tart Apple',
+  'applin-appletun': 'Use Sweet Apple',
+  'applin-dipplin': 'Use Syrupy Apple',
+  'dipplin-hydrapple': 'Level up knowing Dragon Cheer',
+};
+
+// Mapping of generation IDs to their primary regions
+const versionGroupIdRegionMap: Record<number, RegionInfo> = {
+  1: { id: 1, name: 'kanto', displayName: 'Kanto' },
+  2: { id: 2, name: 'johto', displayName: 'Johto' },
+  3: { id: 3, name: 'hoenn', displayName: 'Hoenn' },
+  4: { id: 4, name: 'sinnoh', displayName: 'Sinnoh' },
+  5: { id: 5, name: 'unova', displayName: 'Unova' },
+  6: { id: 6, name: 'kalos', displayName: 'Kalos' },
+  7: { id: 7, name: 'alola', displayName: 'Alola' },
+  8: { id: 8, name: 'galar', displayName: 'Galar' },
+  9: { id: 9, name: 'paldea', displayName: 'Paldea' },
+};
+
+/**
+ * Utility functions
+ */
 
 // Utility function to get type color - Complete list
 export function getTypeColor(type: string): string {
@@ -58,7 +200,7 @@ export const getDamageClassColor = (damageClass: string) => {
   }
 };
 
-export function orderStatsWithSpeedLast(stats: readonly PokemonStat[]): PokemonStat[] {
+export function orderStatsWithSpeedLast(stats: PokemonStats): PokemonStats {
   if (!stats || stats.length === 0) {
     return [];
   }
@@ -66,20 +208,6 @@ export function orderStatsWithSpeedLast(stats: readonly PokemonStat[]): PokemonS
   const nonSpeedStats = stats.filter((stat) => stat.stat.name !== 'speed');
   return speedStat ? [...nonSpeedStats, speedStat] : [...nonSpeedStats];
 }
-
-// Evolution chain utilities
-const specialEvolutionCases: Record<string, string> = {
-  "primeape-annihilape": "Level up after using Rage Fist 20 times",
-  "pawmo-pawmot": "Level up after walking 1000 steps with Let's Go!",
-  "bramblin-brambleghast": "Level up after walking 1000 steps with Let's Go!",
-  "rellor-rabsca": "Level up after walking 1000 steps with Let's Go!",
-  "finizen-palafin": "Level up to 38 while connected to another player via the Union Circle",
-  "bisharp-kingambit": "Level up after defeating three Bisharp that hold a Leader's Crest",
-  "gimmighoul-gholdengo": "Level up with 999 Gimmighoul Coins in the bag",
-  "meltan-melmetal": "Evolves with 400 Meltan Candies in Pokémon GO",
-  "magneton-magnezone": "Level up in a special magnetic field or use a Thunder Stone",
-  "farfetchd-sirfetchd": "Land three critical hits in a single battle with Galarian Farfetch'd",
-};
 
 export const formatEvolutionConditions = (
   evolution: EvolutionConditions,
@@ -176,61 +304,321 @@ export const formatEvolutionConditions = (
   return displayString;
 };
 
-export interface ComputeNodesepOptions {
-  rankdir: 'TB' | 'LR';
-  containerWidth: number;
-  containerHeight: number;
-  nodeWidth: number;
-  nodeHeight: number;
-  maxSiblings: number;
-}
-
+// Only modify the spacing calculations, keep all layout logic the same
 export function computeNodesep(options: ComputeNodesepOptions): number {
   const { rankdir, containerWidth, containerHeight, nodeWidth, nodeHeight, maxSiblings } = options;
 
+  // Keep your original sibling count logic
   if (maxSiblings <= 1) return 50;
 
   if (rankdir === 'LR') {
-    // Vertical spacing between siblings
+    // Vertical spacing between siblings (HORIZONTAL layout)
     const totalHeight = maxSiblings * nodeHeight;
     const available = containerHeight - totalHeight;
-    return Math.max(30, available / (maxSiblings - 1));
+    
+    // Only make this one change - responsive minimum spacing
+    const minSpacing = containerWidth < 768 ? 40 : 50;
+    return Math.max(minSpacing, available / (maxSiblings - 1));
   } else {
-    // Horizontal spacing between siblings
+    // Horizontal spacing between siblings (VERTICAL layout)
     const totalWidth = maxSiblings * nodeWidth;
     const available = containerWidth - totalWidth;
+    
+    // Keep your original sibling count logic
     if (maxSiblings > 3) {
-      // If there are many siblings, allow less space
       return Math.max(10, available / maxSiblings);
     }
     return Math.max(50, available / (maxSiblings - 1));
   }
 }
 
-export interface ComputeRanksepOptions {
-  rankdir: 'TB' | 'LR';
-  containerWidth: number;
-  containerHeight: number;
-  nodeWidth: number;
-  nodeHeight: number;
-  rankCount: number;
-}
-
 export function computeRanksep(options: ComputeRanksepOptions): number {
   const { rankdir, containerWidth, containerHeight, nodeWidth, nodeHeight, rankCount } = options;
 
+  // Keep your original rank count logic
   if (rankCount <= 1) return 50;
 
   if (rankdir === 'LR') {
-    // Horizontal spacing between evolution steps
+    // Horizontal spacing between evolution steps (HORIZONTAL layout)
     const totalWidth = rankCount * nodeWidth;
     const available = containerWidth - totalWidth;
 
-    return Math.min(180, available / (rankCount - 1));
+    // Only make this one change - responsive maximum spacing
+    const maxSpacing = containerWidth < 768 ? 150 : 180;
+    return Math.min(maxSpacing, available / (rankCount - 1));
   } else {
-    // Vertical spacing between evolution steps
+    // Vertical spacing between evolution steps (VERTICAL layout)
     const totalHeight = rankCount * nodeHeight;
     const available = containerHeight - totalHeight;
+    
+    // Keep your original vertical spacing logic
     return Math.max(180, available / (rankCount - 1));
   }
 }
+
+export function parseGenerationToNumber(generationName: string): number | null {
+  if (!generationName) return null;
+
+  // Quick length check before string operations
+  if (generationName.length < 12) return null; // "generation-i" minimum
+
+  // Check if it starts with "generation-" (case insensitive)
+  const prefix = generationName.slice(0, 11).toLowerCase();
+  if (prefix !== 'generation-') return null;
+
+  // Extract roman numeral part
+  const romanNumeral = generationName.slice(11);
+  if (!romanNumeral) return null;
+
+  return romanToInteger(romanNumeral);
+}
+
+export function getRegionFromVersionGroup(versionGroup: VersionGroup): RegionInfo | null {
+  if (!versionGroup) {
+    return null;
+  }
+
+  const region = versionGroupIdRegionMap[versionGroup.generation.id];
+
+  if (!region) {
+    console.warn(`No region mapping found for generation: ${versionGroup.generation.id}`);
+    return null;
+  }
+
+  return region;
+}
+
+// Encounter method icons
+export function getEncounterMethodIcon(methodName: string) {
+  const method = methodName.toLowerCase();
+  if (method.includes('walk') || method.includes('land')) return '🚶';
+  if (method.includes('surf') || method.includes('water')) return '🌊';
+  if (method.includes('fish') || method.includes('rod')) return '🎣';
+  if (method.includes('rock') || method.includes('smash')) return '🪨';
+  if (method.includes('cut') || method.includes('headbutt')) return '🌳';
+  if (method.includes('cave') || method.includes('dark')) return '🕳️';
+  return '📍';
+}
+
+// Color indicators for encounter chance percentages
+export function getEncounterChanceColor(chance: number) {
+  if (chance >= 30) return 'text-green-600 dark:text-green-400';
+  if (chance >= 15) return 'text-yellow-600 dark:text-yellow-400';
+  if (chance >= 5) return 'text-orange-600 dark:text-orange-400';
+  return 'text-red-600 dark:text-red-400';
+}
+
+// Algorithm to handle overlapping level ranges and calculate cumulative chances
+export function calculateLevelSections(levelChancePairs: LevelChancePair[]): LevelSection[] {
+  if (levelChancePairs.length === 0) return [];
+
+  // Remove duplicates first
+  const uniquePairs = levelChancePairs.filter(
+    (pair, index, arr) =>
+      arr.findIndex(
+        (p) =>
+          p.minLevel === pair.minLevel && p.maxLevel === pair.maxLevel && p.chance === pair.chance,
+      ) === index,
+  );
+
+  // If only one unique pair, return it as-is
+  if (uniquePairs.length === 1) {
+    return [
+      {
+        minLevel: uniquePairs[0].minLevel,
+        maxLevel: uniquePairs[0].maxLevel,
+        cumulativeChance: uniquePairs[0].chance,
+      },
+    ];
+  }
+
+  // Find absolute min and max levels
+  const absoluteMinLevel = Math.min(...uniquePairs.map((p) => p.minLevel));
+  const absoluteMaxLevel = Math.max(...uniquePairs.map((p) => p.maxLevel));
+
+  // Collect all boundary points (start and end of each range)
+  const boundaryPoints = new Set<number>();
+  uniquePairs.forEach((pair) => {
+    boundaryPoints.add(pair.minLevel);
+    boundaryPoints.add(pair.maxLevel + 1); // +1 because ranges are inclusive
+  });
+
+  // Convert to sorted array
+  const sortedBoundaries = Array.from(boundaryPoints).sort((a, b) => a - b);
+
+  // Create sections between consecutive boundary points
+  const sections: LevelSection[] = [];
+
+  for (let i = 0; i < sortedBoundaries.length - 1; i++) {
+    const sectionStart = sortedBoundaries[i];
+    const sectionEnd = sortedBoundaries[i + 1] - 1; // -1 because we want inclusive ranges
+
+    // Skip if section is outside our absolute range
+    if (sectionEnd < absoluteMinLevel || sectionStart > absoluteMaxLevel) {
+      continue;
+    }
+
+    // Adjust section to stay within absolute bounds
+    const adjustedStart = Math.max(sectionStart, absoluteMinLevel);
+    const adjustedEnd = Math.min(sectionEnd, absoluteMaxLevel);
+
+    // Skip if adjusted section is invalid
+    if (adjustedStart > adjustedEnd) {
+      continue;
+    }
+
+    // Calculate cumulative chance for this section
+    let cumulativeChance = 0;
+
+    uniquePairs.forEach((pair) => {
+      // Check if this pair's range overlaps with our section
+      if (pair.minLevel <= adjustedEnd && pair.maxLevel >= adjustedStart) {
+        cumulativeChance += pair.chance;
+      }
+    });
+
+    // Only add section if it has a chance > 0
+    if (cumulativeChance > 0) {
+      sections.push({
+        minLevel: adjustedStart,
+        maxLevel: adjustedEnd,
+        cumulativeChance,
+      });
+    }
+  }
+
+  return sections;
+}
+
+// Group encounters by version group
+export const groupEncountersByVersionGroup = (
+  encounters: PokemonEncounters,
+): EncountersByVersionGroup => {
+  return encounters.reduce<EncountersByVersionGroup>((acc, encounter) => {
+    const version = encounter.version;
+    const versionGroup = version.versionGroup || version;
+    const versionGroupKey = versionGroup.id;
+    const versionGroupName = versionGroup.name;
+
+    if (!acc[versionGroupKey]) {
+      acc[versionGroupKey] = {
+        versionGroupName,
+        versionGroup,
+        encounters: [],
+      };
+    }
+
+    acc[versionGroupKey].encounters.push(encounter);
+    return acc;
+  }, {});
+};
+
+// Group encounters by main location, then by specific location area
+export function groupEncountersByLocation(
+  versionGroupEncounters: PokemonEncounters,
+): EncountersGroupedByLocation {
+  // First grouping by specific location area
+  const locationGroups = versionGroupEncounters.reduce<Record<number, LocationArea>>(
+    (acc, encounter) => {
+      const { locationArea } = encounter;
+      const locationKey = locationArea.id;
+
+      if (!acc[locationKey]) {
+        acc[locationKey] = {
+          locationName: locationArea.names[0]?.name || locationArea.name,
+          mainLocationName: locationArea.location.names[0]?.name || locationArea.location.name,
+          mainLocationId: locationArea.location.id,
+          location: locationArea.location,
+          locationArea,
+          encounters: [],
+        };
+      }
+
+      acc[locationKey].encounters.push(encounter);
+      return acc;
+    },
+    {},
+  );
+
+  // Second grouping by main location - properly typed
+  return Object.values(locationGroups).reduce<EncountersGroupedByLocation>(
+    (result, locationData) => {
+      const { mainLocationId } = locationData;
+
+      if (!result[mainLocationId]) {
+        result[mainLocationId] = {
+          mainLocationName: locationData.mainLocationName,
+          mainLocationId,
+          locationAreas: [],
+        };
+      }
+
+      result[mainLocationId].locationAreas.push(locationData);
+      return result;
+    },
+    {},
+  );
+}
+
+// Group encounters by method + level + chance (everything except conditions)
+export const groupEncountersByMethodLevelChance = (locationArea: LocationArea): GroupedEncounters =>
+  locationArea.encounters.reduce<GroupedEncounters>((acc, encounter) => {
+    const methodName = encounter.encounterMethod.names[0]?.name || encounter.encounterMethod.name;
+    const key = `${methodName}-${encounter.minLevel}-${encounter.maxLevel}-${encounter.chance}`;
+
+    return {
+      ...acc,
+      [key]: {
+        ...encounter,
+        allConditions: [...(acc[key]?.allConditions ?? []), ...encounter.conditionValueMap],
+      },
+    };
+  }, {});
+
+// Group by method + merged conditions for final display
+export const mergeGroupedEncounters = (
+  groupedEncounters: GroupedEncounters,
+): MergedGroupedEncounters =>
+  Object.values(groupedEncounters).reduce<MergedGroupedEncounters>((acc, encounter) => {
+    const methodName = encounter.encounterMethod.names[0]?.name || encounter.encounterMethod.name;
+    const conditions = encounter.allConditions
+      .map((cv) => cv.encounterConditionValue.names[0]?.name || cv.encounterConditionValue.name)
+      .sort()
+      .join(',');
+    const key = `${methodName}-${conditions}`;
+
+    if (!acc[key]) {
+      acc[key] = {
+        ...encounter,
+        conditionValueMap: encounter.allConditions,
+        levelChancePairs: [
+          {
+            minLevel: encounter.minLevel,
+            maxLevel: encounter.maxLevel,
+            chance: encounter.chance,
+          },
+        ],
+      };
+    } else {
+      acc[key].levelChancePairs.push({
+        minLevel: encounter.minLevel,
+        maxLevel: encounter.maxLevel,
+        chance: encounter.chance,
+      });
+    }
+    return acc;
+  }, {});
+
+// Deduplicate conditions by their names
+export const getUniqueConditions = (encounter: PokemonEncounter): EncounterConditions =>
+  encounter.conditionValueMap.filter((conditionMap, index, arr) => {
+    const conditionName =
+      conditionMap.encounterConditionValue.names[0]?.name ||
+      conditionMap.encounterConditionValue.name;
+    return (
+      arr.findIndex((c) => {
+        const cName = c.encounterConditionValue.names[0]?.name || c.encounterConditionValue.name;
+        return cName === conditionName;
+      }) === index
+    );
+  });
