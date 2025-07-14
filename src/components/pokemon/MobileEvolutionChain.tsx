@@ -28,7 +28,7 @@ interface MobileEvolutionChainProps {
   className?: string;
 }
 
-const MobileEvolutionChain: React.FC<MobileEvolutionChainProps> = ({ species, className = '' }) => {
+const MobileEvolutionChain: React.FC<MobileEvolutionChainProps> = ({ species }) => {
   // Don't render if there's no evolution chain
   if (!species.evolutionChain?.pokemonSpecies.length) {
     return null;
@@ -101,9 +101,7 @@ const MobileEvolutionChain: React.FC<MobileEvolutionChainProps> = ({ species, cl
   );
 
   return (
-    <div className={`mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 ${className}`}>
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Evolution Chain</h2>
-
+    <>
       {type === 'linear' ? (
         // Linear evolution - single row
         <div className="flex flex-wrap items-center justify-center gap-6">
@@ -139,7 +137,7 @@ const MobileEvolutionChain: React.FC<MobileEvolutionChainProps> = ({ species, cl
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 };
 
