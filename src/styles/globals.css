@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 /* Comprehensive Theme System with High Contrast */
 :root {
   /* Base system colors */
@@ -59,8 +58,8 @@
   --color-interactive-disabled-text: #cbd5e1;
 
   /* Pokemon card specific colors */
-  --color-pokemon-card-bg: #ffffff;
-  --color-pokemon-card-hover-bg: #eef2ff;
+  --color-pokemon-card-bg: #e0dbf4;
+  --color-pokemon-card-hover-bg: #c9c0ec;
   --color-pokemon-card-border: #e5e7eb;
   --color-pokemon-card-hover-border: #a5b4fc;
   --color-pokemon-card-text: #1f2937;
@@ -72,14 +71,10 @@
 
   /* Shadows with proper opacity */
   --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-sm:
-    0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-  --shadow-md:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --shadow-lg:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  --shadow-xl:
-    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
 /* Dark Mode - High Contrast Design */
@@ -147,142 +142,13 @@
 
   /* Dark mode shadows */
   --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-sm:
-    0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
-  --shadow-md:
-    0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
-  --shadow-lg:
-    0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
-  --shadow-xl:
-    0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
 }
 
-/* Tailwind integration */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-/* Base element styling */
-body,
-ul,
-ol,
-li {
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  scroll-behavior: smooth;
-  height: 100%;
-}
-
-body {
-  background-color: var(--color-background);
-  color: var(--color-text-primary);
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-    'Cantarell', sans-serif;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
-  overflow-x: hidden;
-  min-height: 100%;
-}
-
-/* Respect reduced motion preferences */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Comprehensive utility classes */
-.bg-background {
-  background-color: var(--color-background);
-}
-
-.bg-background-secondary {
-  background-color: var(--color-background-secondary);
-}
-
-.bg-surface {
-  background-color: var(--color-surface);
-}
-
-.bg-surface-elevated {
-  background-color: var(--color-surface-elevated);
-  box-shadow: var(--shadow-sm);
-}
-
-.bg-surface-indigo {
-  background-color: var(--color-surface-indigo);
-}
-
-.bg-primary {
-  background-color: var(--color-primary);
-  color: var(--color-primary-text);
-}
-
-.bg-primary:hover {
-  background-color: var(--color-primary-hover);
-}
-
-.bg-primary:active {
-  background-color: var(--color-primary-active);
-}
-
-.text-primary {
-  color: var(--color-text-primary);
-}
-
-.text-secondary {
-  color: var(--color-text-secondary);
-}
-
-.text-tertiary {
-  color: var(--color-text-tertiary);
-}
-
-.text-quaternary {
-  color: var(--color-text-quaternary);
-}
-
-.text-primary-color {
-  color: var(--color-primary);
-}
-
-.text-primary-hover:hover {
-  color: var(--color-primary-hover);
-}
-
-.border-default {
-  border-color: var(--color-border);
-}
-
-.border-hover:hover {
-  border-color: var(--color-border-hover);
-}
-
-.border-focus:focus {
-  border-color: var(--color-border-hover);
-}
-
-.border-strong {
-  border-color: var(--color-border-strong);
-}
-
-/* Interactive states */
+/* Custom Interactive States - Keep these as they're specialized */
 .interactive {
   transition: all 0.2s ease;
 }
@@ -301,67 +167,9 @@ body {
   cursor: not-allowed;
 }
 
-/* Status color utilities */
-.text-success {
-  color: var(--color-success);
-}
-
-.bg-success {
-  background-color: var(--color-success-bg);
-}
-
-.text-error {
-  color: var(--color-error);
-}
-
-.bg-error {
-  background-color: var(--color-error-bg);
-}
-
-.text-warning {
-  color: var(--color-warning);
-}
-
-.bg-warning {
-  background-color: var(--color-warning-bg);
-}
-
-.text-info {
-  color: var(--color-info);
-}
-
-.bg-info {
-  background-color: var(--color-info-bg);
-}
-
-/* Shadow utilities */
-.shadow-xs {
-  box-shadow: var(--shadow-xs);
-}
-
-.shadow-sm {
-  box-shadow: var(--shadow-sm);
-}
-
-.shadow-md {
-  box-shadow: var(--shadow-md);
-}
-
-.shadow-lg {
-  box-shadow: var(--shadow-lg);
-}
-
-.shadow-xl {
-  box-shadow: var(--shadow-xl);
-}
-
-/* Advanced gradient effects */
+/* Advanced Effects - Keep these as they're specialized */
 .text-gradient {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary) 0%,
-    var(--color-primary-hover) 100%
-  );
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -381,96 +189,6 @@ body {
 .dark .glass {
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid var(--color-border);
-}
-
-/* Animation keyframes */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Animation classes */
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.animate-fadeInUp {
-  animation: fadeInUp 0.5s ease-out;
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--color-background-secondary) 25%,
-    var(--color-interactive-hover) 50%,
-    var(--color-background-secondary) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-/* Loading skeleton */
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--color-background-secondary) 25%,
-    var(--color-interactive-hover) 50%,
-    var(--color-background-secondary) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 4px;
 }
 
 /* High contrast mode support */
