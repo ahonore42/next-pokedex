@@ -53,7 +53,7 @@ export default function QuickAccess() {
   ];
 
   return (
-    <SectionCard title="Quick Access" className="border-border">
+    <SectionCard title="Quick Access">
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {sections.map((section) => (
           <a
