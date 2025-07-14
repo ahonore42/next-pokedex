@@ -141,6 +141,20 @@ type EncountersByVersionGroup = Record<number, VersionGroupEncounter>;
 type EncountersGroupedByLocation = Record<number, LocationGroupResult>;
 type MergedGroupedEncounters = Record<string, MergedEncounter>;
 export type ComprehensiveStatRanges = Record<keyof StatValues, StatRanges>;
+export type CompetitiveRanges = {
+  level50: {
+    hp: number;
+  } & Record<
+    Exclude<keyof StatValues, 'hp'>,
+    { beneficial: number; neutral: number; hindering: number }
+  >;
+  level100: {
+    hp: number;
+  } & Record<
+    Exclude<keyof StatValues, 'hp'>,
+    { beneficial: number; neutral: number; hindering: number }
+  >;
+};
 
 /**
  * Reusable mappings
@@ -889,9 +903,12 @@ export function formatStatRange(
  * Get stat ranges summary for competitive reference
  * Returns the most commonly used ranges (Level 50 and 100 with max IVs/EVs)
  */
-export function getCompetitiveStatRanges(baseStats: StatValues) {
+export function getCompetitiveStatRanges(baseStats: StatValues): CompetitiveRanges {
   const fullRanges = calculateStatRanges(baseStats);
-  const result = { level50: {} as any, level100: {} as any };
+  const result: CompetitiveRanges = {
+    level50: {} as CompetitiveRanges['level50'],
+    level100: {} as CompetitiveRanges['level100'],
+  };
 
   for (const statName of statNames) {
     if (statName === 'hp') {
