@@ -2,7 +2,7 @@ import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import NextError from 'next/error';
 import Head from 'next/head';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { trpc } from '~/utils/trpc';
 import type { NextPageWithLayout } from '~/pages/_app';
 import type { PokemonInSpecies } from '~/server/routers/_app';
@@ -40,6 +40,40 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
       retry: false,
     },
   );
+
+  // Optimized preload hook
+  useEffect(() => {
+    if (pokemonQuery.data?.sprites) {
+      const { officialArtworkFront, officialArtworkShiny } = pokemonQuery.data.sprites;
+      const preloadLinks: HTMLLinkElement[] = [];
+
+      // Preload both images immediately when data is available
+      [officialArtworkFront, officialArtworkShiny].forEach((url: string | null | undefined) => {
+        if (!url) return;
+
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = url;
+        link.fetchPriority = 'high';
+        link.crossOrigin = 'anonymous';
+
+        // Remove srcset since GitHub doesn't provide different sizes
+        // Just preload the exact URL we'll use
+
+        document.head.appendChild(link);
+        preloadLinks.push(link);
+      });
+
+      return () => {
+        preloadLinks.forEach((link) => {
+          if (document.head.contains(link)) {
+            document.head.removeChild(link);
+          }
+        });
+      };
+    }
+  }, [pokemonQuery.data?.sprites]);
 
   // Handler to switch Pokemon
   const handlePokemonSwitch = (newPokemonId: number) => {
