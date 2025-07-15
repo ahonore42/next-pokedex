@@ -29,10 +29,11 @@ const PokemonHeader: React.FC<PokemonHeaderProps> = ({ pokemon, species, onPokem
   return (
     <div className="space-y-8">
       {/* Sprites Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+      <div className="bg-surface text-primary rounded-lg shadow-lg p-6 border border-border">
         <div className="flex flex-col space-y-6">
           <PokemonArtwork pokemon={pokemon} />
         </div>
+
         <div className="w-full flex justify-center items-center">
           <PokemonFormSwitcher
             speciesPokemon={species.pokemon}
@@ -41,6 +42,7 @@ const PokemonHeader: React.FC<PokemonHeaderProps> = ({ pokemon, species, onPokem
             onPokemonSwitch={onPokemonSwitch}
           />
         </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Pokemon Info */}
           <div className="space-y-6">
@@ -54,21 +56,18 @@ const PokemonHeader: React.FC<PokemonHeaderProps> = ({ pokemon, species, onPokem
               </SectionCard>
 
               <SectionCard title="Height" variant="compact">
-                <p className="text-lg text-gray-700 dark:text-gray-300">
-                  {heightInMeters.toFixed(1)} m
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-lg text-primary font-medium">{heightInMeters.toFixed(1)} m</p>
+                <p className="text-sm text-muted">
                   {heightInFeet}'{heightInInches}"
                 </p>
               </SectionCard>
 
               <SectionCard title="Weight" variant="compact">
-                <p className="text-lg text-gray-700 dark:text-gray-300">
-                  {weightInKg.toFixed(1)} kg
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{weightInLbs} lbs</p>
+                <p className="text-lg text-primary font-medium">{weightInKg.toFixed(1)} kg</p>
+                <p className="text-sm text-muted">{weightInLbs} lbs</p>
               </SectionCard>
             </div>
+
             <SectionCard title="Breeding" variant="compact">
               <PokemonBreeding
                 eggGroups={species.eggGroups}
@@ -82,6 +81,7 @@ const PokemonHeader: React.FC<PokemonHeaderProps> = ({ pokemon, species, onPokem
               <PokemonFlavorText species={species} />
             </SectionCard>
           </div>
+
           {/* Abilities Section */}
           <SectionCard title="Abilities" variant="compact">
             <PokemonAbilities pokemon={pokemon} />
