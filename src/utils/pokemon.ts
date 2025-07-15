@@ -685,12 +685,16 @@ export const getUniqueConditions = (encounter: PokemonEncounter): EncounterCondi
   });
 
 // Get stat color based on value
-export function getStatColor(baseStat: number) {
-  if (baseStat >= 120) return 'green-500';
-  if (baseStat >= 100) return 'lime-500';
-  if (baseStat >= 80) return 'yellow-500';
-  if (baseStat >= 50) return 'orange-500';
-  return 'red-500';
+export function getStatColor(baseStat: number, prefix: 'text' | 'bg' = 'bg') {
+  if (prefix === 'bg' && baseStat >= 120) return 'bg-green-500';
+  if (prefix === 'bg' && baseStat >= 100) return 'bg-lime-500';
+  if (prefix === 'bg' && baseStat >= 80) return 'bg-yellow-500';
+  if (prefix === 'bg' && baseStat >= 50) return 'bg-orange-500';
+  if (prefix === 'text' && baseStat >= 120) return 'text-green-500';
+  if (prefix === 'text' && baseStat >= 100) return 'text-lime-500';
+  if (prefix === 'text' && baseStat >= 80) return 'text-yellow-500';
+  if (prefix === 'text' && baseStat >= 50) return 'text-orange-500';
+  return prefix === 'bg' ? 'bg-red-500' : 'text-red-500';
 }
 
 // Get stat abbreviation for mobile
