@@ -5,8 +5,9 @@ const config: Config = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx}',
     './src/components/**/*.{js,ts,jsx,tsx}',
+    './src/utils/**/*.{js,ts,jsx,tsx}',
   ],
-  darkMode: 'class', // Enable class-based dark mode
+  darkMode: ['class'], // Enable class-based dark mode
   theme: {
     extend: {
       colors: {
@@ -30,7 +31,7 @@ const config: Config = {
         subtle: 'var(--color-text-tertiary)',
         disabled: 'var(--color-text-quaternary)',
         inverse: 'var(--color-text-inverse)',
-        
+
         // Text using primary colors
         'primary-color': 'var(--color-primary)',
         'primary-hover': 'var(--color-primary-hover)',
@@ -100,7 +101,7 @@ const config: Config = {
         DEFAULT: 'var(--color-text-primary)',
         primary: 'var(--color-text-primary)',
         secondary: 'var(--color-text-secondary)', // Keep original naming
-        tertiary: 'var(--color-text-tertiary)',   // Keep original naming  
+        tertiary: 'var(--color-text-tertiary)', // Keep original naming
         quaternary: 'var(--color-text-quaternary)', // Keep original naming
         muted: 'var(--color-text-secondary)',
         subtle: 'var(--color-text-tertiary)',
@@ -119,7 +120,7 @@ const config: Config = {
 
       borderColor: {
         DEFAULT: 'var(--color-border)',
-        'default': 'var(--color-border)', // Keep original naming
+        default: 'var(--color-border)', // Keep original naming
         hover: 'var(--color-border-hover)',
         strong: 'var(--color-border-strong)',
       },
@@ -172,26 +173,14 @@ const config: Config = {
         },
       },
 
-      // Custom transitions for theme changes
       transitionProperty: {
-        'theme': 'background-color, color, border-color, box-shadow',
-        'colors': 'background-color, color, border-color',
-        'backgrounds': 'background-color, box-shadow',
+        theme: 'color, background-color, border-color, opacity', // Only animate these properties
       },
-
-      // Custom transition durations
       transitionDuration: {
-        '0': '0ms',
-        '75': '75ms',
-        '100': '100ms',
-        '150': '150ms',
-        '200': '200ms',
-        '250': '250ms',
-        '300': '300ms',
-        '400': '400ms',
-        '500': '500ms',
-        '700': '700ms',
-        '1000': '1000ms',
+        theme: '300ms', // Standard duration for theme changes
+      },
+      transitionTimingFunction: {
+        theme: 'ease-out', // Smoother finish
       },
 
       // Custom spacing if needed
@@ -212,27 +201,37 @@ const config: Config = {
           padding: '0',
         },
         // HTML base styles
-        'html': {
+        html: {
           'scroll-behavior': 'smooth',
-          'height': '100%',
+          height: '100%',
         },
-        // Body base styles with unified transitions
-        'body': {
+        body: {
+          margin: '0',
           'background-color': 'var(--color-background)',
-          'color': 'var(--color-text-primary)',
-          'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif',
+          color: 'var(--color-text-primary)',
+          'font-family':
+            '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif',
           'line-height': '1.6',
           '-webkit-font-smoothing': 'antialiased',
           '-moz-osx-font-smoothing': 'grayscale',
           'overflow-x': 'hidden',
           'min-height': '100%',
         },
-        // Global transitions for theme switching only (high specificity)
-        'html:not([class*="transition"]), body:not([class*="transition"])': {
-          'transition': 'background-color 300ms ease, color 300ms ease',
+      });
+
+      // Add the theme transition styles as components
+      api.addComponents({
+        '.theme-transition': {
+          '@apply transition-theme duration-theme ease-theme': '',
+          'will-change': 'color, background-color, border-color',
+        },
+        '@media (prefers-reduced-motion: reduce)': {
+          '.theme-transition': {
+            '@apply transition-none': '',
+          },
         },
       });
-      
+
       // Add reduced motion support
       api.addBase({
         '@media (prefers-reduced-motion: reduce)': {
