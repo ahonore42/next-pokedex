@@ -1,10 +1,8 @@
 import { Handle, Position } from '@xyflow/react';
 import Link from 'next/link';
-import { useTheme } from '~/lib/contexts/ThemeContext';
 import { TypeBadge } from '~/components/ui/TypeBadge';
 
 const EvolutionNode: React.FC<{ data: any }> = ({ data }) => {
-  const { theme } = useTheme();
   const pokemon = data.pokemon;
   if (!pokemon) {
     return null;
@@ -23,36 +21,35 @@ const EvolutionNode: React.FC<{ data: any }> = ({ data }) => {
 
   // Calculate responsive image size
   const imageSize = Math.max(Math.min(nodeWidth * 0.7, 112), 80);
-  
+
   // Calculate responsive text size
-  const textSizeClass = containerWidth < 640 ? 'text-xs' : 
-                       containerWidth < 768 ? 'text-sm' : 'text-base';
+  const textSizeClass =
+    containerWidth < 640 ? 'text-xs' : containerWidth < 768 ? 'text-sm' : 'text-base';
 
   return (
     <div
-      className={`rounded-lg shadow-md p-2 border flex flex-col items-center justify-between transition-all duration-200 ${
-        theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-indigo-100 border-indigo-200'
+      className={`rounded-lg shadow-md p-2 border flex flex-col items-center justify-between dark:bg-gray-800 border-gray-700 bg-indigo-100 border-indigo-200'
       }`}
-      style={{ 
-        width: `${nodeWidth}px`, 
+      style={{
+        width: `${nodeWidth}px`,
         height: `${nodeHeight}px`,
         minWidth: '120px',
-        minHeight: '140px'
+        minHeight: '140px',
       }}
     >
       {/* Target Handle - only show if not start node */}
       {!isStartNode && <Handle type="target" position={sourceHandle} />}
-      
-      <Link 
-        href={`/pokemon/${pokemon.id}`} 
+
+      <Link
+        href={`/pokemon/${pokemon.id}`}
         className="flex flex-col items-center group w-full h-full justify-between py-1"
       >
         {/* Pokemon Image */}
-        <div 
+        <div
           className="relative flex-shrink-0 flex items-center justify-center"
-          style={{ 
-            width: `${imageSize}px`, 
-            height: `${imageSize}px` 
+          style={{
+            width: `${imageSize}px`,
+            height: `${imageSize}px`,
           }}
         >
           {pokemon.sprites?.frontDefault ? (
@@ -71,34 +68,29 @@ const EvolutionNode: React.FC<{ data: any }> = ({ data }) => {
             />
           )}
         </div>
-        
+
         {/* Pokemon Name */}
         <p
-          className={`text-center font-medium leading-tight ${textSizeClass} ${
-            theme === 'dark' ? 'text-white' : 'text-gray-800'
-          } group-hover:text-gray-600 dark:group-hover:text-indigo-800 capitalize px-1 mt-1`}
-          style={{ 
+          className={`text-center font-medium leading-tight ${textSizeClass} group-hover:text-gray-600 dark:group-hover:text-indigo-800 capitalize px-1 mt-1`}
+          style={{
             wordBreak: 'break-word',
-            lineHeight: '1.2'
+            lineHeight: '1.2',
           }}
           title={data.label} // Tooltip for full name on hover
         >
           {data.label}
         </p>
-        
+
         {/* Type Badges */}
         <div className="flex gap-1 justify-center flex-wrap mt-1 px-1">
           {data.types.map((typeInfo: any) => (
-            <div 
-              key={typeInfo.type.id}
-              className="transform scale-75 sm:scale-90 md:scale-100"
-            >
+            <div key={typeInfo.type.id} className="transform scale-75 sm:scale-90 md:scale-100">
               <TypeBadge type={typeInfo.type} link={false} />
             </div>
           ))}
         </div>
       </Link>
-      
+
       {/* Source Handle - only show if not end node */}
       {!isEndNode && <Handle type="source" position={targetHandle} />}
     </div>
