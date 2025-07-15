@@ -1,8 +1,8 @@
 import type { NextPage } from 'next';
 import type { AppType, AppProps } from 'next/app';
-import type { ReactElement, ReactNode } from 'react';
+import Head from 'next/head'; // Import Head component
 
-import { ThemeProvider } from '~/lib/contexts/ThemeContext';
+import { ThemeProvider } from 'next-themes';
 import { DefaultLayout } from '~/components/layout/DefaultLayout';
 import { trpc } from '~/utils/trpc';
 import '~/styles/globals.css';
@@ -11,19 +11,26 @@ import '@xyflow/react/dist/style.css';
 export type NextPageWithLayout<TProps = Record<string, unknown>, TInitialProps = TProps> = NextPage<
   TProps,
   TInitialProps
-> & {
-  getLayout?: (page: ReactElement) => ReactNode;
-};
+>;
 
 type AppPropsWithLayout = AppProps & {
   Component: NextPageWithLayout;
 };
 
 const MyApp = (({ Component, pageProps }: AppPropsWithLayout) => {
-  const getLayout = Component.getLayout ?? ((page) => <DefaultLayout>{page}</DefaultLayout>);
-
   return (
-    <ThemeProvider defaultTheme="dark">{getLayout(<Component {...pageProps} />)}</ThemeProvider>
+    <>
+      <Head>
+        {/* Preconnect to GitHub CDN */}
+        <link rel="preconnect" href="https://raw.githubusercontent.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://raw.githubusercontent.com" />
+      </Head>
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <DefaultLayout>
+          <Component {...pageProps} />
+        </DefaultLayout>
+      </ThemeProvider>
+    </>
   );
 }) as AppType;
 
