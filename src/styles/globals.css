@@ -10,7 +10,7 @@
 
   /* Light Mode - High Contrast Semantic Tokens */
   --color-background: #ffffff;
-  --color-background-secondary: #f8fafc;
+  --color-background-secondary: #edf1f6;
   --color-background-tertiary: #f1f5f9;
 
   /* Surface colors for cards and elevated content */
@@ -58,8 +58,8 @@
   --color-interactive-disabled-text: #cbd5e1;
 
   /* Pokemon card specific colors */
-  --color-pokemon-card-bg: #e0dbf4;
-  --color-pokemon-card-hover-bg: #c9c0ec;
+  --color-pokemon-card-bg: #f3f1fb;
+  --color-pokemon-card-hover-bg: #e2dcf9;
   --color-pokemon-card-border: #e5e7eb;
   --color-pokemon-card-hover-border: #a5b4fc;
   --color-pokemon-card-text: #1f2937;
