@@ -38,11 +38,7 @@ export default function DatabaseStats({ stats }: { stats: DbStats }) {
   ];
 
   return (
-    <SectionCard
-      title="Database Statistics"
-      className="border-indigo-200"
-      variant='info'
-    >
+    <SectionCard title="Database Statistics" colorVariant="info">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {statItems.map((item, index) => (
           <div key={index} className={`text-center p-2 rounded-lg ${item.bgColor}`}>
