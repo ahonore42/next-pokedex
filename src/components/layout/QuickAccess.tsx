@@ -1,4 +1,5 @@
 import SectionCard from '../ui/SectionCard';
+import InteractiveLink from '../ui/InteractiveLink';
 
 export default function QuickAccess() {
   const sections = [
@@ -53,57 +54,17 @@ export default function QuickAccess() {
   ];
 
   return (
-    <SectionCard title="Quick Access">
+    <SectionCard title="Quick Access" colorVariant="transparent">
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {sections.map((section) => (
-          <a
-            key={section.name}
+          <InteractiveLink
             href={section.href}
-            className="
-          group p-4 border rounded-lg
-          bg-pokemon hover:bg-pokemon-hover
-          border-pokemon-border hover:border-pokemon-border-hover
-          hover:shadow-md hover:-translate-y-1 
-          active:scale-95
-          transition-all duration-300
-        "
-            aria-label={`Navigate to ${section.name}: ${section.desc}`}
-          >
-            <div className="flex items-start gap-3 mb-2">
-              <span
-                className="text-2xl flex-shrink-0 group-hover:scale-110 transition-transform duration-200"
-                role="img"
-                aria-hidden="true"
-              >
-                {section.icon}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="font-bold text-base mb-1 text-pokemon-text group-hover:text-brand transition-colors duration-300">
-                  {section.name}
-                </div>
-                <div className="text-sm text-pokemon-text-muted group-hover:text-muted transition-colors duration-300">
-                  {section.desc}
-                </div>
-              </div>
-            </div>
-
-            {/* Arrow indicator */}
-            <div className="flex justify-end mt-2">
-              <svg
-                className="w-4 h-4 text-pokemon-text-muted group-hover:text-brand transform group-hover:translate-x-1 transition-all duration-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </div>
-          </a>
+            icon={<span className="text-2xl">{section.icon}</span>}
+            title={section.name}
+            description={section.desc}
+            showArrow={true}
+            ariaLabel={`Navigate to ${section.name}: ${section.desc}`}
+          />
         ))}
       </div>
     </SectionCard>
