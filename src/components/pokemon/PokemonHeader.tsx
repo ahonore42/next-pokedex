@@ -7,7 +7,7 @@ import MobileEvolutionChain from './MobileEvolutionChain';
 import PokemonFlavorText from './PokemonFlavorText';
 import PokemonFormSwitcher from './PokemonFormSwitcher';
 import { PokemonBreeding } from './PokemonBreeding';
-import TypeBadgesDisplay from './TypeBadgesDisplay';
+import TypeBadgesDisplay from '../pokemon-types/TypeBadgesDisplay';
 
 interface PokemonHeaderProps {
   pokemon: PokemonInSpecies;

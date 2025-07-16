@@ -1,7 +1,6 @@
 import React from 'react';
 import type { PokemonInSpecies } from '~/server/routers/_app';
-import { capitalizeName } from '~/utils/text';
-import TypeBadgesDisplay from './TypeBadgesDisplay';
+import TypeBadgesDisplay from '../pokemon-types/TypeBadgesDisplay';
 
 interface PokemonButtonProps {
   pokemon: PokemonInSpecies;
@@ -20,8 +19,6 @@ const PokemonButton: React.FC<PokemonButtonProps> = ({
   showStatus = true,
   className = '',
 }) => {
-  const pokemonName = capitalizeName(pokemon.name);
-
   // Handle missing or incomplete data gracefully
   const spriteUrl = pokemon.sprites?.frontDefault || '';
   const types = pokemon.types || [];
@@ -59,7 +56,7 @@ const PokemonButton: React.FC<PokemonButtonProps> = ({
     <button
       onClick={handleClick}
       className={`${baseClasses}  ${styles.container} ${className}`}
-      aria-label={`Select ${pokemonName}`}
+      aria-label={`Select ${pokemon.name}`}
       aria-pressed={isActive}
     >
       <div className={`flex items-center ${styles.spacing}`}>
@@ -68,7 +65,7 @@ const PokemonButton: React.FC<PokemonButtonProps> = ({
           {spriteUrl ? (
             <img
               src={spriteUrl}
-              alt={pokemonName}
+              alt={pokemon.name}
               className={`${styles.imageSize} object-contain`}
               onError={handleImageError}
               loading="lazy"
@@ -96,8 +93,10 @@ const PokemonButton: React.FC<PokemonButtonProps> = ({
         {/* Pokemon Info */}
         <div className="flex-1 min-w-0 flex flex-col items-start">
           {/* Name */}
-          <h4 className={`${styles.nameSize} capitalize text-gray-900 dark:text-gray-100 truncate`}>
-            {pokemonName}
+          <h4
+            className={`${styles.nameSize} capitalize text-gray-900 dark:text-gray-100 truncate capitalize`}
+          >
+            {pokemon.name}
           </h4>
 
           {/* Status indicator */}

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { DataTable, Column } from '~/components/ui/DataTable';
 import { CompetitiveRanges, StatValues, getStatColor } from '~/utils/pokemon';
+import DataTable, { Column } from '~/components/ui/DataTable';
 
 interface PokemonStatTableProps {
   competitiveRanges: CompetitiveRanges;

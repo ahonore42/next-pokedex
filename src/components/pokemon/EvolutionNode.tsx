@@ -1,6 +1,6 @@
 import { Handle, Position } from '@xyflow/react';
 import Link from 'next/link';
-import { TypeBadge } from '~/components/ui/TypeBadge';
+import TypeBadgesDisplay from '../pokemon-types/TypeBadgesDisplay';
 
 const EvolutionNode: React.FC<{ data: any }> = ({ data }) => {
   const pokemon = data.pokemon;
@@ -82,13 +82,7 @@ const EvolutionNode: React.FC<{ data: any }> = ({ data }) => {
         </p>
 
         {/* Type Badges */}
-        <div className="flex gap-1 justify-center flex-wrap mt-1 px-1">
-          {data.types.map((typeInfo: any) => (
-            <div key={typeInfo.type.id} className="transform scale-75 sm:scale-90 md:scale-100">
-              <TypeBadge type={typeInfo.type} link={false} />
-            </div>
-          ))}
-        </div>
+        <TypeBadgesDisplay types={data.types} />
       </Link>
 
       {/* Source Handle - only show if not end node */}

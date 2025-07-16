@@ -1,4 +1,3 @@
-import { capitalizeName } from '~/utils/text';
 import type { PokemonInSpecies } from '~/server/routers/_app';
 
 interface ComponentProps {
@@ -22,9 +21,8 @@ export const PokemonAbilities: React.FC<ComponentProps> = ({ pokemon }) => {
               key={pokemonAbility.ability.id}
               className="border border-gray-200 dark:border-gray-600 rounded-lg p-4"
             >
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                {pokemonAbility.ability.names[0]?.name ||
-                  capitalizeName(pokemonAbility.ability.name)}
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-2 capitalize">
+                {pokemonAbility.ability.names[0]?.name || pokemonAbility.ability.name}
               </h4>
               {pokemonAbility.ability.flavorTexts[0]?.flavorText && (
                 <p className="text-gray-700 dark:text-gray-300 text-sm">
@@ -53,9 +51,8 @@ export const PokemonAbilities: React.FC<ComponentProps> = ({ pokemon }) => {
                 key={pokemonAbility.ability.id}
                 className="border border-yellow-200 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4"
               >
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
-                  {pokemonAbility.ability.names[0]?.name ||
-                    capitalizeName(pokemonAbility.ability.name)}
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center capitalize">
+                  {pokemonAbility.ability.names[0]?.name || pokemonAbility.ability.name}
                   <span className="ml-2 px-2 py-1 bg-yellow-200 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-200 rounded text-xs">
                     Hidden
                   </span>

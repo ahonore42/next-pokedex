@@ -1,5 +1,4 @@
 import type { PokemonInSpecies } from '~/server/routers/_app';
-import { capitalizeName } from '~/utils/text';
 import MoveTable from './MoveTable';
 
 interface ComponentProps {
@@ -39,14 +38,13 @@ export const PokemonMoves: React.FC<ComponentProps> = ({ pokemon }) => {
   // Get learn method display name
   const getMethodDisplayName = (method: string, moves: typeof pokemon.moves) => {
     const methodData = moves[0]?.moveLearnMethod;
-    const displayName = methodData?.names[0]?.name || capitalizeName(method);
-
+    const displayName = methodData?.names[0]?.name || method;
     // Add specific handling for common methods
     switch (method) {
       case 'level-up':
         return 'Level Up';
       case 'machine':
-        return 'TM/TR';
+        return 'TM/HM';
       case 'egg':
         return 'Egg Moves';
       case 'tutor':
@@ -54,7 +52,7 @@ export const PokemonMoves: React.FC<ComponentProps> = ({ pokemon }) => {
       case 'transfer':
         return 'Transfer Only';
       default:
-        return displayName;
+        return displayName.replaceAll('-', ' ');
     }
   };
 

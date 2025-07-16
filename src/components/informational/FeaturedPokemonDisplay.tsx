@@ -1,7 +1,7 @@
 import { PokemonListOutput } from '~/server/routers/_app';
 import SectionCard from '../ui/SectionCard';
 import InteractiveLink from '../ui/InteractiveLink';
-import TypeBadgesDisplay from '../pokemon/TypeBadgesDisplay';
+import TypeBadgesDisplay from '../pokemon-types/TypeBadgesDisplay';
 
 export default function FeaturedPokemonDisplay({
   pokemon,

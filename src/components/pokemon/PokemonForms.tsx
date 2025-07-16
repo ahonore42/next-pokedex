@@ -1,6 +1,5 @@
-import { getTypeColor } from '~/utils/pokemon';
-import { capitalizeName } from '~/utils/text';
 import type { PokemonInSpecies } from '~/server/routers/_app';
+import TypeBadgesDisplay from '../pokemon-types/TypeBadgesDisplay';
 
 interface ComponentProps {
   pokemonForms: PokemonInSpecies['forms'];
@@ -15,8 +14,8 @@ export const PokemonForms: React.FC<ComponentProps> = ({ pokemonForms }) => {
         {pokemonForms.map((form) => (
           <div key={form.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                {form.names[0]?.name || capitalizeName(form.name)}
+              <h3 className="font-semibold text-gray-900 dark:text-white capitalize">
+                {form.names[0]?.name || form.name}
               </h3>
               {form.isDefault && (
                 <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs">
@@ -33,17 +32,7 @@ export const PokemonForms: React.FC<ComponentProps> = ({ pokemonForms }) => {
               />
             )}
 
-            <div className="flex flex-wrap gap-1">
-              {form.types.map((formType) => (
-                <span
-                  key={formType.type.name}
-                  className="px-2 py-1 rounded text-white text-xs font-medium"
-                  style={{ backgroundColor: getTypeColor(formType.type.name) }}
-                >
-                  {formType.type.name.toUpperCase()}
-                </span>
-              ))}
-            </div>
+            <TypeBadgesDisplay types={form.types} />
           </div>
         ))}
       </div>

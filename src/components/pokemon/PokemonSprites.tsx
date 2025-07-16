@@ -1,4 +1,3 @@
-import { capitalizeName } from '~/utils/text';
 import { PokemonInSpecies } from '~/server/routers/_app';
 
 interface PokemonSpritesProps {
@@ -7,8 +6,6 @@ interface PokemonSpritesProps {
 }
 
 const PokemonSprites: React.FC<PokemonSpritesProps> = ({ pokemon, isShiny }) => {
-  const pokemonName = capitalizeName(pokemon.name);
-
   // Check what sprites are available
   const getAvailableSprites = () => {
     const sprites = pokemon.sprites;
@@ -152,7 +149,7 @@ const PokemonSprites: React.FC<PokemonSpritesProps> = ({ pokemon, isShiny }) => 
                     {hasSprite ? (
                       <img
                         src={currentSprite}
-                        alt={`${pokemonName} ${spriteData.label.toLowerCase()} ${isShiny ? 'shiny ' : ''}sprite`}
+                        alt={`${pokemon.name} ${spriteData.label.toLowerCase()} ${isShiny ? 'shiny ' : ''}sprite`}
                         className="w-full h-full object-contain p-1"
                       />
                     ) : (

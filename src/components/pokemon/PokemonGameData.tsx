@@ -1,4 +1,3 @@
-import { capitalizeName } from '~/utils/text';
 import type { PokemonSpeciesByIdOutput } from '~/server/routers/_app';
 
 interface ComponentProps {
@@ -24,8 +23,8 @@ export const PokemonGameData: React.FC<ComponentProps> = ({
           <div className="space-y-2">
             {pokedexNumbers.slice(0, 5).map((entry) => (
               <div key={entry.pokedex.id} className="flex justify-between items-center">
-                <span className="text-gray-700 dark:text-gray-300">
-                  {entry.pokedex.names[0]?.name || capitalizeName(entry.pokedex.name)}
+                <span className="text-gray-700 dark:text-gray-300 capitalize">
+                  {entry.pokedex.names[0]?.name || entry.pokedex.name}
                 </span>
                 <span className="font-mono text-gray-900 dark:text-white">
                   #{entry.pokedexNumber.toString().padStart(3, '0')}
