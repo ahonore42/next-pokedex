@@ -1,6 +1,6 @@
 export default function FooterMenu() {
   return (
-    <footer className="bg-secondary border-t border-border mt-12 w-full transition-theme">
+    <footer className="bg-secondary border-t border-border mt-12 w-full theme-transition">
       <div className="mx-auto px-4 py-8 flex flex-col items-center w-full gap-y-8">
         <div className="flex justify-around max-w-7xl w-full">
           <div>

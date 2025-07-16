@@ -33,7 +33,7 @@ export default function LatestUpdates() {
           bg-update hover:bg-update-hover
           text-pokemon-text-muted
           border-emerald-600 dark:border-emerald-500
-          transition-theme hover:shadow-sm
+          theme-transition hover:shadow-sm
         "
           >
             <div className="flex items-start gap-3">

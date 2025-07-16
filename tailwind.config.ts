@@ -226,7 +226,7 @@ const config: Config = {
           'will-change': 'color, background-color, border-color',
         },
 
-        '.transition-interactive': {
+        '.interactive-transition': {
           '@apply transition-all duration-300 ease-out': '',
           'will-change': 'transform, translate, scale, box-shadow, opacity',
         },

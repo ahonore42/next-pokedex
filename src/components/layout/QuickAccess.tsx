@@ -58,6 +58,7 @@ export default function QuickAccess() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {sections.map((section) => (
           <InteractiveLink
+            key={section.href}
             href={section.href}
             icon={<span className="text-2xl">{section.icon}</span>}
             title={section.name}
