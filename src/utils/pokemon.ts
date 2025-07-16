@@ -233,6 +233,66 @@ export function getTypeColor(type: string): string {
   return colors[type] || '#68A090';
 }
 
+export const truncateTypeName = (name: string, format: 'short' | 'medium' = 'medium') => {
+  switch (name.toLowerCase()) {
+    case 'normal':
+      return format === 'short' ? 'NOR' : 'NORMAL';
+    case 'fire':
+      return format === 'short' ? 'FIR' : 'FIRE';
+    case 'water':
+      return format === 'short' ? 'WAT' : 'WATER';
+    case 'electric':
+      return format === 'short' ? 'ELE' : 'ELECTR';
+    case 'grass':
+      return format === 'short' ? 'GRA' : 'GRASS';
+    case 'ice':
+      return 'ICE';
+    case 'fighting':
+      return format === 'short' ? 'FIG' : 'FIGHT';
+    case 'poison':
+      return format === 'short' ? 'POI' : 'POISON';
+    case 'ground':
+      return format === 'short' ? 'GRO' : 'GROUND';
+    case 'flying':
+      return format === 'short' ? 'FLY' : 'FLYING';
+    case 'psychic':
+      return format === 'short' ? 'PSY' : 'PSYCHC';
+    case 'bug':
+      return 'BUG';
+    case 'rock':
+      return format === 'short' ? 'ROC' : 'ROCK';
+    case 'ghost':
+      return format === 'short' ? 'GHO' : 'GHOST';
+    case 'dragon':
+      return format === 'short' ? 'DRA' : 'DRAGON';
+    case 'dark':
+      return format === 'short' ? 'DAR' : 'DARK';
+    case 'steel':
+      return format === 'short' ? 'STE' : 'STEEL';
+    case 'fairy':
+      return format === 'short' ? 'FAI' : 'FAIRY';
+    case 'stellar':
+      return format === 'short' ? 'STL' : 'STELLR';
+    default:
+      return 'N/A';
+  }
+};
+
+export const getDamageFactorText = (factor: number) => {
+  if (factor === 0) return '0';
+  if (factor === 0.5) return '½';
+  if (factor === 1) return '';
+  if (factor === 2) return '2';
+  return `${factor}`;
+};
+
+export const getDamageFactorColor = (factor: number) => {
+  if (factor === 0) return 'bg-gray-800 text-white'; // No effect
+  if (factor < 1) return 'bg-red-500 text-white'; // Not very effective
+  if (factor > 1) return 'bg-green-500 text-white'; // Super effective
+  return 'dark:bg-gray-500 bg-gray-100'; // Normal effect
+};
+
 // Get damage class icon
 export const getDamageClassIcon = (damageClass: string) => {
   switch (damageClass) {
