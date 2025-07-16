@@ -1,10 +1,11 @@
+import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
-import LoadingPage from '~/components/ui/LoadingPage';
-import EvolutionChain from '~/components/pokemon/EvolutionChain';
-import { InfiniteScroll } from '~/components/ui/InfiniteScroll';
+import { usePageLoading } from '~/lib/contexts/LoadingContext';
 import type { EvolutionChainsPaginatedOutput } from '~/server/routers/_app';
+import EvolutionChain from '~/components/pokemon/EvolutionChain';
+import InfiniteScroll from '~/components/ui/InfiniteScroll';
 
-const EvolutionTreesPage = () => {
+const EvolutionTreesPage: NextPageWithLayout = () => {
   const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, error } =
     trpc.evolutionChains.paginated.useInfiniteQuery(
       {
@@ -15,8 +16,11 @@ const EvolutionTreesPage = () => {
       },
     );
 
+  // Use the usePageLoading hook to manage loading state
+  usePageLoading(isLoading);
+
   if (isLoading) {
-    return <LoadingPage />;
+    return null;
   }
 
   if (error) {

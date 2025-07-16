@@ -3,17 +3,17 @@ import { useRouter } from 'next/router';
 import NextError from 'next/error';
 import Head from 'next/head';
 import { useState, useMemo, useEffect } from 'react';
-import { trpc } from '~/utils/trpc';
 import type { NextPageWithLayout } from '~/pages/_app';
+import { trpc } from '~/utils/trpc';
+import { usePageLoading } from '~/lib/contexts/LoadingContext';
 import type { PokemonInSpecies } from '~/server/routers/_app';
-import PokemonHeader from '~/components/pokemon/PokemonHeader';
-import PokemonStats from '~/components/pokemon/PokemonStats';
+import { getRegionFromVersionGroup } from '~/utils/pokemon';
 import { PokemonMoves } from '~/components/pokemon/PokemonMoves';
 import { PokemonEncounters } from '~/components/pokemon/PokemonEncounters';
 import { PokemonGameData } from '~/components/pokemon/PokemonGameData';
-import LoadingPage from '~/components/ui/LoadingPage';
+import PokemonHeader from '~/components/pokemon/PokemonHeader';
+import PokemonStats from '~/components/pokemon/PokemonStats';
 import BreadcrumbNavigation from '~/components/layout/BreadcrumbNavigation';
-import { getRegionFromVersionGroup } from '~/utils/pokemon';
 
 const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
   const router = useRouter();
@@ -117,9 +117,13 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
     };
   }, [speciesQuery.data, selectedPokemonId, selectedFormId, pokemonId]);
 
+  // Use the usePageLoading hook to manage loading state
+  const isPageLoading = pokemonQuery.isLoading || speciesQuery.isLoading;
+  usePageLoading(isPageLoading);
+
   // Handle loading state
   if (pokemonQuery.isLoading || speciesQuery.isLoading) {
-    return <LoadingPage />;
+    return null;
   }
   // Handle error state
   if (pokemonQuery.error || speciesQuery.error) {
@@ -147,7 +151,7 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
   const { pokemon: activePokemon } = getActivePokemonAndForm;
   // Additional null check for activePokemon since useMemo can return null during loading
   if ((!species && !activePokemon) || !activePokemon?.forms[0]?.versionGroup) {
-    return <LoadingPage />;
+    return null;
   }
 
   const activePokemonName = activePokemon.name;

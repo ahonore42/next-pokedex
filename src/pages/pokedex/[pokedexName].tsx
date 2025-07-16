@@ -1,15 +1,15 @@
-import { NextPage } from 'next';
 import Link from 'next/link';
-import SectionCard from '~/components/ui/SectionCard';
-import { trpc } from '~/utils/trpc';
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
-import LoadingPage from '~/components/ui/LoadingPage';
-import { TypeBadge } from '~/components/ui/TypeBadge';
+import { NextPageWithLayout } from '../_app';
+import { trpc } from '~/utils/trpc';
+import { usePageLoading } from '~/lib/contexts/LoadingContext';
 import { PokemonByPokedexOutput } from '~/server/routers/_app';
-import { InfiniteScroll } from '~/components/ui/InfiniteScroll';
+import SectionCard from '~/components/ui/SectionCard';
+import TypeBadge from '~/components/pokemon-types/TypeBadge';
+import InfiniteScroll from '~/components/ui/InfiniteScroll';
 
-const PokedexDetailPage: NextPage = () => {
+const PokedexDetailPage: NextPageWithLayout = () => {
   const router = useRouter();
   const { pokedexName } = router.query;
   const [selectedPokedex, setSelectedPokedex] = useState<string | undefined>(undefined);
@@ -35,6 +35,10 @@ const PokedexDetailPage: NextPage = () => {
   const { data: pokedexes, isLoading: isLoadingPokedexes } = trpc.pokemon.allPokedexes.useQuery();
   const { data: allTypes, isLoading: isLoadingTypes } = trpc.types.allTypes.useQuery();
 
+  // Use the usePageLoading hook to manage loading state
+  const isPageLoading = isLoading || isLoadingPokedexes || isLoadingTypes;
+  usePageLoading(isPageLoading);
+
   const getType = (typeId: number) => {
     if (!allTypes) return undefined;
     return allTypes.find((t) => t.id === typeId);
@@ -55,10 +59,9 @@ const PokedexDetailPage: NextPage = () => {
       ? pokedexName.charAt(0).toUpperCase() + pokedexName.slice(1)
       : 'Pokédex';
 
-  const loading = isLoading || isLoadingPokedexes || isLoadingTypes;
-
-  if (loading) {
-    return <LoadingPage />;
+  // Early return for loading state - DefaultLayout will handle showing loading spinner
+  if (isPageLoading) {
+    return null;
   }
 
   return (

@@ -1,18 +1,17 @@
-import { NextPage } from 'next';
 import { useRouter } from 'next/router';
-import { trpc } from '~/utils/trpc';
-import LoadingPage from '~/components/ui/LoadingPage';
-import SectionCard from '~/components/ui/SectionCard';
-import { capitalizeName } from '~/utils/text';
-import { TypeBadge } from '~/components/ui/TypeBadge';
-import { DataTable } from '~/components/ui/DataTable';
 import Link from 'next/link';
-import { MoveTypeBadge } from '~/components/ui/MoveTypeBadge';
+import { NextPageWithLayout } from '../_app';
+import { trpc } from '~/utils/trpc';
+import { usePageLoading } from '~/lib/contexts/LoadingContext';
 import { PokemonByTypeOutput, MovesByTypeOutput } from '~/server/routers/_app';
-import { Column } from '~/components/ui/DataTable'; // Import Column interface
+import { Column } from '~/components/ui/DataTable';
+import SectionCard from '~/components/ui/SectionCard';
+import TypeBadge from '~/components/pokemon-types/TypeBadge';
+import DataTable from '~/components/ui/DataTable';
+import MoveTypeBadge from '~/components/ui/MoveTypeBadge';
 import TabView from '~/components/ui/TabView';
 
-const PokemonTypeDetailPage: NextPage = () => {
+const PokemonTypeDetailPage: NextPageWithLayout = () => {
   const router = useRouter();
   const { typeName } = router.query;
 
@@ -28,19 +27,25 @@ const PokemonTypeDetailPage: NextPage = () => {
     trpc.types.getPokemonByType.useQuery(
       { typeId: typeDetails?.id ?? 0 },
       { enabled: !!typeDetails },
-    ) as { data: PokemonByTypeOutput; isLoading: boolean }; // Cast to the new type
+    ) as { data: PokemonByTypeOutput; isLoading: boolean };
 
   const { data: movesOfType, isLoading: isLoadingMovesOfType } = trpc.types.getMovesByType.useQuery(
     { typeId: typeDetails?.id ?? 0 },
     { enabled: !!typeDetails },
   ) as { data: MovesByTypeOutput; isLoading: boolean };
 
-  if (isLoadingTypeDetails || isLoadingPokemonOfType || isLoadingMovesOfType || !typeDetails) {
-    return <LoadingPage />;
+  // Use the usePageLoading hook to manage loading state
+  const isPageLoading =
+    isLoadingTypeDetails || isLoadingPokemonOfType || isLoadingMovesOfType || !typeDetails;
+  usePageLoading(isPageLoading);
+
+  // Early return for loading state - DefaultLayout will handle showing loading spinner
+  if (isPageLoading) {
+    return null;
   }
 
+  // Use Column with the new type
   const pokemonColumns: Column<PokemonByTypeOutput[number]>[] = [
-    // Use Column with the new type
     {
       header: 'No.',
       accessor: (row) => row.pokemonSpecies.pokedexNumbers[0]?.pokedexNumber || '—',
@@ -143,8 +148,8 @@ const PokemonTypeDetailPage: NextPage = () => {
   const moveColumns = [
     {
       header: 'Move',
-      accessor: (row: MovesByTypeOutput[number]) => capitalizeName(row.name),
-      className: 'font-medium',
+      accessor: (row: MovesByTypeOutput[number]) => row.name,
+      className: 'font-medium capitalize',
       noWrap: false,
       sortable: true,
       sortKey: (row: MovesByTypeOutput[number]) => row.name,
@@ -251,22 +256,15 @@ const PokemonTypeDetailPage: NextPage = () => {
   ];
 
   return (
-    <SectionCard title={`${capitalizeName(typeDetails.name)} Type Details`}>
+    <SectionCard className="capitalize" title={`${typeDetails.name} Type`}>
       <TabView
         tabs={[
           {
             label: 'Pokémon',
             content: (
               <div className="mb-8">
-                <h2 className="text-xl font-bold mb-4">
-                  {capitalizeName(typeDetails.name)} Pokemon
-                </h2>
                 {pokemonOfType && pokemonOfType.length > 0 ? (
-                  <DataTable
-                    data={pokemonOfType}
-                    columns={pokemonColumns}
-                    initialSortBy="No."
-                  />
+                  <DataTable data={pokemonOfType} columns={pokemonColumns} initialSortBy="No." />
                 ) : (
                   <p>No Pokémon found for this type.</p>
                 )}
@@ -277,7 +275,6 @@ const PokemonTypeDetailPage: NextPage = () => {
             label: 'Moves',
             content: (
               <div>
-                <h2 className="text-xl font-bold mb-4">{capitalizeName(typeDetails.name)} Moves</h2>
                 {movesOfType && movesOfType.length > 0 ? (
                   <DataTable data={movesOfType} columns={moveColumns} initialSortBy="Move" />
                 ) : (

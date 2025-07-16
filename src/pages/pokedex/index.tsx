@@ -1,13 +1,16 @@
-import { NextPage } from 'next';
-import SectionCard from '~/components/ui/SectionCard';
-import { trpc } from '~/utils/trpc';
 import { useRouter } from 'next/router';
-import LoadingPage from '~/components/ui/LoadingPage';
-import { capitalizeName } from '~/utils/text';
+import { NextPageWithLayout } from '../_app';
+import { trpc } from '~/utils/trpc';
+import { usePageLoading } from '~/lib/contexts/LoadingContext';
+import SectionCard from '~/components/ui/SectionCard';
 
-const PokedexSelectionPage: NextPage = () => {
+const PokedexSelectionPage: NextPageWithLayout = () => {
   const router = useRouter();
   const { data: pokedexes, isLoading } = trpc.pokemon.allPokedexes.useQuery();
+
+  // Use the usePageLoading hook to manage loading state
+  const isPageLoading = isLoading || !pokedexes;
+  usePageLoading(isPageLoading);
 
   const handlePokedexChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const pokedexName = event.target.value;
@@ -16,21 +19,25 @@ const PokedexSelectionPage: NextPage = () => {
     }
   };
 
-  if (isLoading || !pokedexes) {
-    return <LoadingPage />;
+  // Early return for loading state - DefaultLayout will handle showing loading spinner
+  if (isPageLoading) {
+    return null;
   }
 
-  const nationalDex = pokedexes.find(p => p.name === 'national');
+  const nationalDex = pokedexes.find((p) => p.name === 'national');
   const regionalPokedexes = pokedexes
-    .filter(p => p.name !== 'national')
-    .reduce((acc, pokedex) => {
-    const regionName = pokedex.region?.name ?? 'Other Dexes';
-    if (!acc[regionName]) {
-      acc[regionName] = [];
-    }
-    acc[regionName].push(pokedex);
-    return acc;
-  }, {} as Record<string, typeof pokedexes>);
+    .filter((p) => p.name !== 'national')
+    .reduce(
+      (acc, pokedex) => {
+        const regionName = pokedex.region?.name ?? 'Other Dexes';
+        if (!acc[regionName]) {
+          acc[regionName] = [];
+        }
+        acc[regionName].push(pokedex);
+        return acc;
+      },
+      {} as Record<string, typeof pokedexes>,
+    );
 
   return (
     <SectionCard title="Select a Pokédex">
@@ -48,31 +55,32 @@ const PokedexSelectionPage: NextPage = () => {
                 <option value="" disabled>
                   Select a Pokédex
                 </option>
-                <option key={nationalDex.id} value={nationalDex.name.toLowerCase()}>
+                <option key={nationalDex.id} value={nationalDex.name}>
                   {nationalDex.names[0].name || nationalDex.name}
                 </option>
               </select>
             </div>
           )}
-          {regionalPokedexes && Object.entries(regionalPokedexes).map(([regionName, dexes]) => (
-            <div key={regionName}>
-              <h2 className="text-xl font-bold mb-2">{capitalizeName(regionName)}</h2>
-              <select
-                className="p-2 border rounded-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                onChange={handlePokedexChange}
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  Select a Pokédex
-                </option>
-                {dexes.map((pokedex) => (
-                  <option key={pokedex.id} value={pokedex.name.toLowerCase()}>
-                    {pokedex.names[0].name || pokedex.name}
+          {regionalPokedexes &&
+            Object.entries(regionalPokedexes).map(([regionName, dexes]) => (
+              <div key={regionName}>
+                <h2 className="text-xl font-bold mb-2 capitalize">{regionName}</h2>
+                <select
+                  className="p-2 border rounded-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  onChange={handlePokedexChange}
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    Select a Pokédex
                   </option>
-                ))}
-              </select>
-            </div>
-          ))}
+                  {dexes.map((pokedex) => (
+                    <option key={pokedex.id} value={pokedex.name}>
+                      {pokedex.names[0].name || pokedex.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))}
         </div>
       </div>
     </SectionCard>
