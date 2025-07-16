@@ -37,7 +37,6 @@ const PokemonStats: React.FC<PokemonStatsProps> = ({ stats, baseExperience }) =>
           const statAbbr = getStatAbbr(pokemonStat.stat.name);
           const percentage = (pokemonStat.baseStat / 200) * 100; // 200 is roughly max base stat
           const statColor = getStatColor(pokemonStat.baseStat, 'bg');
-          console.log('stat color:', statColor);
           return (
             <div key={pokemonStat.stat.id} className="grid grid-cols-12 gap-4 items-center">
               {/* Stat Name */}
