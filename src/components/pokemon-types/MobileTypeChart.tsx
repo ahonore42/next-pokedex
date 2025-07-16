@@ -1,4 +1,4 @@
-import { TypeBadge } from '~/components/ui/TypeBadge';
+import TypeBadge from '~/components/pokemon-types/TypeBadge';
 import { capitalizeName } from '~/utils/text';
 import { useState } from 'react';
 
@@ -7,16 +7,16 @@ interface MobileTypeChartProps {
   getDamageFactor: (attackingTypeId: number, defendingTypeId: number) => number;
 }
 
-export const MobileTypeChart: React.FC<MobileTypeChartProps> = ({
-  allTypes,
-  getDamageFactor,
-}) => {
+export const MobileTypeChart: React.FC<MobileTypeChartProps> = ({ allTypes, getDamageFactor }) => {
   const [selectedAttackingTypeId, setSelectedAttackingTypeId] = useState<number | null>(1); // Default to Normal type (id 1)
 
   return (
     <div>
       <div className="mb-4">
-        <label htmlFor="attacking-type-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label
+          htmlFor="attacking-type-select"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >
           Select Attacking Type:
         </label>
         <select
@@ -25,7 +25,9 @@ export const MobileTypeChart: React.FC<MobileTypeChartProps> = ({
           value={selectedAttackingTypeId ?? ''}
           onChange={(e) => setSelectedAttackingTypeId(Number(e.target.value))}
         >
-          <option value="" disabled>Select a Type</option>
+          <option value="" disabled>
+            Select a Type
+          </option>
           {allTypes.map((type) => (
             <option key={type.id} value={type.id}>
               {capitalizeName(type.name)}
@@ -38,10 +40,14 @@ export const MobileTypeChart: React.FC<MobileTypeChartProps> = ({
         <div className="space-y-4">
           {/* Super Effective */}
           <div>
-            <h3 className="text-lg font-semibold text-green-600 dark:text-green-400 mb-2">Super Effective Against (2x)</h3>
+            <h3 className="text-lg font-semibold text-green-600 dark:text-green-400 mb-2">
+              Super Effective Against (2x)
+            </h3>
             <div className="flex flex-wrap gap-2">
               {allTypes
-                .filter((defendingType) => getDamageFactor(selectedAttackingTypeId, defendingType.id) > 1)
+                .filter(
+                  (defendingType) => getDamageFactor(selectedAttackingTypeId, defendingType.id) > 1,
+                )
                 .map((defendingType) => (
                   <TypeBadge key={defendingType.id} type={defendingType} link={false} />
                 ))}
@@ -50,10 +56,16 @@ export const MobileTypeChart: React.FC<MobileTypeChartProps> = ({
 
           {/* Not Very Effective */}
           <div>
-            <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">Not Very Effective Against (0.5x)</h3>
+            <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-2">
+              Not Very Effective Against (0.5x)
+            </h3>
             <div className="flex flex-wrap gap-2">
               {allTypes
-                .filter((defendingType) => getDamageFactor(selectedAttackingTypeId, defendingType.id) < 1 && getDamageFactor(selectedAttackingTypeId, defendingType.id) !== 0)
+                .filter(
+                  (defendingType) =>
+                    getDamageFactor(selectedAttackingTypeId, defendingType.id) < 1 &&
+                    getDamageFactor(selectedAttackingTypeId, defendingType.id) !== 0,
+                )
                 .map((defendingType) => (
                   <TypeBadge key={defendingType.id} type={defendingType} link={false} />
                 ))}
@@ -62,10 +74,15 @@ export const MobileTypeChart: React.FC<MobileTypeChartProps> = ({
 
           {/* No Effect */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">No Effect On (0x)</h3>
+            <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
+              No Effect On (0x)
+            </h3>
             <div className="flex flex-wrap gap-2">
               {allTypes
-                .filter((defendingType) => getDamageFactor(selectedAttackingTypeId, defendingType.id) === 0)
+                .filter(
+                  (defendingType) =>
+                    getDamageFactor(selectedAttackingTypeId, defendingType.id) === 0,
+                )
                 .map((defendingType) => (
                   <TypeBadge key={defendingType.id} type={defendingType} link={false} />
                 ))}
@@ -74,10 +91,15 @@ export const MobileTypeChart: React.FC<MobileTypeChartProps> = ({
 
           {/* Normal Effectiveness (1x) - Optional, can be omitted for brevity */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Normal Effectiveness (1x)</h3>
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Normal Effectiveness (1x)
+            </h3>
             <div className="flex flex-wrap gap-2">
               {allTypes
-                .filter((defendingType) => getDamageFactor(selectedAttackingTypeId, defendingType.id) === 1)
+                .filter(
+                  (defendingType) =>
+                    getDamageFactor(selectedAttackingTypeId, defendingType.id) === 1,
+                )
                 .map((defendingType) => (
                   <TypeBadge key={defendingType.id} type={defendingType} link={false} />
                 ))}

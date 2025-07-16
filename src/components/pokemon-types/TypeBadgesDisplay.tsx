@@ -1,5 +1,5 @@
 import React from 'react';
-import { TypeBadge, TypeBadgeProps } from '../ui/TypeBadge';
+import TypeBadge, { TypeBadgeProps } from './TypeBadge';
 
 interface TypeBadgesDisplayProps {
   types: TypeBadgeProps[];
