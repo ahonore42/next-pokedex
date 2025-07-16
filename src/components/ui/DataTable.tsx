@@ -9,10 +9,11 @@ export interface Column<T> {
   noWrap?: boolean;
   sortable?: boolean;
   sortKey?: keyof T | ((data: T) => any);
-  rowspan?: (data: T, index: number) => number | undefined; // New optional rowspan function
-  skipRender?: (data: T, index: number) => boolean; // New optional skip render function for rowspan cells
-  dividerAfter?: boolean; // New optional vertical divider after this column
-  dividerBefore?: boolean | ((data: T) => boolean); // New optional vertical divider before this column, can be conditional
+  rowspan?: (data: T, index: number) => number | undefined;
+  skipRender?: (data: T, index: number) => boolean; // Skip render function for rowspan cells
+  dividerAfter?: boolean; // Vertical divider after this column
+  dividerBefore?: boolean | ((data: T) => boolean); // Vertical divider before this column, can be conditional
+  columnPadding?: string; // Horizontal padding only (px-0, px-1, px-2, etc.)
   cellStyle?: (
     data: T,
     rowIndex: number,
@@ -33,7 +34,7 @@ interface DataTableProps<T> {
   initialSortOrder?: 'asc' | 'desc';
 }
 
-export function DataTable<T>({
+export default function DataTable<T>({
   data,
   columns,
   maxColumns = 12,
@@ -132,15 +133,16 @@ export function DataTable<T>({
                 <th
                   key={index}
                   className={clsx(
-                    'text-left p-3 font-semibold text-primary transition-colors duration-300',
+                    'text-left py-3 font-semibold text-primary transition-colors duration-300',
+                    column.columnPadding || 'px-3',
                     column.headerClassName,
                     column.sortable && 'cursor-pointer hover:text-brand',
                     column.dividerAfter && 'border-r-2 border-border',
                   )}
                   onClick={() => handleSort(column)}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="flex-grow">{column.header}</span>
+                  <div className="flex items-center justify-center">
+                    <span>{column.header}</span>
                     {column.sortable && (
                       <span
                         className={clsx(
@@ -195,7 +197,8 @@ export function DataTable<T>({
                       key={colIndex}
                       rowSpan={rowspanValue}
                       className={clsx(
-                        'px-3 py-2 text-sm transition-colors duration-300',
+                        'py-2 text-sm transition-colors duration-300',
+                        column.columnPadding || 'px-3',
                         // Apply cell-specific classes first, then fallback to default colors
                         cellStyling?.className || 'text-primary',
                         column.noWrap && 'whitespace-nowrap',
