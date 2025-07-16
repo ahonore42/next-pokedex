@@ -39,11 +39,8 @@ export default function InteractiveLink({
         {icon && (
           <div className="flex-shrink-0 group-hover:scale-110 interactive-transition">{icon}</div>
         )}
-
         <div className="flex-1 min-w-0 interactive-transition">
-          <div className="font-semibold text-pokemon-text mb-1">
-            {title}
-          </div>
+          <div className="font-semibold text-pokemon-text group-hover:text-brand mb-1">{title}</div>
 
           {description && (
             <div className="text-sm text-pokemon-text-muted group-hover:text-muted">

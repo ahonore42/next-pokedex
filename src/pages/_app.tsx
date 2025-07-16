@@ -1,12 +1,13 @@
 import type { NextPage } from 'next';
 import type { AppType, AppProps } from 'next/app';
 import Head from 'next/head';
-import { ThemeProvider } from 'next-themes';
-import { DefaultLayout } from '~/components/layout/DefaultLayout';
-import { LoadingProvider } from '~/lib/contexts/LoadingContext';
-import { trpc } from '~/utils/trpc';
 import '~/styles/globals.css';
 import '@xyflow/react/dist/style.css';
+
+import { ThemeProvider } from 'next-themes';
+import { LoadingProvider } from '~/lib/contexts/LoadingContext';
+import { trpc } from '~/utils/trpc';
+import DefaultLayout from '~/components/layout/DefaultLayout';
 
 export type NextPageWithLayout<TProps = Record<string, unknown>, TInitialProps = TProps> = NextPage<
   TProps,
