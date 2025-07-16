@@ -1,12 +1,9 @@
 import Link from 'next/link';
+import { AllTypesOutput } from '~/server/routers/_app';
 import { getTypeColor, truncateTypeName } from '~/utils/pokemon';
 
 export interface TypeBadgeProps {
-  type: {
-    id: number;
-    name: string;
-    names: { name: string }[];
-  };
+  type: AllTypesOutput[number];
   link?: boolean;
   short?: boolean;
 }

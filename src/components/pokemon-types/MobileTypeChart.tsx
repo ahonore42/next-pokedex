@@ -1,13 +1,13 @@
-import TypeBadge from '~/components/pokemon-types/TypeBadge';
-import { capitalizeName } from '~/utils/text';
 import { useState } from 'react';
+import { AllTypesOutput } from '~/server/routers/_app';
+import TypeBadge from '~/components/pokemon-types/TypeBadge';
 
 interface MobileTypeChartProps {
-  allTypes: any[]; // TODO: Replace any with actual type
+  allTypes: AllTypesOutput; // TODO: Replace any with actual type
   getDamageFactor: (attackingTypeId: number, defendingTypeId: number) => number;
 }
 
-export const MobileTypeChart: React.FC<MobileTypeChartProps> = ({ allTypes, getDamageFactor }) => {
+export default function MobileTypeChart({ allTypes, getDamageFactor }: MobileTypeChartProps) {
   const [selectedAttackingTypeId, setSelectedAttackingTypeId] = useState<number | null>(1); // Default to Normal type (id 1)
 
   return (
@@ -29,8 +29,8 @@ export const MobileTypeChart: React.FC<MobileTypeChartProps> = ({ allTypes, getD
             Select a Type
           </option>
           {allTypes.map((type) => (
-            <option key={type.id} value={type.id}>
-              {capitalizeName(type.name)}
+            <option key={type.id} value={type.id} className="capitalize">
+              {type.name}
             </option>
           ))}
         </select>
@@ -109,4 +109,4 @@ export const MobileTypeChart: React.FC<MobileTypeChartProps> = ({ allTypes, getD
       )}
     </div>
   );
-};
+}

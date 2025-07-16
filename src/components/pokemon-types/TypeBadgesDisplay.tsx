@@ -7,11 +7,11 @@ interface TypeBadgesDisplayProps {
   className?: string;
 }
 
-const TypeBadgesDisplay: React.FC<TypeBadgesDisplayProps> = ({
+export default function TypeBadgesDisplay({
   types,
   link = false,
   className = '',
-}) => {
+}: TypeBadgesDisplayProps) {
   if (!types || types.length === 0) {
     return null;
   }
@@ -25,6 +25,4 @@ const TypeBadgesDisplay: React.FC<TypeBadgesDisplayProps> = ({
       ))}
     </div>
   );
-};
-
-export default TypeBadgesDisplay;
+}

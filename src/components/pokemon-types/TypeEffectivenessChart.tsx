@@ -1,20 +1,20 @@
 import { trpc } from '~/utils/trpc';
 import { AllTypesOutput, AllEfficaciesOutput } from '~/server/routers/_app';
-import SectionCard from '~/components/ui/SectionCard';
+import { getDamageFactorColor, getDamageFactorText } from '~/utils/pokemon';
 import DataTable, { Column } from '~/components/ui/DataTable';
 import TypeBadge from '~/components/pokemon-types/TypeBadge';
-import { MobileTypeChart } from './MobileTypeChart';
-import { getDamageFactorColor, getDamageFactorText } from '~/utils/pokemon';
+import MobileTypeChart from './MobileTypeChart';
+import SectionCard from '~/components/ui/SectionCard';
 import TypeEffectivenessKey from './TypeEffectivenessKey';
 import TypeInfo from './TypeInfo';
 
 // Type for our table rows
 interface TypeEffectivenessRow {
-  attackingType: AllTypesOutput[0];
+  attackingType: AllTypesOutput[number];
   [key: string]: any; // For dynamic defending type columns
 }
 
-const TypeEffectivenessChart: React.FC = () => {
+export default function TypeEffectivenessChart() {
   const { data: allTypes } = trpc.types.allTypes.useQuery() as { data: AllTypesOutput };
   const { data: allEfficacies } = trpc.types.getAllTypeEfficacies.useQuery() as {
     data: AllEfficaciesOutput;
@@ -150,6 +150,4 @@ const TypeEffectivenessChart: React.FC = () => {
       <TypeInfo />
     </SectionCard>
   );
-};
-
-export default TypeEffectivenessChart;
+}
