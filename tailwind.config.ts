@@ -231,6 +231,12 @@ const config: Config = {
           'will-change': 'transform, translate, scale, box-shadow, opacity',
         },
 
+        '.contain-layout': {
+          contain: 'layout',
+          'will-change': 'transform',
+          transform: 'translateZ(0)',
+        },
+
         '@media (prefers-reduced-motion: reduce)': {
           '.theme-transition, .interactive-transition': {
             '@apply transition-none': '',
