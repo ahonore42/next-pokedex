@@ -225,8 +225,14 @@ const config: Config = {
           '@apply transition-theme duration-theme ease-theme': '',
           'will-change': 'color, background-color, border-color',
         },
+
+        '.transition-interactive': {
+          '@apply transition-all duration-300 ease-out': '',
+          'will-change': 'transform, translate, scale, box-shadow, opacity',
+        },
+
         '@media (prefers-reduced-motion: reduce)': {
-          '.theme-transition': {
+          '.theme-transition, .interactive-transition': {
             '@apply transition-none': '',
           },
         },
