@@ -7,13 +7,18 @@ interface InfiniteScrollProps {
   children: React.ReactNode;
 }
 
-export const InfiniteScroll: React.FC<InfiniteScrollProps> = ({ onLoadMore, hasMore, isLoading, children }) => {
+export default function InfiniteScroll({
+  onLoadMore,
+  hasMore,
+  isLoading,
+  children,
+}: InfiniteScrollProps) {
   const lastElementRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isLoading) return;
 
-    const observer = new IntersectionObserver(entries => {
+    const observer = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting && hasMore) {
         onLoadMore();
       }
@@ -26,7 +31,8 @@ export const InfiniteScroll: React.FC<InfiniteScrollProps> = ({ onLoadMore, hasM
     }
 
     return () => {
-      if (currentElement) { // Use the copied variable in cleanup
+      if (currentElement) {
+        // Use the copied variable in cleanup
         observer.unobserve(currentElement);
       }
     };
@@ -38,4 +44,4 @@ export const InfiniteScroll: React.FC<InfiniteScrollProps> = ({ onLoadMore, hasM
       <div ref={lastElementRef} />
     </div>
   );
-};
+}

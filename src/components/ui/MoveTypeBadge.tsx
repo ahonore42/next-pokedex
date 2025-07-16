@@ -8,7 +8,7 @@ interface MoveTypeBadgeProps {
   };
 }
 
-export const MoveTypeBadge: React.FC<MoveTypeBadgeProps> = ({ moveDamageClass }) => {
+export default function MoveTypeBadge({ moveDamageClass }: MoveTypeBadgeProps) {
   const displayName = moveDamageClass.names[0]?.name || moveDamageClass.name;
   const damageClassColor = getDamageClassColor(moveDamageClass.name);
   const damageClassIcon = getDamageClassIcon(moveDamageClass.name);
@@ -20,4 +20,4 @@ export const MoveTypeBadge: React.FC<MoveTypeBadgeProps> = ({ moveDamageClass })
       <span className="capitalize">{displayName}</span>
     </span>
   );
-};
+}
