@@ -5,18 +5,18 @@ import { getTypeColor, truncateTypeName } from '~/utils/pokemon';
 export interface TypeBadgeProps {
   type: AllTypesOutput[number];
   link?: boolean;
-  short?: boolean;
+  square?: boolean;
 }
 
-export default function TypeBadge({ type, link = true, short }: TypeBadgeProps) {
+export default function TypeBadge({ type, link = true, square }: TypeBadgeProps) {
   const color = getTypeColor(type.name);
   const typeName = type.names[0]?.name ?? type.name;
-  const nameLength = short ? 'short' : 'medium';
+  const nameLength = square ? 'short' : 'medium';
   const displayName = truncateTypeName(typeName, nameLength);
 
   const badgeContent = (
     <span
-      className={`flex items-center justify-center px-2 py-0.5 text-xs rounded text-white font-medium capitalize shadow-xs ${nameLength === 'medium' ? 'w-14' : 'h-12 w-12'}`}
+      className={`flex items-center justify-center px-2 py-0.5 text-xs text-white font-medium capitalize shadow-xs ${square ? 'h-12 w-12' : 'w-14 rounded'}`}
       style={{
         backgroundColor: color,
       }}

@@ -72,7 +72,7 @@ export default function TypeEffectivenessChart() {
       }),
     },
     ...sortedTypes.map((defendingType, index) => ({
-      header: <TypeBadge type={defendingType} link={false} short />,
+      header: <TypeBadge type={defendingType} link={false} square />,
       accessor: `defending_${defendingType.id}` as keyof TypeEffectivenessRow,
       columnPadding: 'px-0', // Remove horizontal padding for square cells
       className: 'text-center text-xl font-bold',
@@ -89,7 +89,7 @@ export default function TypeEffectivenessChart() {
 
   // Custom accessor function for attacking type column
   columns[0].accessor = (row: TypeEffectivenessRow) => (
-    <TypeBadge type={row.attackingType} link={false} short />
+    <TypeBadge type={row.attackingType} link={false} square />
   );
 
   // Custom accessor functions for effectiveness columns
@@ -105,28 +105,11 @@ export default function TypeEffectivenessChart() {
     <SectionCard title="Type Effectiveness Chart" colorVariant="transparent">
       <div className="hidden md:block mb-6">
         <div className="flex flex-wrap gap-6">
-          {/* Left Column - Chart Key/Legend */}
-
-          {/* Right Column - DataTable */}
           <div className="flex flex-col flex-1 lg:flex-row gap-4 justify-center items-center lg:items-start">
-            <div className="flex flex-col md:flex-row lg:flex-col gap-4">
-              <TypeEffectivenessKey />
-              <div className="bg-pokemon rounded-lg p-4 md:flex-1 lg:flex-none lg:w-56 xl:w-64">
-                <h4 className="font-semibold text-primary mb-3">Type Chart</h4>
-                <p className="text-muted mb-2 text-wrap">
-                  The full type chart here displays the strengths and weaknesses of each type. Look
-                  down the left hand side for the attacking type, then move across to see how
-                  effective it is against each Pokémon type.
-                </p>
-                <p className="text-muted text-wrap">
-                  Use this chart to plan your battle strategy and choose the most effective moves
-                  for any situation.
-                </p>
-              </div>
-            </div>
+            <TypeEffectivenessKey />
             <div className="flex justify-center">
               <div className="w-[698px] xl:w-[930px] flex justify-center">
-                <div className="shadow-md rounded-md w-fit origin-center [zoom:0.75] xl:[zoom:1]">
+                <div className="shadow-md w-fit origin-center [zoom:0.75] xl:[zoom:1]">
                   <DataTable
                     data={tableData}
                     columns={columns}

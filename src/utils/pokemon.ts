@@ -287,7 +287,7 @@ export const getDamageFactorText = (factor: number) => {
 };
 
 export const getDamageFactorColor = (factor: number) => {
-  if (factor === 0) return 'bg-gray-800 text-white'; // No effect
+  if (factor === 0) return 'bg-gray-900 text-white'; // No effect
   if (factor < 1) return 'bg-red-500 text-white'; // Not very effective
   if (factor > 1) return 'bg-green-500 text-white'; // Super effective
   return 'dark:bg-gray-500 bg-gray-100'; // Normal effect
