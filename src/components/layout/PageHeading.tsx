@@ -1,97 +1,127 @@
 import React from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import BreadcrumbNavigation, { BreadcrumbLink } from './BreadcrumbNavigation';
 import { clsx } from 'clsx';
 
 export interface PageHeadingProps {
-  // SEO & Head management
-  pageTitle: string; // Used in <title> tag
+  // Essential SEO
+  pageTitle: string;
   metaDescription: string;
-  ogTitle?: string; // Defaults to pageTitle
-  ogDescription?: string; // Defaults to metaDescription
+  useCanonical?: boolean; // Automatically generate canonical URL from current route
   ogImage?: string;
-  additionalMeta?: React.ReactNode; // For custom meta tags
+
+  // Structured data (huge SEO impact)
+  schemaType?: 'WebPage' | 'Article';
 
   // Breadcrumb navigation
   breadcrumbLinks: BreadcrumbLink[];
   currentPage: string;
-  breadcrumbClassName?: string;
 
   // Visual content
-  title: string; // Display title (can differ from pageTitle)
-  titleMetadata?: string | React.ReactNode; // "#001", badges, etc.
+  title: string;
+  titleMetadata?: string | React.ReactNode;
   subtitle?: string;
-
-  // Layout options
   titleAlignment?: 'left' | 'right';
   className?: string;
-
-  // Accessibility
-  titleId?: string; // For linking aria-describedby
+  titleId?: string;
 }
 
 export default function PageHeading({
-  // SEO props
+  // Essential SEO
   pageTitle,
   metaDescription,
-  ogTitle,
-  ogDescription,
+  useCanonical = true,
   ogImage,
-  additionalMeta,
+  schemaType = 'WebPage',
 
-  // Breadcrumb props
+  // Navigation & Visual
   breadcrumbLinks,
   currentPage,
-  breadcrumbClassName,
-
-  // Visual props
   title,
   titleMetadata,
   subtitle,
-
-  // Layout props
   titleAlignment = 'right',
   className = '',
   titleId,
 }: PageHeadingProps) {
-  // Default OG values to main values if not provided
-  const finalOgTitle = ogTitle || pageTitle;
-  const finalOgDescription = ogDescription || metaDescription;
+  const router = useRouter();
+
+  // Generate full canonical URL from current route
+  const canonicalUrl =
+    useCanonical && typeof window !== 'undefined'
+      ? new URL(router.asPath, window.location.origin).toString()
+      : undefined;
+
+  // Generate breadcrumb structured data
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      ...breadcrumbLinks.map((link, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: link.label,
+        item:
+          typeof window !== 'undefined'
+            ? new URL(link.href, window.location.origin).toString()
+            : link.href,
+      })),
+      {
+        '@type': 'ListItem',
+        position: breadcrumbLinks.length + 1,
+        name: currentPage,
+      },
+    ],
+  };
+
+  // Generate main structured data
+  const mainSchema = {
+    '@context': 'https://schema.org',
+    '@type': schemaType,
+    name: title,
+    headline: pageTitle,
+    description: metaDescription,
+    ...(ogImage && { image: ogImage }),
+    ...(canonicalUrl && { url: canonicalUrl }),
+  };
 
   return (
     <>
-      {/* Next.js Head for SEO */}
       <Head>
         <title>{pageTitle}</title>
         <meta name="description" content={metaDescription} />
+        {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
-        {/* Open Graph meta tags */}
-        <meta property="og:title" content={finalOgTitle} />
-        <meta property="og:description" content={finalOgDescription} />
+        {/* Open Graph */}
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:type" content="website" />
         {ogImage && <meta property="og:image" content={ogImage} />}
+        {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
 
-        {/* Twitter Card meta tags */}
-        <meta name="twitter:title" content={finalOgTitle} />
-        <meta name="twitter:description" content={finalOgDescription} />
-        {ogImage && <meta name="twitter:image" content={ogImage} />}
+        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={metaDescription} />
+        {ogImage && <meta name="twitter:image" content={ogImage} />}
 
-        {/* Additional custom meta tags */}
-        {additionalMeta}
+        {/* Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(mainSchema) }}
+        />
       </Head>
 
-      {/* Visual Page Heading */}
       <div className={clsx('flex justify-between items-start', className)}>
-        {/* Left Column - Breadcrumb Navigation */}
         <div className="flex-shrink-0 self-end">
-          <BreadcrumbNavigation
-            links={breadcrumbLinks}
-            currentPage={currentPage}
-            className={breadcrumbClassName}
-          />
+          <BreadcrumbNavigation links={breadcrumbLinks} currentPage={currentPage} />
         </div>
 
-        {/* Right Column - Title and Info */}
         <div className={clsx('flex-1', titleAlignment === 'left' ? 'text-left' : 'text-right')}>
           <div
             className={clsx(
@@ -102,12 +132,10 @@ export default function PageHeading({
             <h1 id={titleId} className="text-4xl font-bold capitalize text-primary">
               {title}
             </h1>
-
             {titleMetadata && (
               <div className="text-2xl font-semibold text-muted">{titleMetadata}</div>
             )}
           </div>
-
           {subtitle && <p className="text-lg text-subtle mb-4">{subtitle}</p>}
         </div>
       </div>
