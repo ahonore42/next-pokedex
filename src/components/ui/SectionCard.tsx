@@ -3,7 +3,7 @@ import { clsx } from 'clsx';
 
 interface SectionCardProps {
   children: ReactNode;
-  title: string;
+  title?: string;
   tag?: string;
   className?: string;
   variant?: 'default' | 'compact';
@@ -25,14 +25,14 @@ export default function SectionCard({
     default: {
       padding: 'p-6',
       titleSize: 'text-lg',
-      headerMargin: 'mb-4',
+      headerMargin: title && 'mb-4',
       tagSize: 'text-sm',
       shadow: 'shadow-sm hover:shadow-md',
     },
     compact: {
       padding: 'p-4',
       titleSize: 'text-base',
-      headerMargin: 'mb-2',
+      headerMargin: title && 'mb-2',
       tagSize: 'text-xs',
       shadow: 'shadow-xs hover:shadow-sm',
     },
@@ -94,7 +94,7 @@ export default function SectionCard({
       )}
     >
       <div className={clsx('flex justify-between items-start', styles.headerMargin)}>
-        <h4 className={clsx(styles.titleSize, 'font-medium text-primary')}>{title}</h4>
+        {title && <h4 className={clsx(styles.titleSize, 'font-medium text-primary')}>{title}</h4>}
 
         {tag && (
           <span
