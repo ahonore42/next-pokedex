@@ -40,7 +40,7 @@ export default function QuickAccess() {
       icon: '📍',
     },
     {
-      name: 'Evolution Trees',
+      name: 'Evolution Chains',
       desc: 'Evolution chains and methods',
       href: '/evolutions',
       icon: '🧬',

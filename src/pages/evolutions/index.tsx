@@ -4,8 +4,9 @@ import { usePageLoading } from '~/lib/contexts/LoadingContext';
 import type { EvolutionChainsPaginatedOutput } from '~/server/routers/_app';
 import EvolutionChain from '~/components/pokemon/EvolutionChain';
 import InfiniteScroll from '~/components/ui/InfiniteScroll';
+import PageHeading from '~/components/layout/PageHeading';
 
-const EvolutionTreesPage: NextPageWithLayout = () => {
+const EvolutionChainsPage: NextPageWithLayout = () => {
   const { data, fetchNextPage, hasNextPage, isLoading, isFetchingNextPage, error } =
     trpc.evolutionChains.paginated.useInfiniteQuery(
       {
@@ -31,7 +32,17 @@ const EvolutionTreesPage: NextPageWithLayout = () => {
 
   return (
     <>
-      <h1 className="text-4xl font-bold mb-8">Pokemon Evolution Trees</h1>
+      <PageHeading
+        pageTitle="Pokémon Evolution Chains - Complete Evolution Guide"
+        metaDescription="Explore comprehensive Pokémon evolution chains. Discover evolution paths, requirements, and relationships for all Pokémon species."
+        ogImage="/pokemon-evolutions-preview.png"
+        schemaType="WebPage"
+        breadcrumbLinks={[{ label: 'Home', href: '/' }]}
+        currentPage="Evolution Chains"
+        title="Evolution Chains"
+        subtitle="Evolution paths and requirements for all Pokémon species"
+      />
+
       <InfiniteScroll
         onLoadMore={fetchNextPage}
         hasMore={hasNextPage ?? false}
@@ -47,4 +58,4 @@ const EvolutionTreesPage: NextPageWithLayout = () => {
   );
 };
 
-export default EvolutionTreesPage;
+export default EvolutionChainsPage;
