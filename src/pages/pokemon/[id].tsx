@@ -1,7 +1,6 @@
 import { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import NextError from 'next/error';
-import Head from 'next/head';
 import { useState, useMemo, useEffect } from 'react';
 import type { NextPageWithLayout } from '~/pages/_app';
 import { trpc } from '~/utils/trpc';
@@ -13,7 +12,8 @@ import { PokemonEncounters } from '~/components/pokemon/PokemonEncounters';
 import { PokemonGameData } from '~/components/pokemon/PokemonGameData';
 import PokemonHeader from '~/components/pokemon/PokemonHeader';
 import PokemonStats from '~/components/pokemon/PokemonStats';
-import BreadcrumbNavigation from '~/components/layout/BreadcrumbNavigation';
+import PageHeading from '~/components/layout/PageHeading';
+import { capitalizeName } from '~/utils/text';
 
 const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
   const router = useRouter();
@@ -57,9 +57,6 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
         link.href = url;
         link.fetchPriority = 'high';
         link.crossOrigin = 'anonymous';
-
-        // Remove srcset since GitHub doesn't provide different sizes
-        // Just preload the exact URL we'll use
 
         document.head.appendChild(link);
         preloadLinks.push(link);
@@ -154,8 +151,8 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
     return null;
   }
 
-  const activePokemonName = activePokemon.name;
-  const speciesFlavorText = species.flavorTexts[0]?.flavorText;
+  const activePokemonName = capitalizeName(activePokemon.name);
+  // const speciesFlavorText = species.flavorTexts[0]?.flavorText;
   const activePokemonRegion = getRegionFromVersionGroup(activePokemon.forms[0].versionGroup);
   const genus = species.names[0]?.genus || '';
   const nationalDexNumber =
@@ -165,49 +162,26 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
 
   return (
     <>
-      <Head>
-        <title className="capitalize">{activePokemonName} - Pokédex</title>
-        <meta
-          name="description"
-          content={`Complete information about ${activePokemonName} including stats, abilities, moves, evolution, and more.`}
-        />
-        <meta property="og:title" content={`${activePokemonName} - Pokédex`} />
-        <meta
-          property="og:description"
-          content={speciesFlavorText || `Information about ${activePokemonName}`}
-        />
-        <meta property="og:image" content={activePokemon.sprites?.frontDefault || ''} />
-      </Head>
-
+      <PageHeading
+        pageTitle={`${activePokemonName} - Pokédex`}
+        metaDescription={`Complete ${activePokemonName} guide: stats, abilities, moves, evolution. National Dex #${nationalDexNumber}.`}
+        ogImage={activePokemon.sprites?.officialArtworkFront || ''}
+        schemaType="Article"
+        breadcrumbLinks={[
+          { label: 'Home', href: '/' },
+          {
+            label: `${activePokemonRegion?.displayName} Pokédex`,
+            href: `/pokedex/${activePokemonRegion?.name}`,
+          },
+        ]}
+        currentPage={activePokemonName}
+        title={activePokemonName}
+        titleMetadata={`#${nationalDexNumber.toString().padStart(3, '0')}`}
+        subtitle={genus}
+        titleAlignment="right"
+      />
       <div className="min-h-screen bg-background">
         <main className="mx-auto">
-          <div className="flex justify-between items-start">
-            {/* Left Column - Breadcrumb Navigation */}
-            <div className="flex-shrink-0 self-end">
-              <BreadcrumbNavigation
-                links={[
-                  { label: 'Home', href: '/' },
-                  {
-                    label: `${activePokemonRegion?.displayName} Pokédex`,
-                    href: `/pokedex/${activePokemonRegion?.name}`,
-                  },
-                ]}
-                currentPage={activePokemonName}
-              />
-            </div>
-
-            {/* Right Column - Title and Info */}
-            <div className="flex-1 text-right">
-              <div className="flex items-center justify-end space-x-3 mb-2">
-                <h1 className="text-4xl font-bold capitalize text-primary">{activePokemonName}</h1>
-                <span className="text-2xl font-semibold text-muted">
-                  #{nationalDexNumber.toString().padStart(3, '0')}
-                </span>
-              </div>
-              {genus && <p className="text-lg text-subtle mb-4">{genus}</p>}
-            </div>
-          </div>
-
           {/* Pokemon Header - using the active Pokemon with species data */}
           <PokemonHeader
             pokemon={activePokemon}
@@ -251,6 +225,7 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className="inline-flex items-center px-4 py-2 bg-brand hover:bg-brand-hover text-brand-text rounded-lg shadow-sm hover:shadow-md"
+              aria-describedby="pokemon-title"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
