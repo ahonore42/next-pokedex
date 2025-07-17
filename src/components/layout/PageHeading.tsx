@@ -22,7 +22,6 @@ export interface PageHeadingProps {
   title: string;
   titleMetadata?: string | React.ReactNode;
   subtitle?: string;
-  titleAlignment?: 'left' | 'right';
   className?: string;
   titleId?: string;
 }
@@ -41,7 +40,6 @@ export default function PageHeading({
   title,
   titleMetadata,
   subtitle,
-  titleAlignment = 'right',
   className = '',
   titleId,
 }: PageHeadingProps) {
@@ -118,17 +116,12 @@ export default function PageHeading({
       </Head>
 
       <div className={clsx('flex justify-between items-start', className)}>
-        <div className="flex-shrink-0 self-end">
+        <div className="flex-shrink-0 hidden md:block">
           <BreadcrumbNavigation links={breadcrumbLinks} currentPage={currentPage} />
         </div>
 
-        <div className={clsx('flex-1', titleAlignment === 'left' ? 'text-left' : 'text-right')}>
-          <div
-            className={clsx(
-              'flex items-center space-x-3 mb-2',
-              titleAlignment === 'left' ? 'justify-start' : 'justify-end',
-            )}
-          >
+        <div className="flex-1 text-right">
+          <div className="flex items-center justify-end space-x-3 mb-2">
             <h1 id={titleId} className="text-4xl font-bold capitalize text-primary">
               {title}
             </h1>

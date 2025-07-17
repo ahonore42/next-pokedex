@@ -178,7 +178,6 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
         title={activePokemonName}
         titleMetadata={`#${nationalDexNumber.toString().padStart(3, '0')}`}
         subtitle={genus}
-        titleAlignment="right"
       />
       <div className="min-h-screen bg-background">
         <main className="mx-auto">
