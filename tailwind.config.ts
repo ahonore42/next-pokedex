@@ -237,6 +237,43 @@ const config: Config = {
           transform: 'translateZ(0)',
         },
 
+        '.info': {
+          '@apply border border-blue-500 bg-blue-50 dark:bg-blue-900/20': '',
+        },
+
+        '.highlight': {
+          '@apply border border-yellow-200 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-900/20':
+            '',
+        },
+
+        '.success': {
+          '@apply border border-green-200 dark:border-green-600 bg-green-50 dark:bg-green-900/20':
+            '',
+        },
+
+        '.update': {
+          '@apply border border-emerald-200 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-900/20':
+            '',
+        },
+
+        '.pokemon': {
+          '@apply border border-indigo-200 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20':
+            '',
+        },
+
+        '.surface': {
+          '@apply border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700':
+            '',
+        },
+
+        '.error': {
+          '@apply border border-red-500 bg-red-50 dark:bg-red-900/20': '',
+        },
+
+        '.card': {
+          '@apply rounded-lg p-4': '',
+        },
+
         '@media (prefers-reduced-motion: reduce)': {
           '.theme-transition, .interactive-transition': {
             '@apply transition-none': '',
