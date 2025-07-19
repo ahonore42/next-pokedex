@@ -40,6 +40,11 @@ export type FeaturedPokemon = RouterOutputs['pokemon']['featured']['pokemon'][nu
 export type Pokemon = PokemonListOutput['pokemon'][number];
 export type PokemonStats = PokemonDetailedById['stats'];
 
+export type PokedexesByGeneration = NonNullable<PokemonRouterOutputs['pokedexByGeneration']>;
+export type GenerationPokedex = PokedexesByGeneration['generations'][number];
+export type NationalPokedex = PokedexesByGeneration['national'];
+export type PokedexEntries = GenerationPokedex | NationalPokedex;
+export type RegionalPokedexes = PokemonRouterOutputs['regionalPokedexesByGeneration'];
 /**
  * Pokemon Species-specific types
  */

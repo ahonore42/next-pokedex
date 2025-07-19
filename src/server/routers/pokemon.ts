@@ -551,6 +551,226 @@ export const pokemonRouter = router({
     });
   }),
 
+  pokedexByGeneration: publicProcedure.query(async () => {
+    // National Pokedex
+    const nationalPokedex = await prisma.pokedex.findUnique({
+      where: { name: 'national' },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+    if (!nationalPokedex) return null;
+
+    // One bulk species query ordered by id ASC
+    const allSpecies = await prisma.pokemonSpecies.findMany({
+      where: {
+        pokedexNumbers: {
+          some: { pokedex: { name: 'national' } },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        order: true,
+        names: {
+          where: { languageId: DEFAULT_LANGUAGE_ID },
+          select: { name: true },
+          take: 1,
+        },
+        generation: {
+          select: { name: true, id: true },
+        },
+        pokemon: {
+          where: { isDefault: true },
+          select: { name: true, sprites: { select: { frontDefault: true } } },
+        },
+        pokedexNumbers: {
+          where: { pokedex: { name: 'national' } },
+          select: { pokedexNumber: true },
+        },
+      },
+      orderBy: { id: 'asc' },
+    });
+
+    //Process Generations
+    const pokemonEntries = allSpecies.map((species) => ({
+      pokedexId: nationalPokedex.id,
+      pokemonSpecies: species,
+    }));
+
+    const generationMap = new Map<
+      number,
+      {
+        generation: (typeof allSpecies)[number]['generation'];
+        pokemonSpecies: typeof allSpecies;
+      }
+    >();
+
+    for (const species of allSpecies) {
+      const genId = species.generation.id;
+      if (!generationMap.has(genId)) {
+        generationMap.set(genId, {
+          generation: species.generation,
+          pokemonSpecies: [],
+        });
+      }
+      generationMap.get(genId)!.pokemonSpecies.push(species);
+    }
+
+    const generations = Array.from(generationMap.values()).map(
+      ({ generation, pokemonSpecies }) => ({
+        ...generation,
+        pokemonSpecies,
+      }),
+    );
+
+    return {
+      national: {
+        ...nationalPokedex,
+        pokemonSpecies: pokemonEntries.map((pokemonEntry) => pokemonEntry.pokemonSpecies),
+      },
+      generations,
+    };
+  }),
+
+  regionalPokedexesByGeneration: publicProcedure
+    .input(z.object({ generationId: z.number() }))
+    .query(async ({ input }) => {
+      /* 1. version groups in order ------------------------------------ */
+      const versionGroups = await prisma.versionGroup.findMany({
+        where: {
+          generationId: input.generationId,
+          pokedexes: {
+            some: { pokedex: { isMainSeries: true } },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          order: true,
+          pokedexes: {
+            where: { pokedex: { isMainSeries: true } },
+            select: { pokedexId: true },
+          },
+        },
+        orderBy: { order: 'asc' },
+      });
+
+      /* 2. all relevant pokedex ids (flat list) ----------------------- */
+      const pokedexIds = versionGroups.flatMap((vg) => vg.pokedexes.map((p) => p.pokedexId));
+
+      /* 3. ONE query for every species that appears in those dexes ---- */
+      const allSpeciesRows = await prisma.pokemonSpecies.findMany({
+        where: {
+          pokedexNumbers: {
+            some: { pokedexId: { in: pokedexIds } },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          order: true,
+          names: {
+            where: { languageId: DEFAULT_LANGUAGE_ID },
+            select: { name: true },
+            take: 1,
+          },
+          pokedexNumbers: {
+            where: { pokedexId: { in: pokedexIds } },
+          },
+          pokemon: {
+            where: {
+              NOT: { name: { contains: 'gmax' } }, // <-- exclude g-max forms
+            },
+            select: {
+              id: true,
+              name: true,
+              sprites: true,
+              forms: { select: { versionGroupId: true } },
+              isDefault: true,
+            },
+          },
+        },
+        orderBy: { id: 'asc' },
+      });
+
+      /* 4. Build the exact original JSON with correct per-dex order ----- */
+      const dexMap = new Map<number, any[]>(); // pokedexId -> pokemonEntries
+
+      for (const species of allSpeciesRows) {
+        for (const pn of species.pokedexNumbers) {
+          const pokedexId = pn.pokedexId;
+
+          /* choose the one pokemon we would have returned */
+          const pokemon =
+            species.pokemon.find(
+              (p) =>
+                p.forms.some((f) => versionGroups.some((vg) => vg.id === f.versionGroupId)) ||
+                (p.isDefault &&
+                  !species.pokemon.some((pp) =>
+                    pp.forms.some((f) => versionGroups.some((vg) => vg.id === f.versionGroupId)),
+                  )),
+            ) ?? species.pokemon.find((p) => p.isDefault);
+
+          if (!pokemon) continue;
+
+          dexMap.set(
+            pokedexId,
+            (dexMap.get(pokedexId) || []).concat({
+              pokedexId,
+              pokedexNumber: pn.pokedexNumber,
+              pokemonSpecies: {
+                ...species,
+                pokemon: [pokemon],
+                /* keep ONLY the pokedexNumbers that belong to this dex */
+                pokedexNumbers: species.pokedexNumbers.filter((n) => n.pokedexId === pokedexId),
+              },
+            }),
+          );
+        }
+      }
+
+      /* --- sort every dex's list by its own pokedexNumber -------------- */
+      dexMap.forEach((entries) => entries.sort((a, b) => a.pokedexNumber - b.pokedexNumber));
+
+      /* 5. Re-create the outer structure ------------------------------ */
+      const pokedexDetails = await prisma.pokedex.findMany({
+        where: { id: { in: pokedexIds } },
+        select: {
+          id: true,
+          name: true,
+          region: true,
+          names: {
+            where: { languageId: DEFAULT_LANGUAGE_ID },
+            select: { name: true },
+            take: 1,
+          },
+        },
+      });
+      const pokedexMap = new Map(pokedexDetails.map((p) => [p.id, p]));
+
+      const versionGroupsWithPokemon = versionGroups.map((vg) => ({
+        id: vg.id,
+        name: vg.name,
+        order: vg.order,
+        pokedexes: vg.pokedexes
+          .map((p) => ({
+            pokedex: {
+              ...pokedexMap.get(p.pokedexId)!,
+              pokemonSpecies:
+                dexMap.get(p.pokedexId)?.map((pokemonEntry) => pokemonEntry.pokemonSpecies) || [],
+              // pokemonEntries: dexMap.get(p.pokedexId) || [],
+            },
+          }))
+          .sort((a, b) => a.pokedex.id - b.pokedex.id),
+      }));
+
+      return {
+        id: input.generationId,
+        versionGroups: versionGroupsWithPokemon,
+      };
+    }),
   pokemonByPokedex: publicProcedure
     .input(
       z.object({
