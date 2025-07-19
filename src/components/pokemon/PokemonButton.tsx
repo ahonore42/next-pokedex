@@ -24,17 +24,17 @@ const PokemonButton: React.FC<PokemonButtonProps> = ({
   const types = pokemon.types || [];
 
   const styles = {
-    container: 'p-4 w-full',
+    container: 'p-4 w-full interactive-theme',
     imageSize: 'w-16 h-16',
     spacing: 'space-x-4',
     nameSize: 'font-semibold',
     statusSize: 'text-sm',
   };
 
-  const baseClasses = `border rounded-lg p-4 text-left ${
+  const baseClasses = `card text-left  ${
     isActive
-      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md'
-      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 hover:shadow-sm'
+      ? 'info shadow-md'
+      : 'border border-gray-200 dark:border-gray-700 hover:border-gray-300 hover:shadow-sm'
   }`;
 
   // Error handling for onClick

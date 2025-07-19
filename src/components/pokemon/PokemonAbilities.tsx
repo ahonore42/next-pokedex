@@ -17,10 +17,7 @@ export const PokemonAbilities: React.FC<ComponentProps> = ({ pokemon }) => {
         </h3>
         <div className="space-y-4">
           {normalAbilities.map((pokemonAbility) => (
-            <div
-              key={pokemonAbility.ability.id}
-              className="border border-gray-200 dark:border-gray-600 rounded-lg p-4"
-            >
+            <div key={pokemonAbility.ability.id} className="info card">
               <h4 className="font-semibold text-gray-900 dark:text-white mb-2 capitalize">
                 {pokemonAbility.ability.names[0]?.name || pokemonAbility.ability.name}
               </h4>
@@ -47,10 +44,7 @@ export const PokemonAbilities: React.FC<ComponentProps> = ({ pokemon }) => {
           </h3>
           <div className="space-y-4">
             {hiddenAbilities.map((pokemonAbility) => (
-              <div
-                key={pokemonAbility.ability.id}
-                className="border border-yellow-200 dark:border-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4"
-              >
+              <div key={pokemonAbility.ability.id} className="highlight card">
                 <h4 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center capitalize">
                   {pokemonAbility.ability.names[0]?.name || pokemonAbility.ability.name}
                   <span className="ml-2 px-2 py-1 bg-yellow-200 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-200 rounded text-xs">
