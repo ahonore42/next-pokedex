@@ -4,11 +4,12 @@ import { ReactNode } from 'react';
 interface InteractiveLinkProps {
   href: string;
   icon?: ReactNode;
-  title: string;
+  title?: string;
   description?: ReactNode | string;
   showArrow?: boolean;
   ariaLabel: string;
   className?: string;
+  children?: ReactNode;
 }
 
 export default function InteractiveLink({
@@ -19,18 +20,15 @@ export default function InteractiveLink({
   showArrow = false,
   ariaLabel,
   className = '',
+  children,
 }: InteractiveLinkProps) {
   return (
     <Link
       href={href}
       className={`
-        group block p-4 border rounded-lg
-        bg-pokemon hover:bg-pokemon-hover
-        border-pokemon-border hover:border-pokemon-border-hover
-        hover:shadow-md hover:-translate-y-1
-        active:scale-95
-        transition-all duration-300
-        contain-layout
+        group block border
+        pokemon card
+        interactive-link
         ${className}
       `}
       aria-label={ariaLabel}
@@ -40,8 +38,12 @@ export default function InteractiveLink({
           <div className="flex-shrink-0 group-hover:scale-110 interactive-transition">{icon}</div>
         )}
         <div className="flex-1 min-w-0 interactive-transition">
-          <div className="font-semibold text-pokemon-text group-hover:text-brand mb-1">{title}</div>
-
+          {title && (
+            <div className="font-semibold text-pokemon-text group-hover:text-brand mb-1">
+              {title}
+            </div>
+          )}
+          {children}
           {description && (
             <div className="text-sm text-pokemon-text-muted group-hover:text-muted">
               {description}

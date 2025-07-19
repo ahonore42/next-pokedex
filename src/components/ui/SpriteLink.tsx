@@ -4,7 +4,7 @@ import Sprite from './Sprite';
 interface SpriteLinkProps {
   href: string;
   src: string;
-  title: string;
+  title?: string;
   prefix?: string;
   className?: string;
 }

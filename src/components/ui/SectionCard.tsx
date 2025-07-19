@@ -23,7 +23,7 @@ export default function SectionCard({
   // Variant system for sizing and spacing
   const variantStyles = {
     default: {
-      titleSize: 'text-lg',
+      titleSize: 'text-xl',
       headerMargin: title && 'mb-4',
       tagSize: 'text-sm',
       shadow: 'shadow-sm hover:shadow-md',
@@ -61,24 +61,21 @@ export default function SectionCard({
   return (
     <div
       className={clsx(
-        'card theme-transition',
+        'card theme-transition', // Always handle color transitions
         colorStyles.background,
-        // Conditional shadow and transform effects based on hover prop
-        hover && styles.shadow,
-        hover && 'hover:-translate-y-0.5 active:scale-[0.99]',
-        'transition-all duration-theme ease-theme',
+        hover && [
+          'interactive-transition', // Add transform transitions when interactive
+          'hover:-translate-y-0.5 active:scale-[0.99]',
+          styles.shadow,
+        ],
         className,
       )}
     >
-      <div className={clsx('flex justify-between items-start', styles.headerMargin)}>
-        {title && <h4 className={clsx(styles.titleSize, 'font-medium text-primary')}>{title}</h4>}
+      <div className={clsx('flex justify-between items-start text-primary', styles.headerMargin)}>
+        {title && <h4 className={clsx(styles.titleSize, 'font-medium')}>{title}</h4>}
         {tag && (
           <span
-            className={clsx(
-              styles.tagSize,
-              'text-primary bg-pokemon',
-              'px-2 py-1 rounded-md flex-shrink-0',
-            )}
+            className={clsx(styles.tagSize, ' bg-pokemon', 'px-2 py-1 rounded-md flex-shrink-0')}
           >
             {tag}
           </span>
