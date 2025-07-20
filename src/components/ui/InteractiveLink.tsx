@@ -29,15 +29,16 @@ export default function InteractiveLink({
         group block border
         pokemon card
         interactive-link
+        transition-interactive
         ${className}
       `}
       aria-label={ariaLabel}
     >
       <div className="flex items-start gap-3">
         {icon && (
-          <div className="flex-shrink-0 group-hover:scale-110 interactive-transition">{icon}</div>
+          <div className="flex-shrink-0 group-hover:scale-110 transition-interactive">{icon}</div>
         )}
-        <div className="flex-1 min-w-0 interactive-transition">
+        <div className="flex-1 min-w-0 transition-interactive">
           {title && (
             <div className="font-semibold text-pokemon-text group-hover:text-brand mb-1">
               {title}
@@ -55,7 +56,7 @@ export default function InteractiveLink({
       {showArrow && (
         <div className="flex justify-end mt-2">
           <svg
-            className="w-4 h-4 text-pokemon-text-muted group-hover:text-brand transform group-hover:translate-x-1 interactive-transition"
+            className="w-4 h-4 text-pokemon-text-muted group-hover:text-brand transform group-hover:translate-x-1 transition-interactive"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
