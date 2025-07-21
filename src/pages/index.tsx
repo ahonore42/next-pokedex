@@ -2,29 +2,31 @@ import { useEffect, useState } from 'react';
 import { NextPageWithLayout } from './_app';
 import { trpc } from '~/utils/trpc';
 import { usePageLoading } from '~/lib/contexts/LoadingContext';
-import { DbStats, PokemonListOutput } from '~/server/routers/_app';
+import { PokemonArtworkByNames, PokemonListOutput } from '~/server/routers/_app';
 import QuickAccess from '~/components/layout/QuickAccess';
 import SearchBar from '~/components/layout/SearchBar';
 import LatestUpdates from '~/components/informational/LatestUpdates';
-import DatabaseStats from '~/components/informational/DatabaseStats';
 import FeaturedPokemonDisplay from '~/components/informational/FeaturedPokemonDisplay';
+import PageHeading from '~/components/layout/PageHeading';
 
 const IndexPage: NextPageWithLayout = () => {
   const [pokemon, setPokemon] = useState<PokemonListOutput['pokemon']>([]);
-  const [dbStats, setDbStats] = useState<DbStats | undefined>(undefined);
+  const [legendaries, setLegendaries] = useState<PokemonArtworkByNames>([]);
   const utils = trpc.useUtils();
   const pokemonQuery = trpc.pokemon.featured.useQuery();
-  const statsQuery = trpc.pokemon.dbStats.useQuery();
+  const artworkQuery = trpc.pokemon.officialArtworkByNames.useQuery({
+    names: ['dialga', 'palkia'],
+  });
 
   // Calculate loading state based on query states and data availability
   const isInitialLoading =
-    pokemonQuery.isLoading || statsQuery.isLoading || !pokemonQuery.data || !statsQuery.data;
+    pokemonQuery.isLoading || artworkQuery.isLoading || !pokemonQuery.data || !artworkQuery.data;
 
   useEffect(() => {
     // Only update state when data is available
-    if (pokemonQuery.data && statsQuery.data) {
+    if (pokemonQuery.data && artworkQuery.data) {
       const pokemonList = pokemonQuery.data.pokemon ?? [];
-      const stats = statsQuery.data;
+      const legendarySprites = artworkQuery.data;
 
       // Prefetch individual pokemon
       for (const { id } of pokemonList) {
@@ -32,9 +34,9 @@ const IndexPage: NextPageWithLayout = () => {
       }
 
       setPokemon(pokemonList);
-      setDbStats(stats);
+      setLegendaries(legendarySprites);
     }
-  }, [pokemonQuery.data, statsQuery.data, utils]);
+  }, [pokemonQuery.data, artworkQuery.data, utils]);
 
   // Use the loading context
   usePageLoading(isInitialLoading);
@@ -45,24 +47,81 @@ const IndexPage: NextPageWithLayout = () => {
 
   return (
     <>
-      {/* Welcome Section */}
-      <div className="sm:flex sm:items-start sm:gap-4 sm:py-8 mb-4">
-        <div className="px-4 sm:px-0">
-          <h1 className="text-3xl md:text-4xl xl:text-5xl 2xl:text-6xl font-bold text-primary tracking-tight xl:tracking-tighter mb-4 text-gradient">
-            Evolve Pokédex
-          </h1>
-          <div className="w-full max-w-md sm:max-w-lg lg:max-w-2xl xl:max-w-3xl mx-auto px-4">
-            <p className="text-lg xl:text-xl 2xl:text-2xl text-secondary mx-auto text-left">
-              Your comprehensive resource for Pokémon information. Search through our complete
-              database of Pokémon species, moves, abilities, and more.
+      <PageHeading
+        pageTitle="Evolve Pokédex - Comprehensive Pokémon Game Database"
+        metaDescription="Comprehensive and accurate online resource for Pokémon game information across every generation and region."
+        useCanonical={true}
+        ogImage="/evolve-pokedex-homepage.png"
+        ogType="website"
+        schemaType="WebSite"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: 'Evolve Pokédex',
+          description:
+            'Comprehensive and accurate online resource for Pokémon game information across every generation and region',
+          url: process.env.NEXT_PUBLIC_BASE_URL,
+          mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': process.env.NEXT_PUBLIC_BASE_URL,
+          },
+          publisher: {
+            '@type': 'Organization',
+            name: 'Evolve Pokédex',
+          },
+        }}
+        breadcrumbLinks={[]}
+        currentPage="Home"
+      />
+      {/* Title outside overlay area */}
+      <h1 className="text-3xl md:text-4xl xl:text-5xl 2xl:text-6xl font-bold tracking-tight xl:tracking-tighter 2xl:mb-4 indigo-gradient text-left">
+        Evolve Pokédex
+      </h1>
+      {/* Mobile-only layout - simple stacked */}
+      <div className="block md:hidden">
+        <div className="px-4 py-6 space-y-6">
+          <div className="max-w-sm mx-auto">
+            <p className="text-lg text-muted text-left">
+              Comprehensive and accurate online resource for Pokémon game information across every
+              generation and region.
             </p>
           </div>
+          <div className="max-w-sm mx-auto">
+            <SearchBar />
+          </div>
         </div>
-        {dbStats && <DatabaseStats stats={dbStats} />}
       </div>
 
-      <div className="mb-4">
-        <SearchBar />
+      {/* Desktop-only layout - with overlay */}
+      <div className="hidden md:block">
+        <div className="relative flex items-center justify-center h-48 lg:h-72 xl:h-96 2xl:mt-8">
+          {/* Background images layer */}
+          {legendaries && (
+            <div className="absolute inset-0 flex justify-between items-center w-full">
+              <img
+                src={legendaries[0] || ''}
+                className="object-contain size-48 lg:size-72 xl:size-96 2xl:size-112 opacity-90 hover:opacity-100 transition-interactive"
+              />
+              <img
+                src={legendaries[1] || ''}
+                className="object-contain size-48 lg:size-72 xl:size-96 2xl:size-112 opacity-90 hover:opacity-100 transition-interactive"
+              />
+            </div>
+          )}
+
+          {/* Foreground content */}
+          <div className="relative z-10 ">
+            <div className="max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl mx-auto px-4 sm:px-0">
+              <p className="text-xl xl:text-2xl text-muted mx-auto text-left backdrop-blur-lg rounded-lg">
+                Comprehensive and accurate online resource for Pokémon game information across every
+                generation and region.
+              </p>
+            </div>
+            <div className="mt-4 max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl mx-auto h-16">
+              <SearchBar />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main Content */}
