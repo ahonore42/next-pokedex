@@ -21,6 +21,7 @@ export default function PokedexDisplay({ pokedex }: PokedexDisplayProps) {
             src={pokemonDefaultSprite || ''}
             title={pokemonName}
             prefix={pokedexNumber}
+            types={pokemonSpecies.pokemon[0].types}
           />
         );
       })}
