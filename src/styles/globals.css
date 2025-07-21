@@ -30,9 +30,9 @@
   --color-tertiary: #f1f5f9;
 
   /* Surface colors for cards and elevated content */
-  --color-surface: #ffffff;
-  --color-surface-elevated: #f8f9fa;
-  --color-hover: #f8fafc;
+  --color-surface: #fdfdfd; /* Just off pure white */
+  --color-surface-elevated: #f8fafc; /* slate-50 */
+  --color-hover: #e2e8f0; /* slate-200 */
 
   /* Interactive states */
   --color-interactive: #f1f5f9;
@@ -132,6 +132,17 @@
     }
     to {
       transform: rotate(360deg);
+    }
+  }
+
+  @keyframes slideInFromLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-1rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
     }
   }
 
@@ -255,7 +266,7 @@
   }
 
   .pokemon {
-    @apply border border-indigo-200 bg-indigo-50 dark:border-indigo-700 dark:bg-indigo-900/30;
+    @apply border border-indigo-200 bg-indigo-50 dark:border-indigo-700 dark:bg-indigo-700/10;
   }
 
   .pokemon-hover {
@@ -263,7 +274,11 @@
   }
 
   .surface {
-    @apply border border-slate-200 bg-slate-50 dark:border-slate-600 dark:bg-slate-700;
+    @apply border border-border bg-slate-50 dark:border-border dark:bg-surface-elevated;
+  }
+
+  .surface-hover {
+    @apply bg-surface-elevated border-border dark:border-border hover:bg-hover hover:border-border-hover dark:hover:bg-hover dark:hover:border-border-hover;
   }
 
   .error {
@@ -296,6 +311,10 @@
   will-change: transform, translate, scale, box-shadow, opacity;
 }
 
+.mobile-nav-item-enter {
+  animation: slideInFromLeft 200ms ease-in-out forwards;
+}
+
 .interactive:hover {
   background-color: var(--color-interactive-hover);
 }
@@ -310,7 +329,7 @@
   cursor: not-allowed;
 }
 
-.text-gradient {
+.indigo-gradient {
   background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-active) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
