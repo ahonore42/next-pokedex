@@ -7,6 +7,7 @@ interface SpriteProps {
   prefix?: string;
   types?: TypeBadgeProps[];
   variant?: 'sm' | 'md' | 'lg';
+  hover?: boolean;
   className?: string;
 }
 
@@ -16,6 +17,7 @@ export default function Sprite({
   prefix,
   types,
   variant = 'md',
+  hover = false,
   className = '',
 }: SpriteProps) {
   const variants = {
@@ -25,9 +27,8 @@ export default function Sprite({
   };
   return (
     <div
-      className={`surface text-center flex flex-col items-center justify-center text-primary
-          rounded-lg border border-border ${variants[variant].container} ${className}
-        `}
+      className={`text-center flex flex-col items-center justify-center text-primary rounded-lg border border-border 
+      ${hover ? 'surface-hover' : 'surface'} ${variants[variant].container} ${className}`}
     >
       <img src={src} alt={title} className={`mx-auto ${variants[variant].img}`} />
       {(title || prefix) && variant !== 'sm' && (

@@ -26,6 +26,7 @@ export default function SpriteLink({
         title={title}
         prefix={prefix}
         types={types}
+        hover
         className={`group block interactive-link transition-interactive ${className}`}
       />
     </Link>
