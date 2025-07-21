@@ -20,18 +20,21 @@ export default function SearchBar() {
   );
 
   return (
-    <div className="relative max-w-2xl mx-auto">
+    <div className="relative max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl mx-auto">
       <div className="relative">
-        <input
-          type="text"
-          placeholder="Search Pokémon by name or number..."
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-          }}
-          className="w-full px-4 py-3 pl-10 border-2 border-border rounded-lg focus:outline-none focus:border-brand bg-surface text-primary transition-colors duration-300 placeholder:text-subtle"
-        />
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+        <div className="relative overflow-hidden rounded-lg border-2 border-border transition-all duration-300 hover:border-brand/50">
+          <input
+            type="text"
+            placeholder="Search Pokémon by name or number..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+            }}
+            className={`w-full px-4 py-3 pl-10 bg-surface text-primary transition-all duration-300 
+              placeholder:text-subtle border-none outline-none hover:py-4 ${searchQuery.length > 0 && 'py-4'}`}
+          />
+        </div>
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 hover:right-5">
           <svg
             className="w-5 h-5 text-subtle transition-colors duration-300"
             fill="none"
@@ -49,12 +52,15 @@ export default function SearchBar() {
       </div>
 
       {searchResults.data && (
-        <div className="absolute top-full mt-1 w-full bg-surface border border-border rounded-lg shadow-lg overflow-hidden z-50 transition-colors duration-300">
+        <div
+          className={`absolute top-full mt-1 w-full bg-surface  rounded-lg shadow-lg overflow-hidden transition-colors duration-300 
+          z-50 ${searchResults.data.pokemon.length > 0 && 'border border-border'}`}
+        >
           {searchResults.data.pokemon.map((pokemon) => (
             <Link
               key={pokemon.id}
               href={`/pokemon/${pokemon.id}`}
-              className="flex items-center p-3 hover:bg-interactive-hover border-b border-border last:border-b-0 cursor-pointer transition-colors duration-200 block"
+              className="flex items-center p-3 hover:bg-hover border-b border-border last:border-b-0 cursor-pointer transition-colors duration-300 block"
               onClick={() => setSearchQuery('')} // Clear search when clicking a result
             >
               <img

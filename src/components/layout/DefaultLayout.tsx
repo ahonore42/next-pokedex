@@ -20,7 +20,7 @@ export default function DefaultLayout({ children, isLoading = false }: DefaultLa
       <HeaderMenu />
 
       {/* Main content area with consistent dimensions */}
-      <main className="flex-grow w-full min-w-[360px] mb-4 mx-auto px-4 py-8 lg:py-12 max-w-7xl xl:max-w-[1440px] self-center relative">
+      <main className="flex-grow w-full min-w-[360px] mx-auto px-4 py-8 lg:py-12 max-w-7xl xl:max-w-[1440px] self-center relative">
         {/* Loading overlay - positioned absolutely to prevent layout shifts */}
         {shouldShowLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
