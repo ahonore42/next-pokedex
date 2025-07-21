@@ -23,13 +23,13 @@ export default function SectionCard({
   // Variant system for sizing and spacing
   const variantStyles = {
     default: {
-      titleSize: 'text-xl',
+      titleSize: 'text-xl font-bold',
       headerMargin: title && 'mb-4',
       tagSize: 'text-sm',
       shadow: 'shadow-sm hover:shadow-md',
     },
     compact: {
-      titleSize: 'text-base',
+      titleSize: 'text-base font-medium',
       headerMargin: title && 'mb-2',
       tagSize: 'text-xs',
       shadow: 'shadow-xs hover:shadow-sm',
@@ -61,10 +61,10 @@ export default function SectionCard({
   return (
     <div
       className={clsx(
-        'card theme-transition', // Always handle color transitions
+        'card transition-theme', // Always handle color transitions
         colorStyles.background,
         hover && [
-          'interactive-transition', // Add transform transitions when interactive
+          'transition-interactive', // Add transform transitions when interactive
           'hover:-translate-y-0.5 active:scale-[0.99]',
           styles.shadow,
         ],
@@ -72,7 +72,7 @@ export default function SectionCard({
       )}
     >
       <div className={clsx('flex justify-between items-start text-primary', styles.headerMargin)}>
-        {title && <h4 className={clsx(styles.titleSize, 'font-medium')}>{title}</h4>}
+        {title && <h4 className={clsx(styles.titleSize)}>{title}</h4>}
         {tag && (
           <span
             className={clsx(styles.tagSize, ' bg-pokemon', 'px-2 py-1 rounded-md flex-shrink-0')}
