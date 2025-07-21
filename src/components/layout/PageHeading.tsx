@@ -8,18 +8,23 @@ export interface PageHeadingProps {
   // Essential SEO
   pageTitle: string;
   metaDescription: string;
-  useCanonical?: boolean; // Automatically generate canonical URL from current route
+  useCanonical?: boolean;
   ogImage?: string;
+  ogType?: 'website' | 'article';
 
   // Structured data (huge SEO impact)
-  schemaType?: 'WebPage' | 'Article';
+  schemaType?: 'WebSite' | 'WebPage' | 'Article';
+  jsonLd?: Record<string, any>;
 
-  // Breadcrumb navigation
-  breadcrumbLinks: BreadcrumbLink[];
+  // Multi-language SEO
+  alternateUrls?: { href: string; hreflang: string }[];
+
+  // Breadcrumb navigation (SEO + UX)
+  breadcrumbLinks?: BreadcrumbLink[];
   currentPage: string;
 
   // Visual content
-  title: string;
+  title?: string;
   titleMetadata?: string | React.ReactNode;
   subtitle?: string;
   className?: string;
@@ -32,7 +37,10 @@ export default function PageHeading({
   metaDescription,
   useCanonical = true,
   ogImage,
+  ogType = 'website',
   schemaType = 'WebPage',
+  jsonLd,
+  alternateUrls,
 
   // Navigation & Visual
   breadcrumbLinks,
@@ -52,7 +60,7 @@ export default function PageHeading({
       : undefined;
 
   // Generate breadcrumb structured data
-  const breadcrumbSchema = {
+  const breadcrumbSchema = breadcrumbLinks && {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
@@ -74,7 +82,7 @@ export default function PageHeading({
   };
 
   // Generate main structured data
-  const mainSchema = {
+  const mainSchema = jsonLd || {
     '@context': 'https://schema.org',
     '@type': schemaType,
     name: title,
@@ -91,10 +99,15 @@ export default function PageHeading({
         <meta name="description" content={metaDescription} />
         {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
+        {/* Alternate URLs for multi-language */}
+        {alternateUrls?.map(({ href, hreflang }) => (
+          <link key={hreflang} rel="alternate" hrefLang={hreflang} href={href} />
+        ))}
+
         {/* Open Graph */}
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={metaDescription} />
-        <meta property="og:type" content="website" />
+        <meta property="og:type" content={ogType} />
         {ogImage && <meta property="og:image" content={ogImage} />}
         {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
 
@@ -105,33 +118,39 @@ export default function PageHeading({
         {ogImage && <meta name="twitter:image" content={ogImage} />}
 
         {/* Structured Data */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-        />
+        {breadcrumbSchema && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+          />
+        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(mainSchema) }}
         />
       </Head>
 
-      <div className={clsx('flex justify-between items-start', className)}>
-        <div className="flex-shrink-0 hidden md:block">
-          <BreadcrumbNavigation links={breadcrumbLinks} currentPage={currentPage} />
-        </div>
+      {title && (
+        <div className={clsx('flex justify-between items-start', className)}>
+          {breadcrumbLinks && (
+            <div className="flex-shrink-0 hidden md:block">
+              <BreadcrumbNavigation links={breadcrumbLinks} currentPage={currentPage} />
+            </div>
+          )}
 
-        <div className="flex-1 text-right">
-          <div className="flex items-center justify-end space-x-3 mb-2">
-            <h1 id={titleId} className="text-4xl font-bold capitalize text-primary">
-              {title}
-            </h1>
-            {titleMetadata && (
-              <div className="text-2xl font-semibold text-muted">{titleMetadata}</div>
-            )}
+          <div className="flex-1 text-right">
+            <div className="flex items-center justify-end space-x-3 mb-2">
+              <h1 id={titleId} className="text-4xl font-bold capitalize text-primary">
+                {title}
+              </h1>
+              {titleMetadata && (
+                <div className="text-2xl font-semibold text-muted">{titleMetadata}</div>
+              )}
+            </div>
+            {subtitle && <p className="text-lg text-subtle mb-4">{subtitle}</p>}
           </div>
-          {subtitle && <p className="text-lg text-subtle mb-4">{subtitle}</p>}
         </div>
-      </div>
+      )}
     </>
   );
 }
