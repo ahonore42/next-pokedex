@@ -51,6 +51,8 @@ export type RegionalPokedexes = PokemonRouterOutputs['regionalPokedexesByGenerat
 export type PokemonInSpecies = PokemonSpeciesByIdOutput['pokemon'][number];
 export type SpeciesEvolutionChain = NonNullable<PokemonSpeciesByIdOutput['evolutionChain']>;
 
+export type PokemonArtworkByNames = NonNullable<PokemonRouterOutputs['officialArtworkByNames']>;
+
 /**
  * PokemonEncounters types
  */

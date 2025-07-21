@@ -122,6 +122,14 @@ export const pokemonEvolutionsSelect = {
   },
 };
 
+export const officialArtworkSelect = {
+  sprites: {
+    select: {
+      officialArtworkFront: true,
+    },
+  },
+} satisfies Prisma.PokemonSelect;
+
 export const evolvesToSpeciesSelect = {
   select: {
     id: true,

@@ -4,10 +4,12 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { prisma } from '~/server/prisma';
 import {
+  basicTypeSelect,
   defaultPokemonSelect,
   detailedPokemonSelect,
   detailedPokemonSpeciesSelect,
   evolutionSpeciesSelect,
+  officialArtworkSelect,
   pokemonEvolutionsSelect,
   pokemonSearchSelect,
 } from './query-selectors';
@@ -491,6 +493,36 @@ export const pokemonRouter = router({
       return findOnePokemon({ id: input.id });
     }),
 
+  officialArtworkByNames: publicProcedure
+    .input(
+      z.object({
+        names: z.array(z.string().min(1)).min(1).max(50),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { names } = input;
+
+      // Normalize names to lowercase for consistent matching
+      const normalizedNames = names.map((name) => name.trim().toLowerCase());
+
+      const pokemon = await prisma.pokemon.findMany({
+        where: {
+          name: {
+            in: normalizedNames,
+            mode: 'insensitive',
+          },
+        },
+        select: officialArtworkSelect,
+        orderBy: {
+          name: 'asc',
+        },
+      });
+
+      const artwork = pokemon.map((pkmn) => pkmn.sprites?.officialArtworkFront);
+
+      return artwork;
+    }),
+
   detailedById: publicProcedure
     .input(
       z.object({
@@ -583,7 +615,11 @@ export const pokemonRouter = router({
         },
         pokemon: {
           where: { isDefault: true },
-          select: { name: true, sprites: { select: { frontDefault: true } } },
+          select: {
+            name: true,
+            types: basicTypeSelect,
+            sprites: { select: { frontDefault: true } },
+          },
         },
         pokedexNumbers: {
           where: { pokedex: { name: 'national' } },
@@ -689,6 +725,7 @@ export const pokemonRouter = router({
               sprites: true,
               forms: { select: { versionGroupId: true } },
               isDefault: true,
+              types: basicTypeSelect,
             },
           },
         },
