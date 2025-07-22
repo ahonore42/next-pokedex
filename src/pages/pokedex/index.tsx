@@ -1,6 +1,5 @@
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
-import { usePageLoading } from '~/lib/contexts/LoadingContext';
 import SectionCard from '~/components/ui/SectionCard';
 import PageHeading from '~/components/layout/PageHeading';
 import PokedexDisplay from '~/components/pokemon/PokedexDisplay';
@@ -24,12 +23,10 @@ const PokedexSelectionPage: NextPageWithLayout = () => {
   }, [data?.national]);
 
   // Use the usePageLoading hook to manage loading state
-  const isPageLoading = isLoading || !data;
-  usePageLoading(isPageLoading);
+  const isPageLoading = isLoading || !data?.national;
 
-  // Early return for loading state
-  if (isPageLoading || !data?.national) {
-    return null;
+  if (isPageLoading) {
+    return null; // Let DefaultLayout handle the loading display
   }
 
   const { national, generations } = data;

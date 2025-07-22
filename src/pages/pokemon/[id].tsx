@@ -4,9 +4,7 @@ import NextError from 'next/error';
 import { useState, useMemo, useEffect } from 'react';
 import type { NextPageWithLayout } from '~/pages/_app';
 import { trpc } from '~/utils/trpc';
-import { usePageLoading } from '~/lib/contexts/LoadingContext';
 import type { PokemonInSpecies } from '~/server/routers/_app';
-import { getRegionFromVersionGroup } from '~/utils/pokemon';
 import { PokemonMoves } from '~/components/pokemon/PokemonMoves';
 import { PokemonEncounters } from '~/components/pokemon/PokemonEncounters';
 import { PokemonGameData } from '~/components/pokemon/PokemonGameData';
@@ -114,14 +112,11 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
     };
   }, [speciesQuery.data, selectedPokemonId, selectedFormId, pokemonId]);
 
-  // Use the usePageLoading hook to manage loading state
   const isPageLoading = pokemonQuery.isLoading || speciesQuery.isLoading;
-  usePageLoading(isPageLoading);
-
-  // Handle loading state
-  if (pokemonQuery.isLoading || speciesQuery.isLoading) {
-    return null;
+  if (isPageLoading) {
+    return null; // Let DefaultLayout handle the loading display
   }
+
   // Handle error state
   if (pokemonQuery.error || speciesQuery.error) {
     const error = pokemonQuery.error || speciesQuery.error;
@@ -140,6 +135,7 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
   // Get the species and default/primary Pokemon for this species, or the first one if no default
   const species = speciesQuery.data;
   const primaryPokemon = species.pokemon.find((p) => p.isDefault) || species.pokemon[0];
+  const generationId = species.generationId;
   // If somehow no Pokemon exist for this species, show error
   if (!primaryPokemon) {
     return <NextError statusCode={404} title="No Pokemon found for this species" />;
@@ -152,8 +148,6 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
   }
 
   const activePokemonName = capitalizeName(activePokemon.name);
-  // const speciesFlavorText = species.flavorTexts[0]?.flavorText;
-  const activePokemonRegion = getRegionFromVersionGroup(activePokemon.forms[0].versionGroup);
   const genus = species.names[0]?.genus || '';
   const nationalDexNumber =
     species.pokedexNumbers.find(
@@ -170,8 +164,8 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
         breadcrumbLinks={[
           { label: 'Home', href: '/' },
           {
-            label: `${activePokemonRegion?.displayName} Pokédex`,
-            href: `/pokedex/${activePokemonRegion?.name}`,
+            label: `Gen ${generationId} Pokédex`,
+            href: `/pokedex/${generationId}`,
           },
         ]}
         currentPage={activePokemonName}

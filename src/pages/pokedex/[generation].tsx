@@ -2,7 +2,6 @@ import { useRouter } from 'next/router';
 import { useState, useMemo } from 'react';
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
-import { usePageLoading } from '~/lib/contexts/LoadingContext';
 import SectionCard from '~/components/ui/SectionCard';
 import PageHeading from '~/components/layout/PageHeading';
 import PokedexDisplay from '~/components/pokemon/PokedexDisplay';
@@ -23,7 +22,6 @@ const PokedexGenerationPage: NextPageWithLayout = () => {
 
   // Loading context
   const isPageLoading = isLoading || !generationData;
-  usePageLoading(isPageLoading);
 
   // Memoised look-ups
   const versionGroupMap = useMemo(
@@ -68,9 +66,8 @@ const PokedexGenerationPage: NextPageWithLayout = () => {
     [generationData],
   );
 
-  // Early return if data is not present
   if (isPageLoading) {
-    return null;
+    return null; // Let DefaultLayout handle the loading display
   }
 
   if (!generationData.versionGroups.length) {

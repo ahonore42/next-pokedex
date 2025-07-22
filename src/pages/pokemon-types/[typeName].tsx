@@ -2,7 +2,6 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
-import { usePageLoading } from '~/lib/contexts/LoadingContext';
 import { PokemonByTypeOutput, MovesByTypeOutput } from '~/server/routers/_app';
 import { Column } from '~/components/ui/DataTable';
 import SectionCard from '~/components/ui/SectionCard';
@@ -33,16 +32,6 @@ const PokemonTypeDetailPage: NextPageWithLayout = () => {
     { typeId: typeDetails?.id ?? 0 },
     { enabled: !!typeDetails },
   ) as { data: MovesByTypeOutput; isLoading: boolean };
-
-  // Use the usePageLoading hook to manage loading state
-  const isPageLoading =
-    isLoadingTypeDetails || isLoadingPokemonOfType || isLoadingMovesOfType || !typeDetails;
-  usePageLoading(isPageLoading);
-
-  // Early return for loading state - DefaultLayout will handle showing loading spinner
-  if (isPageLoading) {
-    return null;
-  }
 
   // Use Column with the new type
   const pokemonColumns: Column<PokemonByTypeOutput[number]>[] = [
@@ -254,6 +243,12 @@ const PokemonTypeDetailPage: NextPageWithLayout = () => {
       sortable: false,
     },
   ];
+
+  const isPageLoading =
+    isLoadingTypeDetails || isLoadingPokemonOfType || isLoadingMovesOfType || !typeDetails;
+  if (isPageLoading) {
+    return null; // Let DefaultLayout handle the loading display
+  }
 
   return (
     <SectionCard className="capitalize" title={`${typeDetails.name} Type`}>

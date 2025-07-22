@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NextPageWithLayout } from './_app';
 import { trpc } from '~/utils/trpc';
-import { usePageLoading } from '~/lib/contexts/LoadingContext';
 import { PokemonArtworkByNames, PokemonListOutput } from '~/server/routers/_app';
 import QuickAccess from '~/components/layout/QuickAccess';
 import SearchBar from '~/components/layout/SearchBar';
@@ -17,10 +16,6 @@ const IndexPage: NextPageWithLayout = () => {
   const artworkQuery = trpc.pokemon.officialArtworkByNames.useQuery({
     names: ['dialga', 'palkia'],
   });
-
-  // Calculate loading state based on query states and data availability
-  const isInitialLoading =
-    pokemonQuery.isLoading || artworkQuery.isLoading || !pokemonQuery.data || !artworkQuery.data;
 
   useEffect(() => {
     // Only update state when data is available
@@ -38,10 +33,10 @@ const IndexPage: NextPageWithLayout = () => {
     }
   }, [pokemonQuery.data, artworkQuery.data, utils]);
 
-  // Use the loading context
-  usePageLoading(isInitialLoading);
-
-  if (isInitialLoading) {
+  // Calculate loading state based on query states and data availability
+  const isPageLoading =
+    pokemonQuery.isLoading || artworkQuery.isLoading || !pokemonQuery.data || !artworkQuery.data;
+  if (isPageLoading) {
     return null; // Let DefaultLayout handle the loading display
   }
 
@@ -96,14 +91,14 @@ const IndexPage: NextPageWithLayout = () => {
       <div className="hidden md:block">
         <div className="relative flex items-center justify-center h-48 lg:h-72 xl:h-96 2xl:mt-8">
           {/* Background images layer */}
-          {legendaries && (
+          {legendaries[0] && legendaries[1] && (
             <div className="absolute inset-0 flex justify-between items-center w-full">
               <img
-                src={legendaries[0] || ''}
+                src={legendaries[0]}
                 className="object-contain size-48 lg:size-72 xl:size-96 2xl:size-112 opacity-90 hover:opacity-100 transition-interactive"
               />
               <img
-                src={legendaries[1] || ''}
+                src={legendaries[1]}
                 className="object-contain size-48 lg:size-72 xl:size-96 2xl:size-112 opacity-90 hover:opacity-100 transition-interactive"
               />
             </div>
