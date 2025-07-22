@@ -5,7 +5,6 @@ import '~/styles/globals.css';
 import '@xyflow/react/dist/style.css';
 
 import { ThemeProvider } from 'next-themes';
-import { LoadingProvider } from '~/lib/contexts/LoadingContext';
 import { trpc } from '~/utils/trpc';
 import DefaultLayout from '~/components/layout/DefaultLayout';
 
@@ -27,11 +26,9 @@ const MyApp = (({ Component, pageProps }: AppPropsWithLayout) => {
         <link rel="dns-prefetch" href="https://raw.githubusercontent.com" />
       </Head>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-        <LoadingProvider>
-          <DefaultLayout>
-            <Component {...pageProps} />
-          </DefaultLayout>
-        </LoadingProvider>
+        <DefaultLayout>
+          <Component {...pageProps} />
+        </DefaultLayout>
       </ThemeProvider>
     </>
   );
