@@ -2,12 +2,13 @@ import { TypeBadgeProps } from '../pokemon-types/TypeBadge';
 import TypeBadgesDisplay from '../pokemon-types/TypeBadgesDisplay';
 
 interface SpriteProps {
-  src: string;
+  src?: string;
   title?: string;
   prefix?: string;
   types?: TypeBadgeProps[];
   variant?: 'sm' | 'md' | 'lg';
   hover?: boolean;
+  fallback?: boolean;
   className?: string;
 }
 
@@ -18,6 +19,7 @@ export default function Sprite({
   types,
   variant = 'md',
   hover = false,
+  fallback = false,
   className = '',
 }: SpriteProps) {
   const variants = {
@@ -30,7 +32,20 @@ export default function Sprite({
       className={`text-center flex flex-col items-center justify-center text-primary rounded-lg border border-border 
       ${hover ? 'surface-hover' : 'surface'} ${variants[variant].container} ${className}`}
     >
-      <img src={src} alt={title} className={`mx-auto ${variants[variant].img}`} />
+      {src && !fallback ? (
+        <img src={src} alt={title} className={`mx-auto ${variants[variant].img}`} />
+      ) : (
+        <div className="text-slate-300 dark:text-slate-500">
+          <svg className="w-6 h-6 mx-auto mb-1" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </div>
+      )}
+
       {(title || prefix) && variant !== 'sm' && (
         <div>
           <div

@@ -1,4 +1,5 @@
 import { PokemonInSpecies } from '~/server/routers/_app';
+import Sprite from '../ui/Sprite';
 
 interface PokemonSpritesProps {
   pokemon: PokemonInSpecies;
@@ -145,28 +146,14 @@ const PokemonSprites: React.FC<PokemonSpritesProps> = ({ pokemon, isShiny }) => 
               return (
                 <div key={index} className="flex flex-col items-center justify-center space-y-2">
                   {/* Sprite Container - UNIFORM SIZING */}
-                  <div className="w-36 h-36 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center border-2 border-gray-200 dark:border-gray-600 transition-transform hover:scale-105">
+                  <div
+                    className="w-36 h-36 bg-gray-100 flex items-center justify-center dark:bg-gray-700 rounded-lg   
+                    transition-transform hover:scale-105"
+                  >
                     {hasSprite ? (
-                      <img
-                        src={currentSprite}
-                        alt={`${pokemon.name} ${spriteData.label.toLowerCase()} ${isShiny ? 'shiny ' : ''}sprite`}
-                        className="w-full h-full object-contain p-1"
-                      />
+                      <Sprite src={currentSprite} variant="lg" />
                     ) : (
-                      <div className="text-gray-400 text-xs text-center">
-                        <svg
-                          className="w-6 h-6 mx-auto mb-1"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <p>N/A</p>
-                      </div>
+                      <Sprite variant="lg" fallback />
                     )}
                   </div>
 
