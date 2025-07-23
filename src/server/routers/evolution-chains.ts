@@ -5,7 +5,7 @@ import {
   evolutionBabyTriggerItemSelect,
   evolutionSpeciesSelect,
   pokemonEvolutionsSelect,
-} from './query-selectors';
+} from './selectors';
 
 /**
  * Helper function to fix pokemonEvolutions data for a single evolution chain

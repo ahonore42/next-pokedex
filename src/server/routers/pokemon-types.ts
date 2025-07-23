@@ -9,7 +9,7 @@ import {
   basicAbilitySelect,
   moveSelect,
   basicStatSelect,
-} from './query-selectors';
+} from './selectors';
 
 export const pokemonTypesRouter = router({
   allTypes: publicProcedure.query(async () => {

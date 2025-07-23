@@ -2,6 +2,21 @@ import type { Prisma } from '@prisma/client';
 
 const DEFAULT_LANGUAGE_ID = 9; // English
 
+const idAndNameSelect = { id: true, name: true } as const;
+
+const languageNameSelect = {
+  where: { languageId: DEFAULT_LANGUAGE_ID },
+  select: { name: true },
+} as const;
+
+const versionSelect = {
+  select: {
+    id: true,
+    name: true,
+    names: languageNameSelect,
+  },
+} as const;
+
 // Type Selectors
 export const typeIdNameSelect = {
   select: {
@@ -146,6 +161,7 @@ export const evolvesToSpeciesSelect = {
           },
         },
         minLevel: true,
+        pokemonSpeciesId: true,
         evolutionItem: {
           select: {
             name: true,
@@ -222,7 +238,29 @@ export const evolutionSpeciesSelect = {
     where: { languageId: DEFAULT_LANGUAGE_ID },
     select: { name: true },
   },
-  varieties: varietiesSelect,
+  varieties: {
+    select: {
+      isDefault: true,
+      pokemon: {
+        select: {
+          id: true,
+          name: true,
+          sprites: {
+            select: {
+              frontDefault: true,
+            },
+          },
+          types: orderedTypeSelect,
+        },
+      },
+    },
+    where: {
+      AND: [
+        { NOT: { pokemon: { name: { contains: '-gmax' } } } },
+        { NOT: { pokemon: { name: { contains: '-mega' } } } },
+      ],
+    },
+  },
   evolvesFromSpecies: {
     select: {
       id: true,
@@ -754,177 +792,6 @@ export const movesetSelect = {
   ],
 };
 
-export const detailedPokemonSelect = {
-  id: true,
-  name: true,
-  height: true,
-  weight: true,
-  baseExperience: true,
-  order: true,
-  isDefault: true,
-  criesLatest: true,
-  criesLegacy: true,
-  createdAt: true,
-  updatedAt: true,
-  // Basic sprite data
-  sprites: extendedSpriteSelect,
-  // Current types
-  types: orderedTypeSelect,
-  // Historical types by generation
-  typePast: typePastSelect,
-  // Current abilities
-  abilities: detailedAbilitySelect,
-  // Historical abilities by generation
-  abilityPast: abilityPastSelect,
-  // Base stats
-  stats: detailedStatSelect,
-  // All Pokemon forms
-  forms: pokemonFormsSelect,
-  // Comprehensive moveset
-  moves: movesetSelect,
-
-  // Game indices across versions
-  gameIndices: {
-    select: {
-      gameIndex: true,
-      version: {
-        select: {
-          id: true,
-          name: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-          versionGroup: versionGroupSelect,
-        },
-      },
-    },
-    orderBy: { version: { id: 'asc' as const } },
-  },
-
-  // Held items by version
-  heldItems: {
-    select: {
-      rarity: true,
-      version: {
-        select: {
-          id: true,
-          name: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-        },
-      },
-      item: {
-        select: {
-          id: true,
-          name: true,
-          cost: true,
-          flingPower: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-          flavorTexts: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { flavorText: true },
-            take: 1,
-          },
-          sprite: true,
-        },
-      },
-    },
-    orderBy: [{ version: { id: 'asc' as const } }, { rarity: 'desc' as const }],
-  },
-
-  // Location encounters
-  encounters: {
-    select: {
-      minLevel: true,
-      maxLevel: true,
-      chance: true,
-      locationArea: {
-        select: {
-          id: true,
-          name: true,
-          gameIndex: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-          location: {
-            select: {
-              id: true,
-              name: true,
-              names: {
-                where: { languageId: DEFAULT_LANGUAGE_ID },
-                select: { name: true },
-              },
-              region: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      },
-      version: {
-        select: {
-          id: true,
-          name: true,
-          versionGroup: versionGroupSelect,
-        },
-      },
-      encounterMethod: {
-        select: {
-          id: true,
-          name: true,
-          order: true,
-          names: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { name: true },
-          },
-        },
-      },
-      conditionValueMap: {
-        select: {
-          encounterConditionValue: {
-            select: {
-              id: true,
-              name: true,
-              isDefault: true,
-              names: {
-                where: { languageId: DEFAULT_LANGUAGE_ID },
-                select: { name: true },
-              },
-              encounterCondition: {
-                select: {
-                  id: true,
-                  name: true,
-                  names: {
-                    where: { languageId: DEFAULT_LANGUAGE_ID },
-                    select: { name: true },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    orderBy: [
-      { locationArea: { location: { name: 'asc' as const } } },
-      { minLevel: 'asc' as const },
-    ],
-  },
-
-  // Species data with evolution and breeding info
-  pokemonSpecies: defaultPokemonSpeciesSelect,
-} satisfies Prisma.PokemonSelect;
-
 export const pokemonSearchSelect = {
   id: true,
   name: true,
@@ -1075,7 +942,7 @@ const detailedEncounterSelect = {
 /**
  * Enhanced held items selection
  */
-const detailedHeldItemsSelect = {
+export const heldItemsSelect = {
   select: {
     rarity: true,
     version: {
@@ -1091,7 +958,7 @@ const detailedHeldItemsSelect = {
 /**
  * Enhanced game indices selection
  */
-const detailedGameIndicesSelect = {
+export const gameIndicesSelect = {
   select: {
     gameIndex: true,
     version: {
@@ -1102,48 +969,6 @@ const detailedGameIndicesSelect = {
     },
   },
 };
-
-/**
- * Select object for Pokemon within a species query (excludes pokemonSpecies to avoid circular reference)
- */
-const detailedPokemonInSpeciesSelect = {
-  id: true,
-  name: true,
-  height: true,
-  weight: true,
-  baseExperience: true,
-  order: true,
-  isDefault: true,
-  criesLatest: true,
-  criesLegacy: true,
-  createdAt: true,
-  updatedAt: true,
-
-  // Use your existing sprite selector
-  sprites: extendedSpriteSelect,
-
-  // Use your existing type selectors
-  types: orderedTypeSelect,
-  typePast: typePastSelect,
-
-  // Use your existing ability selectors
-  abilities: detailedAbilitySelect,
-  abilityPast: abilityPastSelect,
-
-  // Use your existing stat selector
-  stats: detailedStatSelect,
-
-  // Use your existing forms selector
-  forms: pokemonFormsSelect,
-
-  // Use your existing moveset selector
-  moves: movesetSelect,
-
-  // Enhanced selections for comprehensive data
-  heldItems: detailedHeldItemsSelect,
-  gameIndices: detailedGameIndicesSelect,
-  encounters: detailedEncounterSelect,
-} satisfies Prisma.PokemonSelect;
 
 /**
  * Enhanced evolution chain selection building on your existing selectors
@@ -1162,24 +987,6 @@ const detailedEvolutionChainSelect = {
       orderBy: { order: 'asc' as const },
     },
   },
-};
-
-/**
- * Enhanced varieties selection
- */
-const detailedVarietiesSelect = {
-  select: {
-    isDefault: true,
-    pokemon: {
-      select: {
-        id: true,
-        name: true,
-        order: true,
-        isDefault: true,
-      },
-    },
-  },
-  orderBy: { pokemon: { order: 'asc' as const } },
 };
 
 /**
@@ -1208,10 +1015,56 @@ const detailedEvolutionRelationshipsSelect = {
 };
 
 /**
- * Comprehensive select object for Pokemon Species with all related data
- * Built using your existing selectors wherever possible
+ * Combined selector for Pokemon with complete species data
+ * Includes all Pokemon data with embedded detailed species information
  */
-export const detailedPokemonSpeciesSelect = {
+// const spriteOnly = { id: true, name: true, sprite: true } as const;
+
+const pokemonVarietySelect = {
+  id: true,
+  name: true,
+  height: true,
+  weight: true,
+  baseExperience: true,
+  order: true,
+  isDefault: true,
+  criesLatest: true,
+  criesLegacy: true,
+  createdAt: true,
+  updatedAt: true,
+  sprites: extendedSpriteSelect,
+  types: orderedTypeSelect,
+  typePast: typePastSelect,
+  abilities: detailedAbilitySelect,
+  abilityPast: abilityPastSelect,
+  stats: detailedStatSelect,
+  forms: pokemonFormsSelect,
+  moves: movesetSelect,
+  gameIndices: {
+    select: { gameIndex: true, version: { select: idAndNameSelect } },
+    orderBy: { version: { id: 'asc' } },
+  },
+  heldItems: {
+    select: {
+      rarity: true,
+      version: { select: idAndNameSelect },
+      item: {
+        select: {
+          id: true,
+          name: true,
+          cost: true,
+          sprite: true,
+          names: languageNameSelect,
+        },
+      },
+    },
+    orderBy: [{ version: { id: 'asc' } }, { rarity: 'desc' }],
+  },
+  encounters: detailedEncounterSelect,
+} satisfies Prisma.PokemonSelect;
+
+// Lightweight species sub-tree
+const speciesCoreSelect = {
   id: true,
   name: true,
   generationId: true,
@@ -1233,33 +1086,83 @@ export const detailedPokemonSpeciesSelect = {
   order: true,
   createdAt: true,
   updatedAt: true,
+} as const;
 
-  // Use your existing species selectors
-  names: extendedSpeciesNamesSelect,
-  flavorTexts: detailedFlavorTextSelect,
-  generation: generationSelect,
-  pokemonColor: pokemonColorSelect,
-  pokemonShape: pokemonShapeSelect,
-  pokemonHabitat: pokemonHabitatSelect,
-  growthRate: growthRateSelect,
-  eggGroups: eggGroupSelect,
-  pokedexNumbers: detailedPokedexSelect,
-  palParkEncounters: palParkEncountersSelect,
-
-  // Enhanced evolution chain using your existing selectors as base
-  evolutionChain: detailedEvolutionChainSelect,
-
-  // Evolution relationships using your patterns
-  evolvesFromSpecies: detailedEvolutionRelationshipsSelect,
-  evolvesToSpecies: evolvesToSpeciesSelect,
-
-  // All Pokemon varieties/forms for this species
-  pokemon: {
-    select: detailedPokemonInSpeciesSelect,
-    orderBy: { order: 'asc' as const },
+// Top level detailed pokemon select with complete data
+export const pokemonWithSpeciesSelect = {
+  id: true,
+  name: true,
+  height: true,
+  weight: true,
+  baseExperience: true,
+  order: true,
+  isDefault: true,
+  criesLatest: true,
+  criesLegacy: true,
+  createdAt: true,
+  updatedAt: true,
+  sprites: extendedSpriteSelect,
+  types: orderedTypeSelect,
+  typePast: typePastSelect,
+  abilities: detailedAbilitySelect,
+  abilityPast: abilityPastSelect,
+  stats: detailedStatSelect,
+  forms: pokemonFormsSelect,
+  moves: movesetSelect,
+  gameIndices: {
+    select: {
+      gameIndex: true,
+      version: versionSelect,
+    },
+    orderBy: { version: { id: 'asc' } },
   },
+  heldItems: {
+    select: {
+      rarity: true,
+      version: versionSelect,
+      item: {
+        select: {
+          id: true,
+          name: true,
+          cost: true,
+          flingPower: true,
+          names: languageNameSelect,
+          flavorTexts: {
+            where: { languageId: DEFAULT_LANGUAGE_ID },
+            select: { flavorText: true },
+            take: 1,
+          },
+          sprite: true,
+        },
+      },
+    },
+    orderBy: [{ version: { id: 'asc' } }, { rarity: 'desc' }],
+  },
+  encounters: detailedEncounterSelect,
 
-  // Additional metadata
-  varieties: detailedVarietiesSelect,
-  genderDetails: detailedGenderDetailsSelect,
-} satisfies Prisma.PokemonSpeciesSelect;
+  // Species with lightweight sub-tree
+  pokemonSpecies: {
+    select: {
+      ...speciesCoreSelect,
+      names: extendedSpeciesNamesSelect,
+      flavorTexts: detailedFlavorTextSelect,
+      generation: generationSelect,
+      pokemonColor: pokemonColorSelect,
+      pokemonShape: pokemonShapeSelect,
+      pokemonHabitat: pokemonHabitatSelect,
+      growthRate: growthRateSelect,
+      eggGroups: eggGroupSelect,
+      pokedexNumbers: detailedPokedexSelect,
+      palParkEncounters: palParkEncountersSelect,
+      evolutionChain: detailedEvolutionChainSelect,
+      evolvesFromSpecies: detailedEvolutionRelationshipsSelect,
+      evolvesToSpecies: evolvesToSpeciesSelect,
+      // varieties
+      pokemon: {
+        select: pokemonVarietySelect,
+        orderBy: { order: 'asc' },
+      },
+      genderDetails: detailedGenderDetailsSelect,
+    },
+  },
+} satisfies Prisma.PokemonSelect;
