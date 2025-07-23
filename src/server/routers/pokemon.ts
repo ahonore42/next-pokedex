@@ -6,13 +6,11 @@ import { prisma } from '~/server/prisma';
 import {
   basicTypeSelect,
   defaultPokemonSelect,
-  detailedPokemonSelect,
-  detailedPokemonSpeciesSelect,
   evolutionSpeciesSelect,
   officialArtworkSelect,
-  pokemonEvolutionsSelect,
   pokemonSearchSelect,
-} from './query-selectors';
+  pokemonWithSpeciesSelect,
+} from './selectors';
 import type { inferRouterOutputs } from '@trpc/server';
 import { evolutionChainsRouter } from './evolution-chains';
 
@@ -32,12 +30,6 @@ type SpeciesWithEvolutions = {
       tradeSpeciesId: number | null;
     }[];
   }[];
-};
-
-type SpeciesEvolutionChain = {
-  evolutionChain?: {
-    pokemonSpecies: SpeciesWithEvolutions[];
-  } | null;
 };
 
 // Type for evolution chain structure in detailed pokemon
@@ -60,190 +52,7 @@ type PokemonSearchResult = {
   types: { type: { name: string } }[];
   pokemonSpecies: { id: number };
 };
-/**
- * Helper function to enhance evolution chain for species queries
- * Ensures every species has complete pokemonEvolutions data
- */
-async function enhanceEvolutionChainForSpecies<T extends SpeciesEvolutionChain>(
-  species: T,
-): Promise<T> {
-  const evolutionChain = species.evolutionChain;
-  if (!evolutionChain) return species;
 
-  // Collect required additional species IDs from evolution conditions
-  const requiredSpeciesIds = new Set<number>();
-
-  evolutionChain.pokemonSpecies.forEach((chainSpecies: SpeciesWithEvolutions) => {
-    chainSpecies.evolvesToSpecies.forEach((evolvesTo) => {
-      evolvesTo.pokemonEvolutions.forEach((evo) => {
-        if (evo.partySpeciesId) requiredSpeciesIds.add(evo.partySpeciesId);
-        if (evo.tradeSpeciesId) requiredSpeciesIds.add(evo.tradeSpeciesId);
-      });
-    });
-  });
-
-  // Cross-chain evolution detection
-  const firstSpecies = evolutionChain.pokemonSpecies[0];
-  if (!firstSpecies) return species;
-
-  // Get evolution chain ID
-  const speciesWithChain = await prisma.pokemonSpecies.findUnique({
-    where: { id: firstSpecies.id },
-    select: { evolutionChainId: true },
-  });
-
-  if (!speciesWithChain) return species;
-
-  // Get all pokemon species in this evolution chain
-  const chainSpecies = await prisma.pokemonSpecies.findMany({
-    where: { evolutionChainId: speciesWithChain.evolutionChainId },
-    orderBy: { order: 'asc' },
-    select: evolutionSpeciesSelect,
-  });
-
-  if (!chainSpecies.length) return species;
-
-  const speciesIdsInChain = chainSpecies.map((s) => s.id);
-  const crossChainEvolutions: any[] = [];
-
-  // Check for missing evolution targets and sources
-  const missingEvolutionTargets = new Set<number>();
-  const missingEvolutionSources = new Set<number>();
-
-  chainSpecies.forEach((chainSpeciesItem) => {
-    chainSpeciesItem.evolvesToSpecies.forEach((evolvesTo) => {
-      const targetExists = chainSpecies.find((s) => s.id === evolvesTo.id);
-      if (!targetExists) {
-        missingEvolutionTargets.add(evolvesTo.id);
-      }
-    });
-
-    if (chainSpeciesItem.evolvesFromSpecies) {
-      const sourceExists = chainSpecies.find(
-        (s) => s.id === chainSpeciesItem.evolvesFromSpecies!.id,
-      );
-      if (!sourceExists) {
-        missingEvolutionSources.add(chainSpeciesItem.evolvesFromSpecies.id);
-      }
-    }
-  });
-
-  // Handle cross-chain evolutions
-  if (missingEvolutionTargets.size > 0 || missingEvolutionSources.size > 0) {
-    if (missingEvolutionSources.size > 0) {
-      const crossChainSources = await prisma.pokemonSpecies.findMany({
-        where: {
-          id: { in: Array.from(missingEvolutionSources) },
-          evolutionChainId: { not: speciesWithChain.evolutionChainId },
-        },
-        select: {
-          ...evolutionSpeciesSelect,
-          evolutionChainId: true,
-        },
-      });
-
-      crossChainSources.forEach((sourceSpecies) => {
-        const evolvesToSpecies = chainSpecies.find(
-          (s) => s.evolvesFromSpecies?.id === sourceSpecies.id,
-        );
-        const speciesName = (species as any).name || chainSpecies[0]?.name || 'Unknown Species';
-        console.log(
-          `Cross-chain evolution source found for ${speciesName}: ${sourceSpecies.name} (chain ${sourceSpecies.evolutionChainId}) evolves to ${evolvesToSpecies?.name} (chain ${speciesWithChain.evolutionChainId})`,
-        );
-        requiredSpeciesIds.add(sourceSpecies.id);
-      });
-
-      crossChainEvolutions.push(...crossChainSources);
-    }
-
-    if (missingEvolutionTargets.size > 0) {
-      const crossChainTargets = await prisma.pokemonSpecies.findMany({
-        where: {
-          evolvesFromSpeciesId: { in: speciesIdsInChain },
-          evolutionChainId: { not: speciesWithChain.evolutionChainId },
-          id: { in: Array.from(missingEvolutionTargets) },
-        },
-        select: {
-          ...evolutionSpeciesSelect,
-          evolvesFromSpeciesId: true,
-          evolutionChainId: true,
-        },
-      });
-
-      crossChainTargets.forEach((targetSpecies) => {
-        const evolvesFromSpecies = chainSpecies.find(
-          (s) => s.id === targetSpecies.evolvesFromSpeciesId,
-        );
-        const speciesName = (species as any).name || chainSpecies[0]?.name || 'Unknown Species';
-        console.log(
-          `Cross-chain evolution target found for ${speciesName}: ${targetSpecies.name} (chain ${targetSpecies.evolutionChainId}) evolves from ${evolvesFromSpecies?.name} (chain ${speciesWithChain.evolutionChainId})`,
-        );
-        requiredSpeciesIds.add(targetSpecies.id);
-      });
-
-      crossChainEvolutions.push(...crossChainTargets);
-    }
-  }
-
-  // Fetch additional species
-  const additionalSpecies: EvolutionSpecies[] =
-    requiredSpeciesIds.size > 0
-      ? await prisma.pokemonSpecies.findMany({
-          where: {
-            id: { in: Array.from(requiredSpeciesIds) },
-          },
-          select: evolutionSpeciesSelect,
-        })
-      : [];
-
-  // Combine all species
-  const allSpecies = [...chainSpecies, ...additionalSpecies, ...crossChainEvolutions];
-  const allSpeciesIds = allSpecies.map((s) => s.id);
-
-  // Fetch evolution data where pokemonSpeciesId is the TARGET species
-  const evolutionRecords = await prisma.pokemonEvolution.findMany({
-    where: {
-      pokemonSpeciesId: { in: allSpeciesIds },
-    },
-    ...pokemonEvolutionsSelect,
-  });
-
-  // Map evolution conditions to SOURCE species
-  const evolutionsBySourceSpecies = new Map<number, any[]>();
-
-  evolutionRecords.forEach((evolution) => {
-    const { pokemonSpeciesId: targetSpeciesId, ...evolutionConditions } = evolution;
-
-    // Find which species evolves TO this target
-    const sourceSpecies = allSpecies.find((s: any) =>
-      s.evolvesToSpecies?.some((evolvesTo: any) => evolvesTo.id === targetSpeciesId),
-    );
-
-    if (sourceSpecies) {
-      if (!evolutionsBySourceSpecies.has(sourceSpecies.id)) {
-        evolutionsBySourceSpecies.set(sourceSpecies.id, []);
-      }
-      evolutionsBySourceSpecies.get(sourceSpecies.id)!.push(evolutionConditions);
-    }
-  });
-
-  // Enhance each species with correct pokemonEvolutions
-  const enhancedSpecies = allSpecies.map((speciesItem: any) => ({
-    ...speciesItem,
-    pokemonEvolutions: evolutionsBySourceSpecies.get(speciesItem.id) || [],
-  }));
-
-  // Remove duplicates
-  const uniqueSpecies = Array.from(new Map(enhancedSpecies.map((s: any) => [s.id, s])).values());
-
-  return {
-    ...species,
-    evolutionChain: {
-      ...evolutionChain,
-      pokemonSpecies: uniqueSpecies,
-    },
-  } as T;
-}
 /**
  * Helper function to enhance evolution chain with additional species (for use in resolvers)
  */
@@ -402,18 +211,17 @@ export async function enhanceEvolutionChainWithAdditionalSpecies<
 }
 
 /**
- * Fetches a single Pokemon record from the database.
+ * Fetches a single Pokemon record with complete species data from the database.
  * @param where - The unique identifier for the Pokemon (e.g., { id: 1 } or { name: 'bulbasaur' }).
- * @param select - The Prisma select object to specify which fields to return.
- * @returns The Pokemon object.
+ * @returns The Pokemon object with complete embedded species data.
  * @throws {TRPCError} with code 'NOT_FOUND' if the Pokemon is not found.
  */
-async function findOnePokemon(
+async function findOnePokemonWithSpecies(
   where: Prisma.PokemonWhereUniqueInput,
-): Promise<Prisma.PokemonGetPayload<{ select: typeof detailedPokemonSelect }>> {
+): Promise<Prisma.PokemonGetPayload<{ select: typeof pokemonWithSpeciesSelect }>> {
   const pokemon = await prisma.pokemon.findUnique({
     where,
-    select: detailedPokemonSelect,
+    select: pokemonWithSpeciesSelect,
   });
 
   if (!pokemon) {
@@ -424,30 +232,6 @@ async function findOnePokemon(
     });
   }
   return pokemon;
-}
-
-/**
- * Fetches a single Pokemon Species record from the database with all associated Pokemon.
- * @param where - The unique identifier for the Pokemon Species (e.g., { id: 1 } or { name: 'bulbasaur' }).
- * @returns The Pokemon Species object with all associated Pokemon records.
- * @throws {TRPCError} with code 'NOT_FOUND' if the Pokemon Species is not found.
- */
-async function findOnePokemonSpecies(
-  where: Prisma.PokemonSpeciesWhereUniqueInput,
-): Promise<Prisma.PokemonSpeciesGetPayload<{ select: typeof detailedPokemonSpeciesSelect }>> {
-  const pokemonSpecies = await prisma.pokemonSpecies.findUnique({
-    where,
-    select: detailedPokemonSpeciesSelect,
-  });
-
-  if (!pokemonSpecies) {
-    const identifier = JSON.stringify(where);
-    throw new TRPCError({
-      code: 'NOT_FOUND',
-      message: `No Pokemon Species found with criteria: ${identifier}`,
-    });
-  }
-  return pokemonSpecies;
 }
 
 export const pokemonRouter = router({
@@ -482,17 +266,47 @@ export const pokemonRouter = router({
         nextCursor,
       };
     }),
-
-  byId: publicProcedure
+  pokemonWithSpecies: publicProcedure
     .input(
-      z.object({
-        id: z.number(),
-      }),
+      z.union([
+        z.object({
+          id: z.number().int().positive(),
+          name: z.undefined(),
+        }),
+        z.object({
+          id: z.undefined(),
+          name: z.string().min(1).max(50),
+        }),
+      ]),
     )
-    .query(({ input }) => {
-      return findOnePokemon({ id: input.id });
-    }),
+    .query(async ({ input }) => {
+      // Determine the where clause based on input
+      const where: Prisma.PokemonWhereUniqueInput = input.id
+        ? { id: input.id }
+        : { name: input.name?.toLowerCase() };
 
+      try {
+        // Get Pokemon with complete species data
+        const pokemon = await findOnePokemonWithSpecies(where);
+
+        // Apply evolution chain enhancement to preserve existing logic
+        const enhancedPokemon = await enhanceEvolutionChainWithAdditionalSpecies(pokemon);
+
+        return enhancedPokemon;
+      } catch (error) {
+        // Re-throw TRPCError as-is, convert others to TRPCError
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+
+        const identifier = input.id ? `id: ${input.id}` : `name: ${input.name}`;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to fetch Pokemon with criteria: ${identifier}`,
+          cause: error,
+        });
+      }
+    }),
   officialArtworkByNames: publicProcedure
     .input(
       z.object({
@@ -521,29 +335,6 @@ export const pokemonRouter = router({
       const artwork = pokemon.map((pkmn) => pkmn.sprites?.officialArtworkFront);
 
       return artwork;
-    }),
-
-  detailedById: publicProcedure
-    .input(
-      z.object({
-        id: z.number(),
-      }),
-    )
-    .query(async ({ input }) => {
-      const pokemon = await findOnePokemon({ id: input.id });
-
-      // Enhance evolution chain with additional species if needed
-      return await enhanceEvolutionChainWithAdditionalSpecies(pokemon);
-    }),
-
-  byName: publicProcedure
-    .input(
-      z.object({
-        name: z.string(),
-      }),
-    )
-    .query(({ input }) => {
-      return findOnePokemon({ name: input.name });
     }),
 
   featured: publicProcedure.query(async () => {
@@ -808,133 +599,6 @@ export const pokemonRouter = router({
         versionGroups: versionGroupsWithPokemon,
       };
     }),
-  pokemonByPokedex: publicProcedure
-    .input(
-      z.object({
-        pokedexId: z.number().optional(),
-        pokedexName: z.string().optional(),
-        limit: z.number().min(1).max(100).nullish(),
-        cursor: z.number().nullish(),
-      }),
-    )
-    .query(async ({ input }) => {
-      const limit = input.limit ?? 50;
-      const { cursor, pokedexId, pokedexName } = input;
-
-      let resolvedPokedexId: number | undefined;
-
-      if (pokedexId) {
-        resolvedPokedexId = pokedexId;
-      } else if (pokedexName) {
-        // Resolve pokedexName to pokedexId
-        const namedPokedex = await prisma.pokedex.findUnique({
-          where: { name: pokedexName },
-          select: { id: true },
-        });
-        if (!namedPokedex) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: `Pokedex '${pokedexName}' not found.`,
-          });
-        }
-        resolvedPokedexId = namedPokedex.id;
-      }
-
-      // If no specific pokedex is requested, return empty list
-      if (!resolvedPokedexId) {
-        return { pokemon: [], nextCursor: undefined };
-      }
-
-      const finalSelect: Prisma.PokemonSelect = {
-        id: true,
-        name: true,
-        height: true,
-        weight: true,
-        baseExperience: true,
-        isDefault: true,
-        criesLatest: true,
-        criesLegacy: true,
-        sprites: defaultPokemonSelect.sprites,
-        types: defaultPokemonSelect.types,
-        abilities: defaultPokemonSelect.abilities,
-        stats: defaultPokemonSelect.stats,
-        pokemonSpecies: {
-          select: {
-            id: true,
-            name: true,
-            flavorTexts: defaultPokemonSelect.pokemonSpecies.select.flavorTexts,
-            pokedexNumbers: {
-              select: {
-                pokedexNumber: true,
-                pokedex: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
-                },
-              },
-              where: {
-                pokedexId: resolvedPokedexId,
-              },
-            },
-          },
-        },
-      };
-
-      // Step 1: Fetch PokemonSpeciesPokedexNumber records for the target Pokedex
-      const orderedPokedexEntries = await prisma.pokemonSpeciesPokedexNumber.findMany({
-        where: {
-          pokedexId: resolvedPokedexId,
-          ...(cursor && {
-            pokedexNumber: { gt: cursor },
-          }),
-        },
-        orderBy: {
-          pokedexNumber: 'asc',
-        },
-        select: {
-          pokemonSpeciesId: true,
-          pokedexNumber: true,
-        },
-        take: limit + 1,
-      });
-
-      // Extract ordered species IDs and their corresponding pokedex numbers
-      const orderedPokemonSpeciesIds = orderedPokedexEntries.map((entry) => entry.pokemonSpeciesId);
-      const pokedexNumberMap = new Map<number, number>();
-      orderedPokedexEntries.forEach((item) => {
-        pokedexNumberMap.set(item.pokemonSpeciesId, item.pokedexNumber);
-      });
-
-      // If no entries found, return empty
-      if (orderedPokemonSpeciesIds.length === 0) {
-        return { pokemon: [], nextCursor: undefined };
-      }
-
-      // Step 2: Fetch Pokemon records based on the ordered species IDs
-      const pokemonList = await prisma.pokemon.findMany({
-        where: {
-          pokemonSpeciesId: { in: orderedPokemonSpeciesIds },
-        },
-        select: finalSelect,
-      });
-
-      // Step 3: Sort the fetched pokemonList based on the order of orderedPokemonSpeciesIds
-      const sortedPokemonList = orderedPokemonSpeciesIds
-        .map((speciesId) => pokemonList.find((p) => p.pokemonSpecies.id === speciesId))
-        .filter((pokemon): pokemon is NonNullable<typeof pokemon> => pokemon !== undefined);
-
-      let nextCursor: typeof cursor | undefined = undefined;
-      if (sortedPokemonList.length > limit) {
-        const nextItem = sortedPokemonList.pop()!;
-        nextCursor = pokedexNumberMap.get(nextItem.pokemonSpecies.id);
-      }
-
-      return {
-        pokemon: sortedPokemonList,
-        nextCursor,
-      };
-    }),
   pokemonSpeciesPokedexNumbers: publicProcedure
     .input(
       z.object({
@@ -963,7 +627,6 @@ export const pokemonRouter = router({
       });
       return pokedexNumbers;
     }),
-
   allPokedexes: publicProcedure.query(async () => {
     return await prisma.pokedex.findMany({
       select: {
@@ -986,23 +649,6 @@ export const pokemonRouter = router({
       },
     });
   }),
-
-  dbStats: publicProcedure.query(async () => {
-    const [pokemonSpeciesCount, typesCount, generationsCount, movesCount] = await Promise.all([
-      prisma.pokemonSpecies.count(),
-      prisma.type.count(),
-      prisma.generation.count(),
-      prisma.move.count(),
-    ]);
-
-    return {
-      pokemonSpecies: pokemonSpeciesCount,
-      types: typesCount,
-      generations: generationsCount,
-      moves: movesCount,
-    };
-  }),
-
   search: publicProcedure
     .input(
       z.object({
@@ -1045,30 +691,5 @@ export const pokemonRouter = router({
         query: searchTerm,
         limit,
       };
-    }),
-  speciesById: publicProcedure
-    .input(
-      z.object({
-        id: z.number(),
-      }),
-    )
-    .query(async ({ input }) => {
-      const species = await findOnePokemonSpecies({ id: input.id });
-
-      // Enhance evolution chain with additional species if needed
-      return await enhanceEvolutionChainForSpecies(species);
-    }),
-
-  speciesByName: publicProcedure
-    .input(
-      z.object({
-        name: z.string(),
-      }),
-    )
-    .query(async ({ input }) => {
-      const species = await findOnePokemonSpecies({ name: input.name });
-
-      // Enhance evolution chain with additional species if needed
-      return await enhanceEvolutionChainForSpecies(species);
     }),
 });
