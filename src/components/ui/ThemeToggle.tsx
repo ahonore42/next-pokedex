@@ -21,6 +21,7 @@ export default function ThemeToggle() {
     return <div className="w-10 h-10 rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />;
   }
 
+  const themeDisplay = theme === 'light' ? '☀️' : '🌙';
   return (
     <>
       <button
@@ -34,7 +35,7 @@ export default function ThemeToggle() {
 
         {/* Icon container */}
         <div className="relative z-10 w-full h-full flex items-center justify-center">
-          <span className="text-xs">{theme === 'light' ? '☀️' : '🌙'}</span>
+          <span className="text-xs">{themeDisplay}</span>
         </div>
 
         {/* Ripple effect on click */}
@@ -47,7 +48,7 @@ export default function ThemeToggle() {
                   `}
         onClick={toggleTheme}
       >
-        Theme {theme === 'light' ? '☀️' : '🌙'}
+        Theme {themeDisplay}
       </div>
     </>
   );

@@ -46,12 +46,12 @@ export default function Sprite({
         </div>
       )}
 
-      {(title || prefix) && variant !== 'sm' && (
+      {title && variant !== 'sm' && (
         <div>
           <div
             className={`flex justify-center align-center items-center gap-1 mb-2 leading-none text-nowrap ${variants[variant].text}`}
           >
-            <p className="text-muted">#{prefix}</p>
+            {prefix && <p className="text-muted">#{prefix}</p>}
             <p className="font-bold capitalize">{title}</p>
           </div>
           {types && <TypeBadgesDisplay types={types} className="mx-auto mb-2" compact />}

@@ -61,7 +61,7 @@ export default function SectionCard({
   return (
     <div
       className={clsx(
-        'card transition-theme', // Always handle color transitions
+        'rounded-lg p-4',
         colorStyles.background,
         hover && [
           'transition-interactive', // Add transform transitions when interactive
