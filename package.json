@@ -58,7 +58,7 @@
     "@trpc/react-query": "npm:@trpc/react-query",
     "@trpc/server": "npm:@trpc/server",
     "@types/dagre": "^0.7.53",
-    "@xyflow/react": "^12.8.1",
+    "@xyflow/react": "^12.8.2",
     "clsx": "^2.0.0",
     "https-proxy-agent": "^7.0.6",
     "next": "^15.3.1",
