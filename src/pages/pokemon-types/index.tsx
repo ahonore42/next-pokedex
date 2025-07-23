@@ -25,8 +25,8 @@ const TypesPage: NextPageWithLayout = () => {
         title="Pokémon Types"
       />
 
-      <SectionCard colorVariant="transparent" className="mt-8">
-        <div className="flex flex-wrap gap-4 justify-center">
+      <SectionCard colorVariant="transparent" className="mt-4 mb-8">
+        <div className="flex flex-wrap gap-4 justify-center xl:justify-between">
           {types.map((type) => (
             <TypeBadge key={type.id} type={type} />
           ))}
