@@ -4,9 +4,9 @@ import { getDamageFactorColor, getDamageFactorText } from '~/utils/pokemon';
 import DataTable, { Column } from '~/components/ui/DataTable';
 import TypeBadge from '~/components/pokemon-types/TypeBadge';
 import MobileTypeChart from './MobileTypeChart';
-import SectionCard from '~/components/ui/SectionCard';
 import TypeEffectivenessKey from './TypeEffectivenessKey';
 import TypeInfo from './TypeInfo';
+import SectionCard from '../ui/SectionCard';
 
 // Type for our table rows
 interface TypeEffectivenessRow {
@@ -102,35 +102,43 @@ export default function TypeEffectivenessChart() {
   });
 
   return (
-    <SectionCard title="Type Effectiveness Chart" colorVariant="transparent">
-      <div className="hidden md:block mb-6">
-        <div className="flex flex-wrap gap-6">
-          <div className="flex flex-col flex-1 lg:flex-row gap-4 justify-center items-center lg:items-start">
+    <>
+      <TypeInfo types={sortedTypes} />
+      {/* Desktop View */}
+      <SectionCard
+        title="Type Effectiveness Chart"
+        colorVariant="transparent"
+        className="hidden md:block pr-0"
+      >
+        <div className="grid lg:grid-cols-[auto_1fr] gap-4 items-start">
+          {/* Key Section */}
+          <div className="lg:sticky lg:top-4">
             <TypeEffectivenessKey />
-            <div className="flex justify-center">
-              <div className="w-[698px] xl:w-[930px] flex justify-center">
-                <div className="shadow-md w-fit origin-center [zoom:0.75] xl:[zoom:1]">
-                  <DataTable
-                    data={tableData}
-                    columns={columns}
-                    maxColumns={columns.length}
-                    square="w-[930px]"
-                    overlayHover
-                    noPadding
-                  />
-                </div>
+          </div>
+
+          {/* Chart Section */}
+          <div className="flex justify-center overflow-hidden">
+            <div className="w-[698px] xl:w-[930px] flex justify-center">
+              <div className="shadow-lg rounded-lg overflow-hidden transition-theme border border-border w-fit origin-center [zoom:0.75] xl:[zoom:1]">
+                <DataTable
+                  data={tableData}
+                  columns={columns}
+                  maxColumns={columns.length}
+                  square="w-[930px]"
+                  overlayHover
+                  noPadding
+                />
               </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Mobile View (below lg) */}
-      <div className="md:hidden mb-6">
-        <MobileTypeChart allTypes={sortedTypes} getDamageFactor={getDamageFactor} />
-      </div>
-
-      <TypeInfo />
-    </SectionCard>
+      </SectionCard>
+      {/* Mobile View */}
+      <SectionCard title="Type Effectiveness" colorVariant="transparent" className="md:hidden">
+        <div className="space-y-6">
+          <MobileTypeChart allTypes={sortedTypes} getDamageFactor={getDamageFactor} />
+        </div>
+      </SectionCard>
+    </>
   );
 }
