@@ -1,5 +1,4 @@
 import {
-  EvolutionConditions,
   PokemonStats,
   PokemonEncounters,
   PokemonEncounter,
@@ -7,51 +6,34 @@ import {
   EncounterLocation,
   EncounterVersionGroup,
   EncounterConditions,
-  PokemonInSpecies,
 } from '~/server/routers/_app';
-import { capitalizeWords, romanToInteger } from '~/utils/text';
+import { romanToInteger } from '~/utils/text';
 
 // --------------------------
 // Core Domain Types
 // --------------------------
-interface VersionGroup {
+export type VersionGroup = {
   id: number;
   name: string;
   order: number;
   generation: Generation;
   versions: { name: string }[];
-}
+};
 
-interface Generation {
+export type Generation = {
   id: number;
   name: string;
-}
+};
 
-interface RegionInfo {
+export type RegionInfo = {
   id: number;
   name: string;
   displayName: string;
-}
+};
 
 // --------------------------
 // Utility/Configuration Types
 // --------------------------
-type SeparationOptions = {
-  rankdir: 'TB' | 'LR';
-  containerWidth: number;
-  containerHeight: number;
-  nodeWidth: number;
-  nodeHeight: number;
-};
-
-type ComputeNodesepOptions = SeparationOptions & {
-  maxSiblings: number;
-};
-
-type ComputeRanksepOptions = SeparationOptions & {
-  rankCount: number;
-};
-
 export type LevelChancePair = {
   minLevel: number;
   maxLevel: number;
@@ -67,7 +49,7 @@ type LevelSection = {
 // --------------------------
 // Location Types
 // --------------------------
-type LocationArea = {
+export type LocationArea = {
   locationName: string;
   mainLocationName: string;
   mainLocationId: number;
@@ -76,75 +58,76 @@ type LocationArea = {
   encounters: PokemonEncounters;
 };
 
-type LocationGroupResult = {
+export type LocationGroupResult = {
   mainLocationName: string;
   mainLocationId: number;
   locationAreas: LocationArea[];
 };
 
 // --------------------------
-// Grouped Encounter Types
+// Encounter Types
 // --------------------------
-type GroupedEncounters = Record<string, PokemonEncounter & { allConditions: EncounterConditions }>;
+export type GroupedEncounters = Record<
+  string,
+  PokemonEncounter & { allConditions: EncounterConditions }
+>;
 
-type MergedEncounter = PokemonEncounter & {
+export type MergedEncounter = PokemonEncounter & {
   allConditions: EncounterConditions;
   levelChancePairs: LevelChancePair[];
 };
 
-type VersionGroupEncounter = {
+export type VersionGroupEncounter = {
   versionGroupName: string;
   versionGroup: EncounterVersionGroup;
   encounters: PokemonEncounters;
 };
 
+export type EncountersByVersionGroup = Record<number, VersionGroupEncounter>;
+export type EncountersGroupedByLocation = Record<number, LocationGroupResult>;
+export type MergedGroupedEncounters = Record<string, MergedEncounter>;
+
 // --------------------------
 // Stat Calculation Types
 // --------------------------
-export interface StatValues {
+export type StatValues = {
   hp: number;
   attack: number;
   defense: number;
   specialAttack: number;
   specialDefense: number;
   speed: number;
-}
+};
 
 //Parameters for calculating a Pokemon's stat value
-export interface StatCalculationParams {
+export type StatCalculationParams = {
   baseStat: number; // Base stat value (0-255)
   iv: number; // Individual Value (0-31)
   ev: number; // Effort Value (0-252, total EVs across all stats cannot exceed 510)
   level: number; // Pokemon's level (1-100)
   natureModifier?: number; // Nature modifier (0.9, 1.0, or 1.1)
   isHpStat?: boolean; // Whether this is an HP stat calculation
-}
+};
 
-export interface MinMaxStats {
+export type MinMaxStats = {
   min: number;
   max: number;
-}
+};
 
-export interface StatRange {
+export type StatRange = {
   beneficial: MinMaxStats;
   neutral: MinMaxStats;
   hindering: MinMaxStats;
-}
+};
 
 // Min/max stats for all nature types at levels 50 and 100
-export interface StatRanges {
+export type StatRanges = {
   level50: StatRange;
   level100: StatRange;
-}
+};
 
 export type NonHpStatRanges = Record<Exclude<keyof StatValues, 'hp'>, StatRange>;
 
-// --------------------------
-// Function Export Types
-// --------------------------
-type EncountersByVersionGroup = Record<number, VersionGroupEncounter>;
-type EncountersGroupedByLocation = Record<number, LocationGroupResult>;
-type MergedGroupedEncounters = Record<string, MergedEncounter>;
 export type ComprehensiveStatRanges = Record<keyof StatValues, StatRanges>;
 export type CompetitiveRanges = {
   level50: {
@@ -155,30 +138,12 @@ export type CompetitiveRanges = {
   } & NonHpStatRanges;
 };
 
-/**
- * Reusable mappings
- */
-
-// Evolution chain utilities
-const specialEvolutionCases: Record<string, string> = {
-  'primeape-annihilape': 'Level up after using Rage Fist 20 times',
-  'pawmo-pawmot': "Level up after walking 1000 steps with Let's Go!",
-  'bramblin-brambleghast': "Level up after walking 1000 steps with Let's Go!",
-  'rellor-rabsca': "Level up after walking 1000 steps with Let's Go!",
-  'finizen-palafin': 'Level up to 38 while connected to another player via the Union Circle',
-  'bisharp-kingambit': "Level up after defeating three Bisharp that hold a Leader's Crest",
-  'gimmighoul-gholdengo': 'Level up with 999 Gimmighoul Coins in the bag',
-  'meltan-melmetal': 'Evolves with 400 Meltan Candies in Pokémon GO',
-  'magneton-magnezone': 'Level up in a special magnetic field or use a Thunder Stone',
-  'farfetchd-sirfetchd': "Land three critical hits in a single battle with Galarian Farfetch'd",
-  'applin-flapple': 'Use Tart Apple',
-  'applin-appletun': 'Use Sweet Apple',
-  'applin-dipplin': 'Use Syrupy Apple',
-  'dipplin-hydrapple': 'Level up knowing Dragon Cheer',
-};
+/* ------------------------------------------------------------------ */
+/* Reusable Mappings                                                  */
+/* ------------------------------------------------------------------ */
 
 // Mapping of generation IDs to their primary regions
-const versionGroupIdRegionMap: Record<number, RegionInfo> = {
+export const versionGroupIdRegionMap: Record<number, RegionInfo> = {
   1: { id: 1, name: 'kanto', displayName: 'Kanto' },
   2: { id: 2, name: 'johto', displayName: 'Johto' },
   3: { id: 3, name: 'hoenn', displayName: 'Hoenn' },
@@ -215,9 +180,9 @@ export const starterIds: Record<number, number[]> = {
   9: [906, 909, 912],
 };
 
-/**
- * Utility functions
- */
+/* ------------------------------------------------------------------ */
+/* Utility Functions                                                  */
+/* ------------------------------------------------------------------ */
 
 // Utility function to get type color - Complete list
 export function getTypeColor(type: string): string {
@@ -343,152 +308,9 @@ export function orderStatsWithSpeedLast(stats: PokemonStats): PokemonStats {
   return speedStat ? [...nonSpeedStats, speedStat] : [...nonSpeedStats];
 }
 
-export const formatEvolutionConditions = (
-  evolution: EvolutionConditions,
-  speciesMap: Map<number, string>,
-  evolvingPokemonName: string,
-  evolvingToPokemonName: string,
-): string => {
-  const specialCaseKey = `${evolvingPokemonName}-${evolvingToPokemonName}`;
-  if (specialEvolutionCases[specialCaseKey]) {
-    return specialEvolutionCases[specialCaseKey];
-  }
-
-  const conditions: string[] = [];
-
-  if (evolution.minLevel) {
-    conditions.push(`Level ${evolution.minLevel}`);
-  }
-
-  if (evolution.evolutionTrigger?.name === 'trade') {
-    let tradeCondition = 'Trade';
-    if (evolution.tradeSpeciesId) {
-      const tradeSpeciesName = speciesMap.get(evolution.tradeSpeciesId);
-      tradeCondition += tradeSpeciesName
-        ? ` With ${capitalizeWords(tradeSpeciesName)}`
-        : ' With specific Pokémon';
-    }
-    conditions.push(tradeCondition);
-  } else if (evolution.evolutionTrigger?.name === 'use-item' && evolution.evolutionItem) {
-    const evolutionTriggerName = evolution.evolutionItem.name.replace(/-/g, ' ');
-    conditions.push(`Use ${capitalizeWords(evolutionTriggerName)}`);
-  } else if (evolution.evolutionTrigger?.name === 'level-up') {
-    if (evolution.timeOfDay) {
-      conditions.push(`During ${evolution.timeOfDay}`);
-    } else if (evolution.location) {
-      const locationName = evolution.location.name.replace(/-/g, ' ');
-      conditions.push(`at ${capitalizeWords(locationName)}`);
-    }
-  }
-
-  if (evolution.heldItem) {
-    const itemName = evolution.heldItem.name.replace(/-/g, ' ');
-    conditions.push(`Holding ${capitalizeWords(itemName)}`);
-  }
-  if (evolution.knownMove) {
-    const knownMoveName = evolution.knownMove.name.replace(/-/g, ' ');
-    conditions.push(`Knowing ${capitalizeWords(knownMoveName)}`);
-  }
-  if (evolution.knownMoveType) {
-    const knownMoveType = evolution.knownMoveType.name.replace(/-/g, ' ');
-    conditions.push(`Knowing a ${capitalizeWords(knownMoveType)} type move`);
-  }
-  if (evolution.minHappiness) {
-    conditions.push(`With ${evolution.minHappiness}+ Happiness`);
-  }
-  if (evolution.minBeauty) {
-    conditions.push(`With ${evolution.minBeauty}+ Beauty`);
-  }
-  if (evolution.minAffection) {
-    conditions.push(`With ${evolution.minAffection}+ Affection`);
-  }
-  if (evolution.needsOverworldRain) {
-    conditions.push(`During Rain`);
-  }
-  if (evolution.partySpeciesId) {
-    const partySpeciesName = speciesMap.get(evolution.partySpeciesId);
-    conditions.push(
-      `With ${partySpeciesName ? capitalizeWords(partySpeciesName) : 'specific Pokémon'} in party`,
-    );
-  }
-  if (evolution.partyTypeId && evolution.partyType) {
-    const partyTypeName = evolution.partyType.names[0]?.name || evolution.partyType.name;
-    conditions.push(`With ${capitalizeWords(partyTypeName)} Type in party`);
-  }
-  if (evolution.relativePhysicalStats !== null && evolution.relativePhysicalStats !== undefined) {
-    let statComparison = '';
-    if (evolution.relativePhysicalStats === 1) {
-      statComparison = 'Attack > Defense';
-    } else if (evolution.relativePhysicalStats === 0) {
-      statComparison = 'Attack = Defense';
-    } else if (evolution.relativePhysicalStats === -1) {
-      statComparison = 'Attack < Defense';
-    }
-    if (statComparison) {
-      conditions.push(`When ${statComparison}`);
-    }
-  }
-  if (evolution.turnUpsideDown) {
-    conditions.push(`While holding console upside down`);
-  }
-
-  const displayString: string =
-    conditions.length > 0 ? conditions.join(' and ') : 'No special conditions';
-
-  return displayString;
-};
-
-// Only modify the spacing calculations, keep all layout logic the same
-export function computeNodesep(options: ComputeNodesepOptions): number {
-  const { rankdir, containerWidth, containerHeight, nodeWidth, nodeHeight, maxSiblings } = options;
-
-  // Keep your original sibling count logic
-  if (maxSiblings <= 1) return 50;
-
-  if (rankdir === 'LR') {
-    // Vertical spacing between siblings (HORIZONTAL layout)
-    const totalHeight = maxSiblings * nodeHeight;
-    const available = containerHeight - totalHeight;
-
-    // Only make this one change - responsive minimum spacing
-    const minSpacing = containerWidth < 768 ? 40 : 50;
-    return Math.max(minSpacing, available / (maxSiblings - 1));
-  } else {
-    // Horizontal spacing between siblings (VERTICAL layout)
-    const totalWidth = maxSiblings * nodeWidth;
-    const available = containerWidth - totalWidth;
-
-    // Keep your original sibling count logic
-    if (maxSiblings > 3) {
-      return Math.max(10, available / maxSiblings);
-    }
-    return Math.max(50, available / (maxSiblings - 1));
-  }
-}
-
-export function computeRanksep(options: ComputeRanksepOptions): number {
-  const { rankdir, containerWidth, containerHeight, nodeWidth, nodeHeight, rankCount } = options;
-
-  // Keep your original rank count logic
-  if (rankCount <= 1) return 50;
-
-  if (rankdir === 'LR') {
-    // Horizontal spacing between evolution steps (HORIZONTAL layout)
-    const totalWidth = rankCount * nodeWidth;
-    const available = containerWidth - totalWidth;
-
-    // Only make this one change - responsive maximum spacing
-    const maxSpacing = containerWidth < 768 ? 150 : 180;
-    return Math.min(maxSpacing, available / (rankCount - 1));
-  } else {
-    // Vertical spacing between evolution steps (VERTICAL layout)
-    const totalHeight = rankCount * nodeHeight;
-    const available = containerHeight - totalHeight;
-
-    // Keep your original vertical spacing logic
-    return Math.max(180, available / (rankCount - 1));
-  }
-}
+/* ------------------------------------------------------------------ */
+/* Pokedexes                                                          */
+/* ------------------------------------------------------------------ */
 
 export function parseGenerationToNumber(generationName: string): number | null {
   if (!generationName) return null;
@@ -521,6 +343,10 @@ export function getRegionFromVersionGroup(versionGroup: VersionGroup): RegionInf
 
   return region;
 }
+
+/* ------------------------------------------------------------------ */
+/* Encounters                                                         */
+/* ------------------------------------------------------------------ */
 
 // Encounter method icons
 export function getEncounterMethodIcon(methodName: string) {
@@ -757,6 +583,10 @@ export const getUniqueConditions = (encounter: PokemonEncounter): EncounterCondi
     );
   });
 
+/* ------------------------------------------------------------------ */
+/* Pokemon Stats                                                      */
+/* ------------------------------------------------------------------ */
+
 // Get stat color based on value
 export function getStatColor(baseStat: number, prefix: 'text' | 'bg' = 'bg') {
   if (prefix === 'bg' && baseStat >= 120) return 'bg-green-500';
@@ -784,7 +614,7 @@ export function getStatAbbr(statName: string) {
 }
 
 // Get full stat name
-export const getStatName = (stat: PokemonInSpecies['stats'][number]) =>
+export const getStatName = (stat: PokemonStats[number]) =>
   stat.stat.names[0]?.name || stat.stat.name;
 
 /**
@@ -793,7 +623,7 @@ export const getStatName = (stat: PokemonInSpecies['stats'][number]) =>
  * @param statsArray - Array of Pokemon stats from database
  * @returns Simple object with stat names as keys and base stat values
  */
-export const convertStatsArrayToValues = (statsArray: PokemonInSpecies['stats']): StatValues => {
+export const convertStatsArrayToValues = (statsArray: PokemonStats): StatValues => {
   const result: StatValues = {
     hp: 0,
     attack: 0,
