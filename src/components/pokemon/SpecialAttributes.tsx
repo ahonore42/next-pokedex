@@ -1,7 +1,7 @@
-import { PokemonSpeciesByIdOutput } from '~/server/routers/_app';
+import { PokemonSpecies } from '~/server/routers/_app';
 
 interface SpecialAttributesProps {
-  species: PokemonSpeciesByIdOutput;
+  species: PokemonSpecies;
   className?: string;
 }
 

@@ -8,7 +8,7 @@ interface PokedexDisplayProps {
 export default function PokedexDisplay({ pokedex }: PokedexDisplayProps) {
   if (!pokedex) return null;
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-9 gap-4">
       {pokedex.pokemonSpecies.map((pokemonSpecies: PokedexEntries['pokemonSpecies'][number]) => {
         const pokedexNumber = String(pokemonSpecies.pokedexNumbers[0].pokedexNumber);
         const pokemonName = pokemonSpecies.name;

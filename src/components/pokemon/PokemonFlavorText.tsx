@@ -1,9 +1,9 @@
 import { parseGenerationToNumber } from '~/utils/pokemon';
-import { PokemonSpeciesByIdOutput } from '~/server/routers/_app';
+import { PokemonSpecies } from '~/server/routers/_app';
 import SpecialAttributes from './SpecialAttributes';
 
 interface PokemonFlavorTextProps {
-  species: PokemonSpeciesByIdOutput;
+  species: PokemonSpecies;
 }
 
 const PokemonFlavorText: React.FC<PokemonFlavorTextProps> = ({ species }) => {

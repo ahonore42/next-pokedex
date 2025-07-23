@@ -1,17 +1,17 @@
-import EvolutionChain from './EvolutionChain';
+import EvolutionChain from '../evolutions/EvolutionChain';
 import PokemonArtwork from './PokemonArtwork';
-import { PokemonInSpecies, PokemonSpeciesByIdOutput } from '~/server/routers/_app';
+import { PokemonSpecies } from '~/server/routers/_app';
 import SectionCard from '../ui/SectionCard';
 import { PokemonAbilities } from './PokemonAbilities';
-import MobileEvolutionChain from './MobileEvolutionChain';
+import MobileEvolutionChain from '../evolutions/MobileEvolutionChain';
 import PokemonFlavorText from './PokemonFlavorText';
 import PokemonFormSwitcher from './PokemonFormSwitcher';
 import { PokemonBreeding } from './PokemonBreeding';
 import TypeBadgesDisplay from '../pokemon-types/TypeBadgesDisplay';
 
 interface PokemonHeaderProps {
-  pokemon: PokemonInSpecies;
-  species: PokemonSpeciesByIdOutput;
+  pokemon: PokemonSpecies['pokemon'][number];
+  species: PokemonSpecies;
   onPokemonSwitch: (pokemonId: number) => void;
 }
 
@@ -89,7 +89,7 @@ const PokemonHeader: React.FC<PokemonHeaderProps> = ({ pokemon, species, onPokem
         </div>
 
         {/* Evolution Chain - Responsive Rendering */}
-        {evolutionChain && (
+        {evolutionChain?.pokemonSpecies.length && (
           <>
             {/* Desktop Evolution Chain - Hidden on smaller screens, visible on lg+ */}
             <div className="hidden lg:block mt-8">
