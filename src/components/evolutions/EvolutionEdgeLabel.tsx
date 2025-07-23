@@ -1,7 +1,7 @@
 import React from 'react';
 import { EdgeProps, BaseEdge, EdgeLabelRenderer, getSmoothStepPath, Position } from '@xyflow/react';
 
-const EvolutionEdgeLabel: React.FC<EdgeProps> = ({
+export default function EvolutionEdgeLabel({
   id,
   sourceX,
   sourceY,
@@ -11,7 +11,7 @@ const EvolutionEdgeLabel: React.FC<EdgeProps> = ({
   data,
   sourcePosition,
   targetPosition,
-}) => {
+}: EdgeProps) {
   const hasManyDirectEvolutions = data?.hasManyDirectEvolutions as boolean;
   sourcePosition = hasManyDirectEvolutions ? Position.Bottom : sourcePosition;
   targetPosition = hasManyDirectEvolutions ? Position.Top : targetPosition;
@@ -31,13 +31,15 @@ const EvolutionEdgeLabel: React.FC<EdgeProps> = ({
         <div
           style={{
             position: 'absolute',
-            transform: `translate(-50%, -50%) translate(${hasManyDirectEvolutions ? targetX : centerX}px, ${hasManyDirectEvolutions ? centerY : targetY}px)`,
+            transform: `translate(-50%, -50%) 
+            translate(${hasManyDirectEvolutions ? targetX : centerX}px, ${hasManyDirectEvolutions ? centerY : targetY}px)`,
             pointerEvents: 'all',
           }}
           className="nodrag nopan"
         >
           <div
-            className={`px-2 py-1 rounded-md shadow-md text-xs border w-24 text-center whitespace-normal break-words`}
+            className={`p-2 rounded-lg shadow-md text-xs border border-border 
+            bg-surface w-28 text-center whitespace-normal leading-none break-words`}
           >
             {(data?.label as string) || 'No Evolution'}
           </div>
@@ -45,6 +47,4 @@ const EvolutionEdgeLabel: React.FC<EdgeProps> = ({
       </EdgeLabelRenderer>
     </>
   );
-};
-
-export default EvolutionEdgeLabel;
+}
