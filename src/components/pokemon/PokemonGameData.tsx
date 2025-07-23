@@ -1,17 +1,16 @@
-import type { PokemonSpeciesByIdOutput } from '~/server/routers/_app';
+import type { PokemonSpecies } from '~/server/routers/_app';
 
-interface ComponentProps {
-  pokedexNumbers: PokemonSpeciesByIdOutput['pokedexNumbers'];
-  captureRate: PokemonSpeciesByIdOutput['captureRate'];
-  baseHappiness: PokemonSpeciesByIdOutput['baseHappiness'];
+interface PokemonGameDataProps {
+  pokedexNumbers: PokemonSpecies['pokedexNumbers'];
+  captureRate: PokemonSpecies['captureRate'];
+  baseHappiness: PokemonSpecies['baseHappiness'];
 }
 
-// Pokemon Game Data Component
-export const PokemonGameData: React.FC<ComponentProps> = ({
+export default function PokemonGameData({
   pokedexNumbers,
   captureRate,
   baseHappiness,
-}) => {
+}: PokemonGameDataProps) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Game Data</h2>
@@ -50,4 +49,4 @@ export const PokemonGameData: React.FC<ComponentProps> = ({
       </div>
     </div>
   );
-};
+}

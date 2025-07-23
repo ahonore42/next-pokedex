@@ -1,12 +1,12 @@
 import type { PokemonInSpecies } from '~/server/routers/_app';
 import MoveTable from './MoveTable';
 
-interface ComponentProps {
+interface PokemonMovesProps {
   pokemon: PokemonInSpecies;
 }
 
 // Pokemon Moves Component
-export const PokemonMoves: React.FC<ComponentProps> = ({ pokemon }) => {
+export default function PokemonMoves({ pokemon }: PokemonMovesProps) {
   // Group moves by learn method
   const movesByMethod = pokemon.moves.reduce(
     (acc, pokemonMove) => {
@@ -115,4 +115,4 @@ export const PokemonMoves: React.FC<ComponentProps> = ({ pokemon }) => {
       ))}
     </div>
   );
-};
+}
