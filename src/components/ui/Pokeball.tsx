@@ -84,12 +84,16 @@ export default function Pokeball({
     'rounded-full relative overflow-hidden group cursor-pointer',
     endlessSpin ? `animate-spin ${getSpinDuration()}` : 'transition-all duration-300',
     endlessSpin && isHovered ? `scale-${Math.round(hoverScale * 100)}` : '',
-    !endlessSpin && isHovered ? `scale-${Math.round(hoverScale * 100)} rotate-${rotationDegrees}` : '',
+    !endlessSpin && isHovered
+      ? `scale-${Math.round(hoverScale * 100)} rotate-${rotationDegrees}`
+      : '',
     className,
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   // Build gradient layer classes (counter-rotation for endlessSpin)
-  const gradientLayerClasses = endlessSpin 
+  const gradientLayerClasses = endlessSpin
     ? `animate-spin ${getSpinDuration()} [animation-direction:reverse]`
     : '';
 
@@ -105,29 +109,26 @@ export default function Pokeball({
   };
 
   const content = (
-    <div
-      className={containerClasses}
-      {...eventHandlers}
-    >
+    <div className={containerClasses} {...eventHandlers}>
       {/* Top Red Half */}
       <div
         className={`absolute top-0 left-0 w-full h-1/2 rounded-t-full shadow-inner ${
           endlessSpin ? 'bg-red-500' : 'bg-gradient-to-b from-red-400 via-red-500 to-red-700'
         }`}
       />
-      
+
       {/* Bottom Silver/White Half */}
       <div
         className={`absolute bottom-0 left-0 w-full h-1/2 rounded-b-full shadow-inner ${
           endlessSpin ? 'bg-gray-200' : 'bg-gradient-to-t from-gray-300 via-gray-100 to-white'
         }`}
       />
-      
+
       {/* Center black band */}
       <div
         className={`absolute top-1/2 left-0 w-full ${config.band} bg-gradient-to-r from-gray-900 via-black to-gray-900 transform -translate-y-1/2`}
       />
-      
+
       {/* Black circle */}
       <div
         className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${config.blackCircle} bg-black rounded-full`}
@@ -152,24 +153,24 @@ export default function Pokeball({
           />
         </div>
       </div>
-      
+
       {/* Fixed gradient layer (counter-rotates to stay in place) */}
       <div className={`absolute inset-0 pointer-events-none ${gradientLayerClasses}`}>
         {/* Independent lighting overlay when spinning */}
         {endlessSpin && (
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white via-transparent to-black opacity-30" />
         )}
-        
+
         {/* Red highlight for 3D effect */}
         <div
           className={`absolute ${config.highlight.top} bg-gradient-to-br from-red-200 to-transparent rounded-full opacity-60`}
         />
-        
+
         {/* Bottom metallic highlight */}
         <div
           className={`absolute ${config.highlight.bottom} bg-gradient-to-bl from-white to-transparent rounded-full opacity-80`}
         />
-        
+
         {/* Center gray ring gradient overlay */}
         {endlessSpin && (
           <div
@@ -191,17 +192,12 @@ export default function Pokeball({
             </div>
           </div>
         )}
-        
+
         {/* Overall sphere shadow for depth */}
         <div className="absolute inset-0 rounded-full shadow-inner bg-gradient-to-br from-transparent via-transparent to-black opacity-20" />
       </div>
     </div>
   );
-
   // Wrap with scale div only for endlessSpin
-  return endlessSpin ? (
-    <div className={scaleWrapperClasses}>
-      {content}
-    </div>
-  ) : content;
+  return endlessSpin ? <div className={scaleWrapperClasses}>{content}</div> : content;
 }
