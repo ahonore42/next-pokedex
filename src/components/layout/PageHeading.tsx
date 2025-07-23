@@ -131,15 +131,16 @@ export default function PageHeading({
       </Head>
 
       {title && (
-        <div className={clsx('flex justify-between items-start', className)}>
-          {breadcrumbLinks && (
-            <div className="flex-shrink-0 hidden md:block">
-              <BreadcrumbNavigation links={breadcrumbLinks} currentPage={currentPage} />
-            </div>
-          )}
+        <div className={clsx('space-y-2 mb-2', className)}>
+          {/* Top row: Breadcrumbs and Title aligned at bottom */}
+          <div className="flex justify-between items-end">
+            {breadcrumbLinks && (
+              <div className="flex-shrink-0 hidden md:block">
+                <BreadcrumbNavigation links={breadcrumbLinks} currentPage={currentPage} />
+              </div>
+            )}
 
-          <div className="flex-1 text-right">
-            <div className="flex items-center justify-end space-x-3 mb-2">
+            <div className="flex items-end justify-end space-x-3">
               <h1 id={titleId} className="text-4xl font-bold capitalize text-primary">
                 {title}
               </h1>
@@ -147,8 +148,14 @@ export default function PageHeading({
                 <div className="text-2xl font-semibold text-muted">{titleMetadata}</div>
               )}
             </div>
-            {subtitle && <p className="text-lg text-subtle mb-4">{subtitle}</p>}
           </div>
+
+          {/* Bottom row: Subtitle */}
+          {subtitle && (
+            <div className="text-right">
+              <p className="text-lg text-subtle">{subtitle}</p>
+            </div>
+          )}
         </div>
       )}
     </>

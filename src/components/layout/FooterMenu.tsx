@@ -2,7 +2,7 @@ export default function FooterMenu() {
   return (
     <footer className="bg-secondary border-t border-border mt-12 w-full transition-theme">
       <div className="mx-auto px-4 py-8 flex flex-col items-center w-full gap-y-8">
-        <div className="flex justify-around max-w-7xl w-full">
+        <div className="flex flex-wrap gap-4 justify-around max-w-5xl w-full">
           <div>
             <h3 className="font-semibold text-primary mb-3">Database</h3>
             <ul className="space-y-2 text-sm text-muted">

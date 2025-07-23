@@ -20,7 +20,7 @@ export default function SearchBar() {
   );
 
   return (
-    <div className="relative max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl mx-auto">
+    <div className="max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl mx-auto">
       <div className="relative">
         <div className="relative overflow-hidden rounded-lg border-2 border-border transition-all duration-300 hover:border-brand/50">
           <input
