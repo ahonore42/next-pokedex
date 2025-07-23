@@ -1,7 +1,7 @@
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
 import type { EvolutionChainsPaginatedOutput } from '~/server/routers/_app';
-import EvolutionChain from '~/components/pokemon/EvolutionChain';
+import EvolutionChain from '~/components/evolutions/EvolutionChain';
 import InfiniteScroll from '~/components/ui/InfiniteScroll';
 import PageHeading from '~/components/layout/PageHeading';
 

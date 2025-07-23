@@ -22,12 +22,6 @@ const IndexPage: NextPageWithLayout = () => {
     if (pokemonQuery.data && artworkQuery.data) {
       const pokemonList = pokemonQuery.data.pokemon ?? [];
       const legendarySprites = artworkQuery.data;
-
-      // Prefetch individual pokemon
-      for (const { id } of pokemonList) {
-        void utils.pokemon.byId.prefetch({ id });
-      }
-
       setPokemon(pokemonList);
       setLegendaries(legendarySprites);
     }
