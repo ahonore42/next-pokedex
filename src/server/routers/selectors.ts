@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 const DEFAULT_LANGUAGE_ID = 9; // English
 
@@ -785,6 +785,7 @@ export const movesetSelect = {
     move: moveSelect,
   },
   orderBy: [
+    { versionGroup: { generationId: 'desc' as const } },
     { versionGroup: { order: 'desc' as const } },
     { moveLearnMethodId: 'asc' as const },
     { levelLearnedAt: 'asc' as const },
