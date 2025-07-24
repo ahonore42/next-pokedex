@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { TypeBadgeProps } from '../pokemon-types/TypeBadge';
 import TypeBadgesDisplay from '../pokemon-types/TypeBadgesDisplay';
+import Icon from './icons';
 
 interface SpriteProps {
   src?: string;
@@ -22,31 +24,62 @@ export default function Sprite({
   fallback = false,
   className = '',
 }: SpriteProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   const variants = {
     sm: { img: 'w-16 h-16', container: 'w-20 h-20' },
-    md: { img: 'w-24 h-24', text: 'text-sm', container: types ? 'min-w-36 h-36' : 'min-w-32 h-32' }, // Responsive displays
+    md: { img: 'w-24 h-24', text: 'text-sm', container: types ? 'min-w-36 h-36' : 'min-w-32 h-32' },
     lg: { img: 'w-32 h-32', text: 'text-sm', container: types ? 'w-44 h-44' : 'w-36 h-36' },
   };
+
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+    setImageError(false);
+  };
+
+  const handleImageError = () => {
+    setImageError(true);
+    setImageLoaded(false);
+  };
+
+  const shouldShowFallback = fallback || imageError || !src;
+  const shouldShowLoading = src && !fallback && !imageLoaded && !imageError;
+
   return (
     <div
       className={`text-center flex flex-col items-center justify-center text-primary rounded-lg border border-border 
       ${hover ? 'surface-hover' : 'surface'} ${variants[variant].container} ${className}`}
     >
-      {src && !fallback ? (
-        <img src={src} alt={title} className={`mx-auto ${variants[variant].img}`} />
-      ) : (
-        <div className="text-slate-300 dark:text-slate-500">
-          <svg className="w-6 h-6 mx-auto mb-1" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </div>
-      )}
+      {/* Image Container - maintain consistent height */}
+      <div className={`relative ${variants[variant].img} flex items-center justify-center`}>
+        {shouldShowLoading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Icon type="loading" size="lg" className="text-slate-400 dark:text-slate-500" />
+          </div>
+        )}
 
-      {title && variant !== 'sm' && (
+        {src && !shouldShowFallback && (
+          <img
+            src={src}
+            alt={title}
+            className={`${variants[variant].img} transition-opacity duration-200 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+          />
+        )}
+
+        {shouldShowFallback && (
+          <div className="text-slate-300 dark:text-slate-500">
+            <Icon size="xl" type="image" />
+          </div>
+        )}
+      </div>
+
+      {/* Only render text content when image is loaded or fallback is shown */}
+      {title && variant !== 'sm' && (imageLoaded || shouldShowFallback) && (
         <div>
           <div
             className={`flex justify-center align-center items-center gap-1 mb-2 leading-none text-nowrap ${variants[variant].text}`}
