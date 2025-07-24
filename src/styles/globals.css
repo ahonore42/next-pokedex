@@ -17,12 +17,14 @@
   --color-inverse: #ffffff;
 
   /* Indigo theme with accessible variants */
-  --color-brand: #4338ca; /* 7.77:1 contrast on white */
-  --color-brand-hover: #3730a3; /* 10.73:1 contrast */
-  --color-brand-active: #312e81; /* 13.54:1 contrast */
-  --color-brand-light: #6366f1; /* 5.89:1 contrast */
-  --color-brand-lighter: #8b5cf6; /* 4.54:1 contrast */
-  --color-brand-subtle: #e0e7ff;
+
+
+  --color-brand: #4338ca; /* indigo-700 - rich and substantial */
+  --color-brand-hover: #3730a3; /* indigo-800 - deeper on hover */
+  --color-brand-active: #312e81; /* indigo-900 - deepest when pressed */
+  --color-brand-light: #6366f1; /* indigo-500 */
+  --color-brand-lighter: #8b5cf6; /* indigo-400 */
+  --color-brand-subtle: #1e1b4b; /* indigo-950 */
 
   /* Background colors - High Contrast Semantic Tokens */
   --color-background: #ffffff;
@@ -162,12 +164,12 @@
   --color-inverse: #0f172a;
 
   /* Indigo theme with accessible variants */
-  --color-brand: #6366f1; /* 5.89:1 contrast on dark */
-  --color-brand-hover: #8b5cf6; /* 4.54:1 contrast */
-  --color-brand-active: #a855f7; /* 3.77:1 contrast but acceptable for large text */
-  --color-brand-light: #a5b4fc; /* 3.15:1 contrast for large elements */
-  --color-brand-lighter: #c4b5fd; /* 2.4:1 for decorative only */
-  --color-brand-subtle: #312e81;
+  --color-brand: #6366f1; /* indigo-500 - bright and vibrant */
+  --color-brand-hover: #4f46e5; /* indigo-600 - slightly deeper on hover */
+  --color-brand-active: #4338ca; /* indigo-700 - deeper when pressed */
+  --color-brand-light: #a5b4fc; /* indigo-300 */
+  --color-brand-lighter: #c7d2fe; /* indigo-200 */
+  --color-brand-subtle: #e0e7ff; /* indigo-100 */
 
   /* Dark mode backgrounds */
   --color-background: #0f172a;
@@ -307,8 +309,9 @@
 }
 
 .transition-interactive {
-  transition: all 200ms ease-out;
-  will-change: transform, translate, scale, box-shadow, opacity;
+  transition-property: scale, translate;
+  transition-duration: 200ms;
+  transition-timing-function: 200ms;
 }
 
 .mobile-nav-item-enter {
@@ -329,12 +332,21 @@
   cursor: not-allowed;
 }
 
+/* Vibrant indigo-to-violet gradient that pops against any background */
 .indigo-gradient {
-  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-active) 100%);
+  background: linear-gradient(135deg, #4338ca 0%, #8b5cf6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+.dark .indigo-gradient {
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .text-glow {
   text-shadow: 0 0 20px var(--color-primary-light);
 }
