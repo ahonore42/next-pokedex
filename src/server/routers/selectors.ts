@@ -454,7 +454,7 @@ export const detailedStatSelect = {
       },
     },
   },
-  orderBy: { stat: { gameIndex: 'asc' as const } },
+  orderBy: { stat: { id: 'asc' as const } },
 };
 
 export const detailedFlavorTextSelect = {
