@@ -6,7 +6,7 @@ import PokedexDisplay from '~/components/pokemon/PokedexDisplay';
 import InteractiveLink from '~/components/ui/InteractiveLink';
 import { PokedexEntries } from '~/server/routers/_app';
 import { useEffect, useState } from 'react';
-import FilterButtons, { FilterOption } from '~/components/ui/FilterButtons';
+import FilterButtons, { FilterOption } from '~/components/ui/buttons/FilterButtons';
 
 const PokedexSelectionPage: NextPageWithLayout = () => {
   const [nationalDex, setNationalDex] = useState<PokedexEntries>();
@@ -116,7 +116,6 @@ const PokedexSelectionPage: NextPageWithLayout = () => {
           currentFilter={currentGenFilter}
           options={filterOptions}
           onFilterChange={handleDexFilter}
-          label="Order"
         />
       </div>
       {nationalDex && <PokedexDisplay pokedex={nationalDex} />}

@@ -1,4 +1,4 @@
-'use client';
+import Button from '.';
 
 export interface FilterOption<T> {
   value: T;
@@ -13,8 +13,6 @@ export interface FilterButtonsProps<T> {
   options: FilterOption<T>[];
   /** Callback when filter changes */
   onFilterChange: (value: T) => void;
-  /** Custom label text before buttons */
-  label?: string;
   /** Additional className for container */
   className?: string;
 }
@@ -23,17 +21,14 @@ export default function FilterButtons<T>({
   currentFilter,
   options,
   onFilterChange,
-  label = 'Filter:',
   className = '',
 }: FilterButtonsProps<T>) {
   const selectedOption = options.find((option) => option.value === currentFilter);
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      {label && <span className="text-sm text-muted">{label}</span>}
-
       {/* Mobile Dropdown (below md) */}
-      <div className="block md:hidden">
+      <div className="block md:hidden flex items-center gap-2">
         <select
           value={selectedOption ? String(selectedOption.value) : ''}
           onChange={(e) => {
@@ -62,22 +57,17 @@ export default function FilterButtons<T>({
           const isSelected = currentFilter === option.value;
 
           return (
-            <button
+            <Button
               key={String(option.value)}
-              onClick={() => onFilterChange(option.value)}
+              size="xs"
+              variant={isSelected ? 'outline' : 'secondary'}
+              active={isSelected}
               disabled={option.disabled}
-              className={`
-                cursor-pointer px-3 py-1 text-sm rounded transition-theme whitespace-nowrap
-                ${
-                  isSelected
-                    ? 'bg-hover text-primary'
-                    : 'bg-surface-elevated hover:bg-hover text-muted hover:text-primary'
-                }
-                ${option.disabled ? 'opacity-50 cursor-not-allowed' : ''}
-              `}
+              onClick={() => onFilterChange(option.value)}
+              className="whitespace-nowrap"
             >
               {option.label}
-            </button>
+            </Button>
           );
         })}
       </div>
