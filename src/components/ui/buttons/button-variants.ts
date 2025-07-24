@@ -6,6 +6,7 @@ export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type ButtonVariant =
   | 'primary'
   | 'secondary'
+  | 'brand'
   | 'outline'
   | 'ghost'
   | 'destructive'
@@ -69,7 +70,14 @@ export const sizeVariants = {
 // Color variant system integrating theme tokens
 export const colorVariants = {
   primary: {
-    base: 'bg-brand text-inverse border-brand',
+    base: 'bg-blue-600 text-white border-blue-600',
+    hover: 'hover:bg-blue-700 hover:border-blue-700',
+    active: 'active:bg-blue-800 active:border-blue-800',
+    focus: 'focus:bg-blue-700 focus:border-blue-700',
+    disabled: 'disabled:bg-disabled disabled:text-disabled-text disabled:border-disabled',
+  },
+  brand: {
+    base: 'bg-brand text-white border-brand',
     hover: 'hover:bg-brand-hover hover:border-brand-hover',
     active: 'active:bg-brand-active active:border-brand-active',
     focus: 'focus:bg-brand-hover focus:border-brand-hover',
