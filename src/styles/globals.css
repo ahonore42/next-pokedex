@@ -18,7 +18,6 @@
 
   /* Indigo theme with accessible variants */
 
-
   --color-brand: #4338ca; /* indigo-700 - rich and substantial */
   --color-brand-hover: #3730a3; /* indigo-800 - deeper on hover */
   --color-brand-active: #312e81; /* indigo-900 - deepest when pressed */
@@ -255,8 +254,16 @@
     @apply border border-blue-500 bg-blue-50 dark:bg-blue-900/20;
   }
 
+  .info-fill {
+    @apply bg-blue-400 dark:bg-blue-600 text-blue-900 dark:text-blue-200;
+  }
+
   .highlight {
     @apply border border-yellow-200 bg-yellow-50 dark:border-yellow-600 dark:bg-yellow-900/20;
+  }
+
+  .highlight-fill {
+    @apply bg-yellow-200 dark:bg-yellow-700 text-yellow-800 dark:text-yellow-200;
   }
 
   .success {

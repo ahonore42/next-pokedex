@@ -7,7 +7,7 @@ interface SectionCardProps {
   tag?: string;
   className?: string;
   variant?: 'default' | 'compact';
-  colorVariant?: 'default' | 'update' | 'pokemon' | 'info' | 'transparent';
+  colorVariant?: 'default' | 'update' | 'pokemon' | 'info' | 'highlight' | 'transparent';
   hover?: boolean;
 }
 
@@ -40,18 +40,27 @@ export default function SectionCard({
   const colorVariantStyles = {
     default: {
       background: 'surface',
+      tagColor: 'bg-pokemon text-subtle',
     },
     update: {
       background: 'update',
+      tagColor: 'bg-pokemon text-subtle',
     },
     pokemon: {
       background: 'pokemon',
+      tagColor: 'bg-pokemon text-subtle',
     },
     info: {
       background: 'info',
+      tagColor: 'info-fill',
+    },
+    highlight: {
+      background: 'highlight',
+      tagColor: 'highlight-fill',
     },
     transparent: {
       background: 'bg-transparent',
+      tagColor: 'bg-pokemon text-subtle',
     },
   } as const;
 
@@ -61,7 +70,7 @@ export default function SectionCard({
   return (
     <div
       className={clsx(
-        'rounded-lg p-4',
+        'card',
         colorStyles.background,
         hover && [
           'transition-interactive', // Add transform transitions when interactive
@@ -75,7 +84,11 @@ export default function SectionCard({
         {title && <h4 className={clsx(styles.titleSize)}>{title}</h4>}
         {tag && (
           <span
-            className={clsx(styles.tagSize, ' bg-pokemon', 'px-2 py-1 rounded-md flex-shrink-0')}
+            className={clsx(
+              styles.tagSize,
+              colorStyles.tagColor,
+              'px-2 py-1 rounded font-semibold flex-shrink-0',
+            )}
           >
             {tag}
           </span>
