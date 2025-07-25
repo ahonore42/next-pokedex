@@ -251,7 +251,7 @@
 /* Component classes */
 @layer components {
   .info {
-    @apply border border-blue-500 bg-blue-50 dark:bg-blue-900/20;
+    @apply border border-blue-300 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20;
   }
 
   .info-fill {
