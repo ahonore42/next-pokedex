@@ -25,7 +25,6 @@ export interface PageHeadingProps {
 
   // Visual content
   title?: string;
-  titleMetadata?: string | React.ReactNode;
   subtitle?: string;
   className?: string;
   titleId?: string;
@@ -46,7 +45,6 @@ export default function PageHeading({
   breadcrumbLinks,
   currentPage,
   title,
-  titleMetadata,
   subtitle,
   className = '',
   titleId,
@@ -131,7 +129,7 @@ export default function PageHeading({
       </Head>
 
       {title && (
-        <div className={clsx('space-y-2 mb-2', className)}>
+        <div className={clsx('mb-4', className)}>
           {/* Top row: Breadcrumbs and Title aligned at bottom */}
           <div className="flex justify-between items-end">
             {breadcrumbLinks && (
@@ -141,19 +139,16 @@ export default function PageHeading({
             )}
 
             <div className="flex items-end justify-end space-x-3">
-              <h1 id={titleId} className="text-4xl font-bold capitalize text-primary">
+              <h1 id={titleId} className="text-4xl font-bold capitalize indigo-gradient">
                 {title}
               </h1>
-              {titleMetadata && (
-                <div className="text-2xl font-semibold text-muted">{titleMetadata}</div>
-              )}
             </div>
           </div>
 
           {/* Bottom row: Subtitle */}
           {subtitle && (
             <div className="text-right">
-              <p className="text-lg text-subtle">{subtitle}</p>
+              <p className="text-lg font-base text-subtle">{subtitle}</p>
             </div>
           )}
         </div>
