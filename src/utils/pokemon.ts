@@ -299,15 +299,6 @@ export const getDamageClassColor = (damageClass: string) => {
   }
 };
 
-export function orderStatsWithSpeedLast(stats: PokemonStats): PokemonStats {
-  if (!stats || stats.length === 0) {
-    return [];
-  }
-  const speedStat = stats.find((stat) => stat.stat.name === 'speed');
-  const nonSpeedStats = stats.filter((stat) => stat.stat.name !== 'speed');
-  return speedStat ? [...nonSpeedStats, speedStat] : [...nonSpeedStats];
-}
-
 /* ------------------------------------------------------------------ */
 /* Pokedexes                                                          */
 /* ------------------------------------------------------------------ */

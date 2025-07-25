@@ -7,11 +7,10 @@ type SeparationOptions = {
   containerHeight: number;
   nodeWidth: number;
   nodeHeight: number;
-};
-
-export type ComputeNodesepOptions = SeparationOptions & {
   maxSiblings: number;
 };
+
+export type ComputeNodesepOptions = SeparationOptions;
 
 export type ComputeRanksepOptions = SeparationOptions & {
   rankCount: number;
@@ -145,83 +144,88 @@ export const formatEvolutionConditions = (
   return displayString;
 };
 
-// computeNodesep.ts
+// Node separation with maximum horizontal spacing
 export function computeNodesep(options: ComputeNodesepOptions): number {
   const { rankdir, containerWidth, containerHeight, nodeWidth, nodeHeight, maxSiblings } = options;
   const sibs = Math.min(Math.max(maxSiblings, 1), 8);
-  if (sibs <= 1) return 50;
+  if (sibs <= 1) return 60; // Single node, spacing doesn't matter
 
-  /* Horizontal layout (TB) – gaps between siblings */
+  /* Vertical layout (TB) – maximize gaps between siblings */
   if (rankdir === 'TB') {
     const totalW = sibs * nodeWidth;
     const avail = containerWidth - totalW;
-
-    // progressive gap that stays modest
-    const base = 50;
-    const extra = Math.max(0, sibs - 3) * 8; // +8 px per extra sibling
-    const minGap = base + extra;
-
-    return Math.max(minGap, avail / (sibs - 1));
+    if (sibs >= 7) {
+      const maxSpacing = avail > 0 ? avail / (sibs - 1) : 0;
+      return Math.max(80, maxSpacing); // Higher minimum to prevent tight spacing
+    }
+    // Regular case for fewer siblings
+    const maxSpacing = avail > 0 ? (avail * 0.95) / (sibs - 1) : 0;
+    return Math.max(15, maxSpacing);
   }
 
-  /* Vertical layout (LR) – gaps between siblings */
+  /* Horizontal layout (LR) – maximize gaps between siblings */
   const totalH = sibs * nodeHeight;
   const avail = containerHeight - totalH;
 
-  const minGap = 60;
-
-  return Math.max(minGap, avail / (sibs - 1));
+  // Use 90% of available space for maximum spread
+  const maxSpacing = avail > 0 ? (avail * 0.95) / (sibs - 1) : 0;
+  const absoluteMin = 80;
+  return Math.max(absoluteMin, maxSpacing);
 }
 
-// computeRanksep.ts
+// Rank separation with maximum spacing between evolution levels
 export function computeRanksep(options: ComputeRanksepOptions): number {
-  const { rankdir, containerWidth, containerHeight, nodeWidth, nodeHeight, rankCount } = options;
+  const {
+    rankdir,
+    containerWidth,
+    containerHeight,
+    nodeWidth,
+    nodeHeight,
+    rankCount,
+    maxSiblings,
+  } = options;
   if (rankCount <= 1) return 50;
 
-  /* Horizontal layout  (LR) – vertical gaps between ranks */
+  /* Horizontal layout (LR) – maximize spacing between ranks */
   if (rankdir === 'LR') {
     const totalW = rankCount * nodeWidth;
     const avail = containerWidth - totalW;
-    const label = 96; // edge-label width
-    const buffer = rankCount > 3 ? 20 : 40;
 
-    const cap =
-      containerWidth < 640
-        ? 120
-        : containerWidth < 768
-          ? 140
-          : containerWidth < 1024
-            ? 160
-            : containerWidth < 1280
-              ? 180
-              : containerWidth < 1536
-                ? 200
-                : 220;
+    // Reserve space for edge labels (reduce this to spread nodes more)
+    const edgeLabelReserve = 80;
+    const minBuffer = 20;
 
-    // add extra vertical space when many siblings *per rank*
-    const gap = Math.max(label + buffer, Math.min(cap, avail / (rankCount - 1)));
-    return gap;
+    // Use 85-90% of remaining space after nodes and labels
+    const remainingSpace = avail - (edgeLabelReserve + minBuffer);
+    const maxSpacing = remainingSpace > 0 ? (remainingSpace * 0.5) / (rankCount - 1) : 0;
+    // Minimum spacing to keep edge labels readable
+    const absoluteMin = edgeLabelReserve + minBuffer;
+    return Math.max(absoluteMin, maxSpacing);
   }
 
-  /* Vertical layout (TB) – horizontal gaps between ranks */
+  /* Vertical layout (TB) – maximize spacing between ranks */
   const totalH = rankCount * nodeHeight;
-  const avail = containerHeight - totalH;
+  // For vertical layouts with many siblings, give generous vertical space
+  // so siblings can spread horizontally without constraint
+  if (maxSiblings >= 7) {
+    const avail = containerWidth - totalH;
+    const maxSpacing = avail > 0 ? (avail * 0.4) / (rankCount - 1) : 0;
+    return Math.max(80, maxSpacing);
+  }
 
-  const base = 110;
-  return Math.max(base, avail / (rankCount - 1));
+  const avail = containerHeight - totalH;
+  const maxSpacing = avail > 0 ? (avail * 0.8) / (rankCount - 1) : 0;
+  const base = 120;
+  return Math.max(base, maxSpacing);
 }
 
 export function nodeSizeFromBp(bp: number, rankCount: number, maxSibs: number): number {
-  const MIN_GAP_H = 20;
-  const MIN_GAP_V = 20;
-  const maxW = (bp - (rankCount - 1) * MIN_GAP_H) / rankCount;
-  const maxH = (800 - (maxSibs - 1) * MIN_GAP_V) / maxSibs;
-  return Math.floor(Math.min(maxW, maxH, 144));
+  const minGapH = 20;
+  const minGapV = 20;
+  const maxW = (bp - (rankCount - 1) * minGapH) / rankCount;
+  const maxH = (1000 - (maxSibs - 1) * minGapV) / maxSibs;
+  return Math.floor(Math.min(maxW, maxH, 180));
 }
-// const breakpoints = [640, 768, 1024, 1280, 1536];
-
-export const snapToBreakpoints = (w: number) =>
-  [640, 768, 1024, 1280, 1536].reduce((prev, bp) => (w >= bp ? bp : prev), 0) || 640;
 
 // Helper function to check if evolution creates variants
 export function isVariantEvolution(
