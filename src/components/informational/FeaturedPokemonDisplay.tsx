@@ -9,7 +9,7 @@ export default function FeaturedPokemonDisplay({
   pokemon: PokemonListOutput['pokemon'];
 }) {
   return (
-    <SectionCard title="Featured Pokémon" tag="Daily Rotation" colorVariant='transparent'>
+    <SectionCard title="Featured Pokémon" tags={['Daily Rotation']} colorVariant="transparent">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {pokemon.map((pkmn: PokemonListOutput['pokemon'][number]) => (
           <InteractiveLink
