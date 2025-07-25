@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { TypeBadgeProps } from '../pokemon-types/TypeBadge';
 import TypeBadgesDisplay from '../pokemon-types/TypeBadgesDisplay';
 import Icon from './icons';
@@ -11,6 +11,7 @@ interface SpriteProps {
   variant?: 'sm' | 'md' | 'lg';
   hover?: boolean;
   fallback?: boolean;
+  children?: ReactNode;
   className?: string;
 }
 
@@ -22,6 +23,7 @@ export default function Sprite({
   variant = 'md',
   hover = false,
   fallback = false,
+  children,
   className = '',
 }: SpriteProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -85,11 +87,14 @@ export default function Sprite({
             className={`flex justify-center align-center items-center gap-1 mb-2 leading-none text-nowrap ${variants[variant].text}`}
           >
             {prefix && <p className="text-muted">#{prefix}</p>}
-            <p className="font-bold capitalize">{title}</p>
+            <p className="font-semibold capitalize">{title}</p>
           </div>
           {types && <TypeBadgesDisplay types={types} className="mx-auto mb-2" compact />}
         </div>
       )}
+
+      {/* Only render children when the title is not present and the image is loaded */}
+      {children && !title && imageLoaded && children}
     </div>
   );
 }
