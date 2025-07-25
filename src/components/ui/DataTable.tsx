@@ -100,7 +100,7 @@ export default function DataTable<T>({
   const visibleColumns = columns.slice(0, maxColumns);
 
   return (
-    <div className={clsx('flex flex-col', square ? 'w-fit' : 'gap-4 w-full')}>
+    <div className={clsx('flex flex-col', square ? 'w-fit' : 'gap-4 w-full overflow-scroll')}>
       {(initialSortBy || sortableColumns.length > 0) && (
         <div className="flex justify-end items-center">
           <div className="flex items-center gap-2">

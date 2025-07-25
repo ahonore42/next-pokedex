@@ -4,17 +4,24 @@ import { clsx } from 'clsx';
 interface SectionCardProps {
   children: ReactNode;
   title?: string;
-  tag?: string;
+  tags?: string[];
   className?: string;
   variant?: 'default' | 'compact';
-  colorVariant?: 'default' | 'update' | 'pokemon' | 'info' | 'highlight' | 'transparent';
+  colorVariant?:
+    | 'default'
+    | 'container'
+    | 'update'
+    | 'pokemon'
+    | 'info'
+    | 'highlight'
+    | 'transparent';
   hover?: boolean;
 }
 
 export default function SectionCard({
   children,
   title,
-  tag = '',
+  tags,
   className = '',
   variant = 'default',
   colorVariant = 'default',
@@ -29,7 +36,7 @@ export default function SectionCard({
       shadow: 'shadow-sm hover:shadow-md',
     },
     compact: {
-      titleSize: 'text-base font-medium',
+      titleSize: 'text-base font-semibold',
       headerMargin: title && 'mb-2',
       tagSize: 'text-xs',
       shadow: 'shadow-xs hover:shadow-sm',
@@ -40,7 +47,11 @@ export default function SectionCard({
   const colorVariantStyles = {
     default: {
       background: 'surface',
-      tagColor: 'bg-pokemon text-subtle',
+      tagColor: 'bg-secondary text-subtle',
+    },
+    container: {
+      background: 'bg-surface border-none shadow-lg',
+      tagColor: 'bg-secondary text-subtle',
     },
     update: {
       background: 'update',
@@ -82,15 +93,20 @@ export default function SectionCard({
     >
       <div className={clsx('flex justify-between items-start text-primary', styles.headerMargin)}>
         {title && <h4 className={clsx(styles.titleSize)}>{title}</h4>}
-        {tag && (
-          <span
-            className={clsx(
-              styles.tagSize,
-              colorStyles.tagColor,
-              'px-2 py-1 rounded font-semibold flex-shrink-0',
-            )}
-          >
-            {tag}
+        {tags && (
+          <span className="flex items-center justify-center gap-x-2 flex-nowrap">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className={clsx(
+                  styles.tagSize,
+                  colorStyles.tagColor,
+                  'px-2 py-1 rounded font-semibold flex-shrink-0 min-w-12 text-center',
+                )}
+              >
+                {tag}
+              </span>
+            ))}
           </span>
         )}
       </div>
