@@ -1,8 +1,7 @@
 import { Handle, Position } from '@xyflow/react';
-import Link from 'next/link';
 import { PokemonSpecies } from '~/server/routers/_app';
 import { TypeBadgeProps } from '../pokemon-types/TypeBadge';
-import Sprite from '../ui/Sprite';
+import SpriteLink from '../ui/SpriteLink';
 
 export type EvolutionNodeData = {
   label: string;
@@ -24,34 +23,24 @@ export type EvolutionNodeProps = {
 
 export default function EvolutionNode({ data }: EvolutionNodeProps) {
   const { label, pokemon, types, hasManyDirectEvolutions, isStartNode, isEndNode } = data;
-  if (!pokemon) {
-    return null;
-  }
+  if (!pokemon) return null;
 
   const sourceHandle = hasManyDirectEvolutions ? Position.Top : Position.Left;
   const targetHandle = hasManyDirectEvolutions ? Position.Bottom : Position.Right;
-
+  const sprite = pokemon.sprites?.frontDefault || '';
   return (
     <div>
       {/* Target Handle - only show if not start node */}
       {!isStartNode && <Handle type="target" position={sourceHandle} />}
 
-      <Link href={`/pokemon/${pokemon.id}`} className="">
-        {/* Pokemon Image */}
-        <div>
-          {pokemon.sprites?.frontDefault ? (
-            <Sprite
-              src={pokemon.sprites.frontDefault}
-              variant="md"
-              title={label}
-              types={types}
-              className="bg-surface hover:bg-hover"
-            />
-          ) : (
-            <Sprite variant="md" fallback />
-          )}
-        </div>
-      </Link>
+      {/* Pokemon Sprite Image */}
+      <SpriteLink
+        href={`/pokemon/${pokemon.id}`}
+        src={sprite}
+        title={label}
+        types={types}
+        className="p-2"
+      />
 
       {/* Source Handle - only show if not end node */}
       {!isEndNode && <Handle type="source" position={targetHandle} />}
