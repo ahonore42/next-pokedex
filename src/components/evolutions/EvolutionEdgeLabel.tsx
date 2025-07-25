@@ -38,8 +38,8 @@ export default function EvolutionEdgeLabel({
           className="nodrag nopan"
         >
           <div
-            className={`p-2 rounded-lg shadow-md text-xs border border-border 
-            bg-surface w-28 text-center whitespace-normal leading-none break-words`}
+            className={`min-w-16 max-w-24 p-2 rounded-xl shadow-sm text-xs border border-border 
+            bg-brand-light dark:bg-brand-hover text-white text-center font-medium whitespace-normal leading-none break-words`}
           >
             {(data?.label as string) || 'No Evolution'}
           </div>

@@ -80,7 +80,7 @@ const MobileEvolutionChain: React.FC<MobileEvolutionChainProps> = ({ species }) 
   const { type, groups } = organizeEvolutionChain();
 
   const renderPokemonCard = (evoSpecies: EvolutionSpecies) => (
-    <div key={evoSpecies.id} className="text-center">
+    <div key={evoSpecies.id}>
       <div className="w-24 h-24 mx-auto mb-2">
         {evoSpecies.varieties[0] && (
           <img
@@ -94,9 +94,11 @@ const MobileEvolutionChain: React.FC<MobileEvolutionChainProps> = ({ species }) 
             }}
           />
         )}
+        <div className="flex justify-center items-center gap-1">
+          <p className="text-xs text-gray-600">#{evoSpecies.id}</p>
+          <p className="font-semibold capitalize text-sm">{evoSpecies.name}</p>
+        </div>
       </div>
-      <p className="font-semibold capitalize text-sm">{evoSpecies.name}</p>
-      <p className="text-xs text-gray-600">#{evoSpecies.id}</p>
     </div>
   );
 
@@ -104,7 +106,7 @@ const MobileEvolutionChain: React.FC<MobileEvolutionChainProps> = ({ species }) 
     <>
       {type === 'linear' ? (
         // Linear evolution - single row
-        <div className="flex flex-wrap items-center justify-center gap-6">
+        <div className="flex flex-wrap items-center justify-around md:justify-center gap-6">
           {groups[0].map(renderPokemonCard)}
         </div>
       ) : (
