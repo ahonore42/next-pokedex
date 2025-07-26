@@ -1,38 +1,66 @@
-import { parseGenerationToNumber } from '~/utils/pokemon';
+import { useGenerationFilter, pokemonFlavorTextsConfig } from '~/hooks';
 import { PokemonSpecies } from '~/server/routers/_app';
-import SpecialAttributes from './SpecialAttributes';
+import { getGameColor, parseGenerationToNumber } from '~/utils/pokemon';
+import DataTable, { Column } from '~/components/ui/tables';
+import GenerationFilter from './GenerationFilter';
 
-interface PokemonFlavorTextProps {
-  species: PokemonSpecies;
-}
-
-const PokemonFlavorText: React.FC<PokemonFlavorTextProps> = ({ species }) => {
-  // Get latest flavor text
-  const flavorText = species.flavorTexts[0]?.flavorText || 'No description available.';
-
-  return (
-    <>
-      {/* Generation and Region */}
-      <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300">
-        <span>Generation {parseGenerationToNumber(species.generation.name)}</span>
-        {species.generation.mainRegion && (
-          <>
-            <span>•</span>
-            <span className="capitalize">{species.generation.mainRegion.name} Region</span>
-          </>
-        )}
-        {/* Special Attributes */}
-        <SpecialAttributes species={species} />
-      </div>
-
-      <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{flavorText}</p>
-      {species.flavorTexts[0]?.version && (
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-          — {species.flavorTexts[0].version.names[0]?.name || species.flavorTexts[0].version.name}
-        </p>
-      )}
-    </>
-  );
+type FlavorTextTableRow = {
+  generation: string;
+  version: string;
+  flavorText: string;
 };
 
-export default PokemonFlavorText;
+interface PokemonFlavorTextProps {
+  flavorTexts: PokemonSpecies['flavorTexts'];
+}
+
+export default function PokemonFlavorText({ flavorTexts }: PokemonFlavorTextProps) {
+  const {
+    selectedGenerationId,
+    setSelectedGenerationId,
+    filteredItems: filteredFlavorTexts,
+    availableGenerations,
+  } = useGenerationFilter(flavorTexts, pokemonFlavorTextsConfig);
+
+  // Transform flavorTexts into table data
+  const tableData: FlavorTextTableRow[] = filteredFlavorTexts.map((entry) => ({
+    generation: `Generation ${parseGenerationToNumber(entry.version.versionGroup.generation.name)}`,
+    version: entry.version.name.replaceAll('-', ' '),
+    flavorText: entry.flavorText,
+  }));
+
+  // Define table columns
+  const columns: Column<FlavorTextTableRow>[] = [
+    {
+      header: '',
+      accessor: 'version',
+      className: 'capitalize whitespace-nowrap text-center font-semibold',
+      headerClassName: 'hidden',
+      // dividerAfter: true,
+      cellStyle: (data) => {
+        const gameColors = getGameColor(data.version);
+        return {
+          className: `rounded-lg shadow-md ${gameColors.bg} ${gameColors.text} align-middle flex justify-center items-center`,
+        };
+      },
+    },
+    {
+      header: '',
+      accessor: 'flavorText',
+      className: 'leading-relaxed text-left font-medium',
+      headerClassName: 'hidden',
+    },
+  ];
+
+  return (
+    <div className="w-full">
+      <GenerationFilter
+        title="Flavor Texts"
+        selectedGenerationId={selectedGenerationId}
+        setSelectedGenerationId={setSelectedGenerationId}
+        availableGenerations={availableGenerations}
+      />
+      <DataTable data={tableData} columns={columns} />
+    </div>
+  );
+}
