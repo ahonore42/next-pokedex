@@ -46,6 +46,8 @@ export type PokemonArtworkByNames = NonNullable<PokemonRouterOutputs['officialAr
 export type PokemonSpecies = PokemonWithSpeciesOutput['pokemonSpecies'];
 export type PokemonSpeciesEvolutionChain = NonNullable<PokemonSpecies['evolutionChain']>;
 export type PokemonInSpecies = PokemonSpecies['pokemon'][number];
+export type PokemonMove = PokemonInSpecies['moves'][number];
+export type PokemonFlavorText = PokemonSpecies['flavorTexts'][number];
 
 /**
  * PokemonEncounters types (subset of PokemonInSpecies)
