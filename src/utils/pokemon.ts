@@ -138,6 +138,16 @@ export type CompetitiveRanges = {
   } & NonHpStatRanges;
 };
 
+type Gendered = readonly [
+  male: { value: string; symbol: '♂'; color: string },
+  female: { value: string; symbol: '♀'; color: string },
+  genderless: null,
+];
+
+type Genderless = readonly [null, null, { value: 'Genderless' }];
+
+type FormattedGenderRate = Gendered | Genderless;
+
 /* ------------------------------------------------------------------ */
 /* Reusable Mappings                                                  */
 /* ------------------------------------------------------------------ */
@@ -180,9 +190,107 @@ export const starterIds: Record<number, number[]> = {
   9: [906, 909, 912],
 };
 
+// Pokemon Game Color Map - Tailwind classes with proper contrast
+export const pokemonGameColorMap = {
+  // Generation 1
+  red: { bg: 'bg-red-600/80', text: 'text-white' },
+  blue: { bg: 'bg-blue-700/80', text: 'text-white' },
+  yellow: { bg: 'bg-yellow-400/80', text: 'text-black' },
+
+  // Generation 2
+  gold: { bg: 'bg-amber-500/80', text: 'text-black' },
+  silver: { bg: 'bg-gray-400/80', text: 'text-black' },
+  crystal: { bg: 'bg-cyan-400/80', text: 'text-black' },
+
+  // Generation 3
+  ruby: { bg: 'bg-red-700/80', text: 'text-white' },
+  sapphire: { bg: 'bg-blue-700/80', text: 'text-white' },
+  emerald: { bg: 'bg-emerald-600/80', text: 'text-white' },
+  firered: { bg: 'bg-orange-600/80', text: 'text-white' },
+  leafgreen: { bg: 'bg-green-500/80', text: 'text-black' },
+
+  // Generation 4
+  diamond: { bg: 'bg-sky-200/80', text: 'text-black' },
+  pearl: { bg: 'bg-pink-200/80', text: 'text-black' },
+  platinum: { bg: 'bg-gray-500/80', text: 'text-white' },
+  heartgold: { bg: 'bg-amber-500/80', text: 'text-black' },
+  soulsilver: { bg: 'bg-gray-400/80', text: 'text-black' },
+
+  // Generation 5
+  black: { bg: 'bg-gray-800/80', text: 'text-white' },
+  white: { bg: 'bg-gray-100/80', text: 'text-black' },
+  'black-2': { bg: 'bg-gray-900/80', text: 'text-white' },
+  'white-2': { bg: 'bg-white', text: 'text-black' },
+
+  // Generation 6
+  x: { bg: 'bg-blue-700/80', text: 'text-white' },
+  y: { bg: 'bg-red-600/80', text: 'text-white' },
+  'omega-ruby': { bg: 'bg-red-700/80', text: 'text-white' },
+  'alpha-sapphire': { bg: 'bg-blue-600/80', text: 'text-white' },
+
+  // Generation 7
+  sun: { bg: 'bg-orange-500/80', text: 'text-black' },
+  moon: { bg: 'bg-indigo-700/80', text: 'text-white' },
+  'ultra-sun': { bg: 'bg-orange-600/80', text: 'text-white' },
+  'ultra-moon': { bg: 'bg-indigo-900/80', text: 'text-white' },
+  'lets-go-pikachu': { bg: 'bg-yellow-300/80', text: 'text-black' },
+  'lets-go-eevee': { bg: 'bg-amber-600/80', text: 'text-white' },
+
+  // Generation 8
+  sword: { bg: 'bg-cyan-500/80', text: 'text-black' },
+  shield: { bg: 'bg-red-700/80', text: 'text-white' },
+  'legends-arceus': { bg: 'bg-stone-600/80', text: 'text-white' },
+
+  // Generation 9
+  scarlet: { bg: 'bg-red-600/80', text: 'text-white' },
+  violet: { bg: 'bg-violet-600/80', text: 'text-white' },
+} as const;
+
+// Type for game names
+export type PokemonGameName = keyof typeof pokemonGameColorMap;
+
 /* ------------------------------------------------------------------ */
 /* Utility Functions                                                  */
 /* ------------------------------------------------------------------ */
+
+export function getGenerationDisplayName(genId: number): string {
+  const romanNumerals = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'];
+  return `Generation ${romanNumerals[genId] || genId}`;
+}
+
+// Helper function to get color classes by game name (case-insensitive)
+export const getGameColor = (gameName: string): { bg: string; text: string } => {
+  const normalizedName = gameName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  return (
+    pokemonGameColorMap[normalizedName as keyof typeof pokemonGameColorMap] || {
+      bg: 'bg-gray-500',
+      text: 'text-white',
+    }
+  );
+};
+
+const formatPercentage = (percentage: number) =>
+  percentage === 100 ? percentage : percentage.toFixed(1);
+
+export function formatGenderRate(genderRate: number): FormattedGenderRate {
+  if (genderRate === -1) {
+    return [null, null, { value: 'Genderless' }] as const;
+  }
+
+  const male = {
+    value: `${formatPercentage(((8 - genderRate) / 8) * 100)}%`,
+    symbol: '♂' as const,
+    color: 'text-blue-600 border-blue-300',
+  };
+
+  const female = {
+    value: `${formatPercentage((genderRate / 8) * 100)}%`,
+    symbol: '♀' as const,
+    color: 'text-red-500 border-red-300',
+  };
+
+  return [male, female, null] as const;
+}
 
 // Utility function to get type color - Complete list
 export function getTypeColor(type: string): string {
@@ -578,6 +686,16 @@ export const getUniqueConditions = (encounter: PokemonEncounter): EncounterCondi
 /* Pokemon Stats                                                      */
 /* ------------------------------------------------------------------ */
 
+// Default color function for bar chart colors
+export const getBarColor = (value: number, maxValue: number): string => {
+  const percentage = (value / maxValue) * 100;
+  if (percentage >= 60) return 'bg-green-500';
+  if (percentage >= 50) return 'bg-lime-500';
+  if (percentage >= 40) return 'bg-yellow-500';
+  if (percentage >= 25) return 'bg-orange-500';
+  return 'bg-red-500';
+};
+
 // Get stat color based on value
 export function getStatColor(baseStat: number, prefix: 'text' | 'bg' = 'bg') {
   if (prefix === 'bg' && baseStat >= 120) return 'bg-green-500';
@@ -601,12 +719,21 @@ export function getStatAbbr(statName: string) {
     'special-defense': 'SP.DEF',
     speed: 'SPD',
   };
-  return abbrs[statName] || statName.toUpperCase();
+  return abbrs[statName];
 }
 
 // Get full stat name
-export const getStatName = (stat: PokemonStats[number]) =>
-  stat.stat.names[0]?.name || stat.stat.name;
+export const getStatName = (statName: string) => {
+  const displayNames: Record<string, string> = {
+    hp: 'HP',
+    attack: 'Attack',
+    defense: 'Defense',
+    'special-attack': 'Sp. Atk',
+    'special-defense': 'Sp. Def',
+    speed: 'Speed',
+  };
+  return displayNames[statName];
+};
 
 /**
  * Converts an array of Pokemon stats to a simple StatValues object
