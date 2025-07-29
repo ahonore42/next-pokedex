@@ -5,6 +5,7 @@ interface InfiniteScrollProps {
   hasMore: boolean;
   isLoading: boolean;
   children: React.ReactNode;
+  eagerLoad?: boolean;
 }
 
 export default function InfiniteScroll({
@@ -12,17 +13,24 @@ export default function InfiniteScroll({
   hasMore,
   isLoading,
   children,
+  eagerLoad = false,
 }: InfiniteScrollProps) {
   const lastElementRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isLoading) return;
 
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && hasMore) {
-        onLoadMore();
-      }
-    });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          onLoadMore();
+        }
+      },
+      {
+        // When eagerLoad is true, trigger loading 50vh before reaching the bottom
+        rootMargin: eagerLoad ? '0px 0px 50% 0px' : '0px',
+      },
+    );
 
     const currentElement = lastElementRef.current; // Copy to a variable
 
@@ -36,7 +44,7 @@ export default function InfiniteScroll({
         observer.unobserve(currentElement);
       }
     };
-  }, [isLoading, hasMore, onLoadMore]);
+  }, [isLoading, hasMore, onLoadMore, eagerLoad]);
 
   return (
     <div>
