@@ -1,7 +1,8 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { TypeBadgeProps } from '../pokemon-types/TypeBadge';
 import TypeBadgesDisplay from '../pokemon-types/TypeBadgesDisplay';
 import Icon from './icons';
+import { SkeletonSprite } from './skeletons';
 
 interface SpriteProps {
   src?: string;
@@ -13,6 +14,7 @@ interface SpriteProps {
   fallback?: boolean;
   children?: ReactNode;
   className?: string;
+  onImageLoad?: () => void;
 }
 
 export default function Sprite({
@@ -25,6 +27,7 @@ export default function Sprite({
   fallback = false,
   children,
   className = '',
+  onImageLoad,
 }: SpriteProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -38,15 +41,42 @@ export default function Sprite({
   const handleImageLoad = () => {
     setImageLoaded(true);
     setImageError(false);
+    onImageLoad?.(); // This should trigger the hook callback
   };
 
   const handleImageError = () => {
     setImageError(true);
     setImageLoaded(false);
+    onImageLoad?.();
   };
 
   const shouldShowFallback = fallback || imageError || !src;
   const shouldShowLoading = src && !fallback && !imageLoaded && !imageError;
+
+  // Handle immediate fallback cases
+  useEffect(() => {
+    if (shouldShowFallback && onImageLoad) {
+      onImageLoad();
+    }
+  }, [shouldShowFallback, onImageLoad]);
+
+  // Use SkeletonSprite while loading
+  if (shouldShowLoading) {
+    const hasTypes = types ? true : false;
+    return (
+      <>
+        <SkeletonSprite variant={variant} types={hasTypes} className={className} />
+        {/* Hidden image to trigger loading */}
+        <img
+          src={src}
+          alt=""
+          className="hidden"
+          onLoad={handleImageLoad}
+          onError={handleImageError}
+        />
+      </>
+    );
+  }
 
   return (
     <div
@@ -55,19 +85,11 @@ export default function Sprite({
     >
       {/* Image Container - maintain consistent height */}
       <div className={`relative ${variants[variant].img} flex items-center justify-center`}>
-        {shouldShowLoading && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Icon type="loading" size="lg" className="text-slate-400 dark:text-slate-500" />
-          </div>
-        )}
-
         {src && !shouldShowFallback && (
           <img
             src={src}
             alt={title}
-            className={`${variants[variant].img} transition-opacity duration-200 ${
-              imageLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
+            className={`${variants[variant].img} transition-opacity duration-200 opacity-100`}
             onLoad={handleImageLoad}
             onError={handleImageError}
           />
@@ -94,7 +116,13 @@ export default function Sprite({
       )}
 
       {/* Only render children when the title is not present and the image is loaded */}
-      {children && !title && imageLoaded && children}
+      {children && !title && variant !== 'sm' && imageLoaded && (
+        <div
+          className={`flex justify-center items-center leading-none text-nowrap ${variants[variant].text}`}
+        >
+          {children}
+        </div>
+      )}
     </div>
   );
 }

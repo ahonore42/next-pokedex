@@ -9,6 +9,7 @@ interface SpriteLinkProps {
   prefix?: string;
   types?: TypeBadgeProps[];
   className?: string;
+  onImageLoad?: () => void;
 }
 
 export default function SpriteLink({
@@ -18,6 +19,7 @@ export default function SpriteLink({
   prefix,
   types,
   className = '',
+  onImageLoad,
 }: SpriteLinkProps) {
   return (
     <Link href={href}>
@@ -27,6 +29,7 @@ export default function SpriteLink({
         prefix={prefix}
         types={types}
         hover
+        onImageLoad={onImageLoad}
         className={`group block interactive-link transition-interactive ${className}`}
       />
     </Link>
