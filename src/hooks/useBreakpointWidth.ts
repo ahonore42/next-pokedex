@@ -41,7 +41,7 @@ export const useBreakpointWidth = (timeout?: number) => {
       clearTimeout(id); // Prevent update after unmount
       mediaQueries.forEach((m) => m.removeEventListener('change', debounced)); // Remove all listeners
     };
-  }, []); // Runs once on mount
+  }, [timeout]); // Runs once on mount
 
   // 1536 | 1280 | 1024 | 768 | 640 | 480
   return width;
