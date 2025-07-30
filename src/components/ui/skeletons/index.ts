@@ -12,8 +12,6 @@ export { default as SkeletonFilterButtons } from './SkeletonFilterButtons';
 
 // Preset compositions
 export { default as SkeletonPokedexGrid } from './SkeletonPokedexGrid';
-export { default as SkeletonGenerationGrid } from './SkeletonGenerationGrid';
-export { default as SkeletonPokedexPage } from './SkeletonPokedexPage';
 
 // Export default as the base Skeleton component
 export { default } from './Skeleton';

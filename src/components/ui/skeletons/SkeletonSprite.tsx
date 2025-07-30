@@ -16,7 +16,7 @@ export default function SkeletonSprite({
   // Match the exact container variants from Sprite component for layout preservation
   const variants = {
     sm: {
-      container: 'w-20 h-20',
+      container: 'w-16 h-16',
     },
     md: {
       container: types ? 'min-w-36 h-36' : 'min-w-32 h-32',
