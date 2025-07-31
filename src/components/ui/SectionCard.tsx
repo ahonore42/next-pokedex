@@ -6,10 +6,10 @@ interface SectionCardProps {
   title?: string;
   tags?: string[];
   className?: string;
-  variant?: 'default' | 'compact';
+  variant?: 'default' | 'compact' | 'wide';
   colorVariant?:
     | 'default'
-    | 'container'
+    | 'article'
     | 'update'
     | 'pokemon'
     | 'info'
@@ -34,12 +34,21 @@ export default function SectionCard({
       headerMargin: title && 'mb-4',
       tagSize: 'text-sm',
       shadow: 'shadow-sm hover:shadow-md',
+      container: 'rounded-lg p-4',
     },
     compact: {
-      titleSize: 'text-base font-semibold',
+      titleSize: 'text-md font-semibold',
       headerMargin: title && 'mb-2',
       tagSize: 'text-xs',
       shadow: 'shadow-xs hover:shadow-sm',
+      container: 'rounded-lg p-4',
+    },
+    wide: {
+      titleSize: 'text-md font-semibold',
+      headerMargin: title && 'mb-2',
+      tagSize: 'text-xs',
+      shadow: 'shadow-xs hover:shadow-sm',
+      container: 'rounded-lg py-2',
     },
   } as const;
 
@@ -49,12 +58,12 @@ export default function SectionCard({
       background: 'surface',
       tagColor: 'bg-secondary text-subtle',
     },
-    container: {
+    article: {
       background: 'bg-surface border-none shadow-lg',
       tagColor: 'bg-secondary text-subtle',
     },
     update: {
-      background: 'update',
+      background: 'update hover:bg-update-hover border-x-4 border-y-0',
       tagColor: 'bg-pokemon text-subtle',
     },
     pokemon: {
@@ -81,7 +90,7 @@ export default function SectionCard({
   return (
     <div
       className={clsx(
-        'card',
+        styles.container,
         colorStyles.background,
         hover && [
           'transition-interactive', // Add transform transitions when interactive
@@ -110,7 +119,6 @@ export default function SectionCard({
           </span>
         )}
       </div>
-
       {children}
     </div>
   );
