@@ -1,37 +1,56 @@
-import { PokemonListOutput } from '~/server/routers/_app';
+import { useComponentHydration } from '~/hooks/useComponentHydration';
+import { FeaturedPokemon, FeaturedPokemonOutput } from '~/server/routers/_app';
+import { capitalizeWords } from '~/utils/text';
 import SectionCard from '../ui/SectionCard';
 import InteractiveLink from '../ui/InteractiveLink';
+import Sprite from '../ui/Sprite';
 import TypeBadgesDisplay from '../pokemon-types/TypeBadgesDisplay';
 
-export default function FeaturedPokemonDisplay({
-  pokemon,
-}: {
-  pokemon: PokemonListOutput['pokemon'];
-}) {
+interface FeaturedPokemonDisplayProps {
+  pokemon: FeaturedPokemonOutput;
+}
+
+export default function FeaturedPokemonDisplay({ pokemon }: FeaturedPokemonDisplayProps) {
+  const { containerRef, allDataLoaded, handleDataLoad } = useComponentHydration(
+    pokemon.length,
+    'pokemon',
+  );
+
   return (
     <SectionCard title="Featured Pokémon" tags={['Daily Rotation']} colorVariant="transparent">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {pokemon.map((pkmn: PokemonListOutput['pokemon'][number]) => (
-          <InteractiveLink
-            key={pkmn.id}
-            href={`/pokemon/${pkmn.id}`}
-            icon={
-              <img
-                src={pkmn.sprites?.frontDefault || ''}
-                alt={pkmn.name}
-                className="w-16 h-16 object-contain"
-              />
-            }
-            title={pkmn.name}
-            description={
-              <>
-                <TypeBadgesDisplay types={pkmn.types} className="mb-2" />
-                <p className="line-clamp-2">{pkmn.pokemonSpecies.flavorTexts[0].flavorText}</p>
-              </>
-            }
-            ariaLabel={`View details for ${pkmn.name}`}
-          />
-        ))}
+      <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {pokemon.map((pkmn: FeaturedPokemon) => {
+          const pokemonName = capitalizeWords(pkmn.name.replaceAll('-', ' '));
+          const types = pkmn.types.map((type) => type.type.name);
+          return (
+            <InteractiveLink
+              key={pkmn.id}
+              href={`/pokemon/${pkmn.id}`}
+              height="lg"
+              ariaLabel={`View details for ${pokemonName}`}
+              loading={!allDataLoaded}
+              onDataLoad={handleDataLoad}
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-md font-semibold">{pokemonName}</h3>
+                <TypeBadgesDisplay types={types} />
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="group-hover:scale-110 transition-interactive">
+                  <Sprite
+                    variant="sm"
+                    src={pkmn.sprites?.frontDefault || ''}
+                    alt={`${pokemonName} Sprite`}
+                    className="flex-auto"
+                  />
+                </div>
+                <span className="line-clamp-3 text-muted text-sm">
+                  {pkmn.pokemonSpecies.flavorTexts[0].flavorText}
+                </span>
+              </div>
+            </InteractiveLink>
+          );
+        })}
       </div>
     </SectionCard>
   );

@@ -22,45 +22,31 @@ export default function LatestUpdates() {
     },
   ];
 
+  const updatesDisplay = updates.map((update, index) => (
+    <SectionCard key={index} colorVariant="update" className="transition-theme">
+      <div className="flex flex-col gap-2">
+        <span className="font-bold text-md text-primary">{update.title}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-primary">{update.date}</span>
+          <span className="text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-700 px-2 py-0.5 rounded-full capitalize">
+            {update.type}
+          </span>
+        </div>
+        <span className="text-sm text-muted">{update.desc}</span>
+      </div>
+    </SectionCard>
+  ));
+
   return (
     <SectionCard title="Latest Updates" colorVariant="transparent">
-      <div className="space-y-4">
-        {updates.map((update, index) => (
-          <div
-            key={index}
-            className="
-          relative p-4 border-l-4 rounded-sm
-          bg-update hover:bg-update-hover
-          text-pokemon-text-muted
-          border-emerald-600 dark:border-emerald-500
-          transition-theme hover:shadow-sm
-        "
-          >
-            <div className="flex items-start gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <time className="text-sm font-medium text-primary" dateTime={update.date}>
-                    {update.date}
-                  </time>
-                  <span className="text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-700 px-2 py-0.5 rounded-full capitalize">
-                    {update.type}
-                  </span>
-                </div>
-
-                <h3 className="font-bold text-base mb-2 text-primary">{update.title}</h3>
-
-                <p className="text-sm leading-relaxed text-muted">{update.desc}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Footer */}
-      <div className="mt-6 pt-4 border-t border-emerald-200 dark:border-emerald-800 text-center">
-        <p className="text-sm text-muted">
-          Stay updated with the latest features and improvements to the Pokédex
-        </p>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4">{updatesDisplay}</div>
+        {/* Footer */}
+        <div className="p-4 border-t border-emerald-200 dark:border-emerald-800 text-center">
+          <span className="text-sm text-muted text-center">
+            Stay updated with the latest features and improvements to the Pokédex
+          </span>
+        </div>
       </div>
     </SectionCard>
   );
