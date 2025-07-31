@@ -9,6 +9,8 @@ import {
   PokemonMoves,
   AllEfficaciesOutput,
   PokemonTypeName,
+  PokedexEntries,
+  GenerationPokedex,
 } from '~/server/routers/_app';
 import { romanToInteger } from '~/utils/text';
 
@@ -661,6 +663,26 @@ export function getRegionFromVersionGroup(versionGroup: VersionGroup): RegionInf
 
   return region;
 }
+
+export const getNationalDexForGeneration = (
+  gens: GenerationPokedex[],
+  targetGeneration: number,
+): PokedexEntries => {
+  const combinedPokemonSpecies = gens
+    .filter((generation) => generation.id <= targetGeneration)
+    .flatMap((generation) => generation.pokemonSpecies)
+    .sort((a, b) => (a.order || 0) - (b.order || 0))
+    .map((species, index) => ({
+      ...species,
+      pokedexNumbers: [{ pokedexNumber: index + 1 }, ...species.pokedexNumbers.slice(1)],
+    }));
+
+  return {
+    id: 1,
+    name: `generations-1-to-${targetGeneration}`,
+    pokemonSpecies: combinedPokemonSpecies,
+  };
+};
 
 /* ------------------------------------------------------------------ */
 /* Encounters                                                         */
