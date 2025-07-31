@@ -10,7 +10,7 @@ interface InteractiveLinkProps {
   description?: ReactNode | string;
   showArrow?: boolean;
   ariaLabel: string;
-  height: 'sm' | 'md' | 'lg';
+  height: 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
   children?: ReactNode;
   loading?: boolean;
@@ -43,9 +43,10 @@ export default function InteractiveLink({
   }
 
   const containerHeights = {
-    sm: 'h-20',
-    md: 'h-24',
-    lg: 'h-36',
+    xs: 'min-h-16',
+    sm: 'min-h-20',
+    md: 'min-h-24',
+    lg: 'min-h-36',
   };
 
   return (
@@ -64,7 +65,7 @@ export default function InteractiveLink({
     >
       <div className="flex items-start gap-2">
         {icon && <div className="group-hover:scale-110 transition-interactive">{icon}</div>}
-        <div className="flex flex-col transition-interactive">
+        <div className="flex flex-col gap-2 transition-interactive">
           {title && <h3 className="font-semibold text-primary group-hover:text-brand">{title}</h3>}
           {children && children}
           {description && (

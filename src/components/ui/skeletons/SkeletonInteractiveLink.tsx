@@ -1,7 +1,7 @@
 import Skeleton from './Skeleton';
 
 interface SkeletonInteractiveLinkProps {
-  height: 'sm' | 'md' | 'lg';
+  height: 'xs' | 'sm' | 'md' | 'lg';
   animation?: 'shimmer' | 'pulse';
   className?: string;
 }
@@ -13,9 +13,10 @@ export default function SkeletonInteractiveLink({
 }: SkeletonInteractiveLinkProps) {
   // Match the exact container heights from InteractiveLink
   const containerHeights = {
-    sm: 'h-20',
-    md: 'h-24',
-    lg: 'h-36',
+    xs: 'min-h-16',
+    sm: 'min-h-20',
+    md: 'min-h-24',
+    lg: 'min-h-36',
   };
 
   return (
