@@ -1,5 +1,4 @@
 import { getDamageFactorColor } from '~/utils/pokemon';
-import SectionCard from '../ui/SectionCard';
 
 // Type Effectiveness Chart key/legend
 export default function TypeEffectivenessKey() {
@@ -31,59 +30,28 @@ export default function TypeEffectivenessKey() {
   ];
 
   return (
-    <div className="hidden md:flex flex-col md:flex-row lg:flex-col gap-4">
-      <SectionCard title="Chart Key" variant="compact" className="sm:flex-1 lg:w-64">
-        <div className="space-y-3">
-          {keyItems.map((item) => (
+    <div className="grid md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-1 items-center justify-center gap-2 xl:gap-8 h-32 lg:h-14 xl:h-80">
+      {keyItems.map((item) => (
+        <div
+          key={item.factor}
+          className="group surface-hover rounded-lg p-2 w-48 h-14 transition-interactive hover:-translate-y-0.5 hover:shadow-md border border-border"
+        >
+          <div className="flex lg:items-center sm:items-start gap-2">
             <div
-              key={item.factor}
-              className="group surface-hover rounded-lg p-3 transition-interactive hover:-translate-y-0.5 hover:shadow-md border border-border"
+              className={`size-8 rounded-lg text-sm font-bold flex items-center justify-center transition-theme group-hover:scale-110 ${item.color}`}
+              style={{ boxShadow: 'var(--shadow-sm)' }}
             >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-10 h-10 rounded-lg text-sm font-bold flex items-center justify-center transition-theme group-hover:scale-110 ${item.color}`}
-                  style={{ boxShadow: 'var(--shadow-sm)' }}
-                >
-                  {item.factor === 0.5 ? '½' : item.factor || '0'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-primary text-sm">
-                    {item.label}
-                  </div>
-                  <div className="text-xs text-muted group-hover:text-primary transition-theme">
-                    {item.description}
-                  </div>
-                </div>
-              </div>
+              {item.factor === 0.5 ? '½' : item.factor || '0'}
             </div>
-          ))}
-        </div>
-      </SectionCard>
-
-      <SectionCard title="Usage" variant="compact" className="lg:w-64 sm:flex-1 ">
-        <div className="space-y-4">
-          <p className="text-muted leading-relaxed text-sm">
-            The full type chart here displays the strengths and weaknesses of each type. Look down
-            the left hand side for the attacking type, then move across to see how effective it is
-            against each Pokémon type.
-          </p>
-
-          <div className="surface rounded-lg p-3 border border-border">
-            <div className="text-xs text-muted space-y-1">
-              <div className="flex items-center justify-between">
-                <span>Read the chart:</span>
-              </div>
-              <div className="text-primary">
-                <strong>Attacking type</strong> (rows) vs <strong>Defending type</strong> (columns)
+            <div className="">
+              <div className="font-semibold text-primary text-sm">{item.label}</div>
+              <div className="text-xs text-muted group-hover:text-primary transition-theme">
+                {item.description}
               </div>
             </div>
           </div>
-
-          <div className="text-xs text-subtle italic">
-            Hover over chart cells for detailed effectiveness information
-          </div>
         </div>
-      </SectionCard>
+      ))}
     </div>
   );
 }
