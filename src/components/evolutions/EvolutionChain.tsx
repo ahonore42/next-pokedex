@@ -10,7 +10,7 @@ import {
   ReactFlowProvider,
   ReactFlowInstance,
 } from '@xyflow/react';
-import { useBreakpointWidth, useElementHeight, useReactFlowFitView } from '~/lib/hooks/';
+import { useBreakpointWidth, useElementHeight, useReactFlowFitView } from '~/hooks';
 import { buildEvolutionGraph } from './graph-utils';
 import type { PokemonSpeciesEvolutionChain } from '~/server/routers/_app';
 import EvolutionNode from './EvolutionNode';
@@ -31,7 +31,7 @@ function EvolutionChainInner({ chain }: EvolutionChainProps) {
   // // Observe actual container dimensions
   const actualHeight = useElementHeight(containerRef);
   // Use the appropriate width for given breakpoints, 150ms debounce to prevent layout snapping
-  const breakpointWidth = useBreakpointWidth(150);
+  const breakpointWidth = useBreakpointWidth(50);
   // Resize and center the container with ReactFlow's fitView
   useReactFlowFitView(reactFlowInstance, breakpointWidth);
 

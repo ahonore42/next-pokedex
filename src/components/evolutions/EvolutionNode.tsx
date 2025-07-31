@@ -1,12 +1,11 @@
 import { Handle, Position } from '@xyflow/react';
-import { PokemonSpecies } from '~/server/routers/_app';
-import { TypeBadgeProps } from '../pokemon-types/TypeBadge';
+import { PokemonSpecies, PokemonTypeName } from '~/server/routers/_app';
 import SpriteLink from '../ui/SpriteLink';
 
 export type EvolutionNodeData = {
   label: string;
   pokemon: PokemonSpecies['pokemon'][number];
-  types: TypeBadgeProps[];
+  types: PokemonTypeName[];
   hasManyDirectEvolutions: boolean;
   isStartNode: boolean;
   isEndNode: boolean;

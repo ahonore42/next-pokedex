@@ -137,7 +137,7 @@ export function buildEvolutionGraph(
           label,
           pokemon,
           speciesId: String(species.id),
-          types: pokemon.types,
+          types: pokemon.types.map((type) => type.type.name),
           hasManyDirectEvolutions,
           isStartNode: species.id === root.id,
           isEndNode: species.evolvesToSpecies.length === 0,
