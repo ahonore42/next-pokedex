@@ -33,7 +33,7 @@ interface TableColumnProps<T> {
   index: number;
   visibleColumnsLength: number;
   sortBy?: string;
-  onSort: (column: Column<T>) => void;
+  onSort?: (column: Column<T>) => void;
   noPadding?: boolean;
   square?: string;
 }
@@ -52,11 +52,12 @@ export default function TableColumn<T>({
   return (
     <th
       className={clsx(
-        'text-primary theme-transition px-0.5',
+        'text-primary theme-transition',
+        !square && 'px-0.5',
         // Apply text alignment based on headerAlignment prop
-        column.headerAlignment === 'left'
+        !square && column.headerAlignment === 'left'
           ? 'text-left'
-          : column.headerAlignment === 'right'
+          : !square && column.headerAlignment === 'right'
             ? 'text-right'
             : 'text-left', // default to left
         // Bold font for active sort column, semibold for others
@@ -66,11 +67,11 @@ export default function TableColumn<T>({
         column.headerClassName,
         column.sortable && 'cursor-pointer hover:text-brand',
         // Column dividers for square tables - between headers but not on edges
-        square && index < visibleColumnsLength - 1 && 'border-r border-border',
+        square && index < visibleColumnsLength - 1 && 'border-r border-border text-center',
         // Regular dividers for non-square tables
         !square && column.dividerAfter && 'border-r-2 border-border',
       )}
-      onClick={() => onSort(column)}
+      onClick={() => onSort && onSort(column)}
     >
       <span>{column.header}</span>
     </th>

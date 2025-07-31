@@ -1,50 +1,40 @@
-import React from 'react';
-import clsx from 'clsx';
 import TableColumn, { Column } from './TableColumn';
 import TableRow from './TableRow';
 
 interface SquareTableProps<T> {
-  sortedData: T[];
-  visibleColumns: Column<T>[];
-  sortBy?: string;
-  sortOrder: 'asc' | 'desc';
-  onSort: (column: Column<T>) => void;
+  data: T[];
+  columns: Column<T>[];
   overlayHover?: boolean;
   noPadding?: boolean;
-  square?: string;
+  rounded?: boolean;
+  className?: string;
 }
 
 export default function SquareTable<T>({
-  sortedData,
-  visibleColumns,
-  sortBy,
-  onSort,
+  data,
+  columns,
   overlayHover = false,
   noPadding = false,
-  square,
+  rounded = false,
+  className,
 }: SquareTableProps<T>) {
   return (
-    <div>
-      <table
-        className={clsx(
-          'border-collapse',
-          square ? '' : 'divide-y divide-border',
-          square || 'w-full',
-        )}
-      >
+    <div
+      className={`${rounded && 'rounded-lg overflow-hidden'} 
+      flex flex-col w-fit border border-border ${className}`}
+    >
+      <table className="border-collapse divide-y divide-border">
         {/* TABLE HEADER - Column definitions */}
         <thead>
-          <tr className={clsx(!square && 'border-b-2 border-border theme-transition')}>
-            {visibleColumns.map((column, index) => (
+          <tr className="theme-transition">
+            {columns.map((column, index) => (
               <TableColumn
                 key={index}
                 column={column}
                 index={index}
-                visibleColumnsLength={visibleColumns.length}
-                sortBy={sortBy}
-                onSort={onSort}
+                visibleColumnsLength={columns.length}
                 noPadding={noPadding}
-                square={square}
+                square="square"
               />
             ))}
           </tr>
@@ -52,16 +42,16 @@ export default function SquareTable<T>({
 
         {/* TABLE BODY - Data rows */}
         <tbody className="">
-          {sortedData.map((row, rowIndex) => (
+          {data.map((row, rowIndex) => (
             <TableRow
               key={rowIndex}
               row={row}
               rowIndex={rowIndex}
-              visibleColumns={visibleColumns}
-              sortedDataLength={sortedData.length}
+              visibleColumns={columns}
+              sortedDataLength={data.length}
               overlayHover={overlayHover}
               noPadding={noPadding}
-              square={square}
+              square="square"
             />
           ))}
         </tbody>

@@ -1,33 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import clsx from 'clsx';
-import SquareTable from './SquareTable';
-
-export interface Column<T> {
-  header: string | React.ReactNode;
-  accessor: keyof T | ((data: T) => React.ReactNode);
-  className?: string;
-  headerClassName?: string;
-  headerAlignment?: 'left' | 'center' | 'right';
-  noWrap?: boolean;
-  sortable?: boolean;
-  sortKey?: keyof T | ((data: T) => any);
-  rowspan?: (data: T, index: number) => number | undefined;
-  colspan?: (data: T, index: number) => number | undefined;
-  skipRender?: (data: T, index: number) => boolean;
-  dividerAfter?: boolean;
-  dividerBefore?: boolean | ((data: T) => boolean);
-  columnPadding?: string;
-  cellStyle?: (
-    data: T,
-    rowIndex: number,
-  ) =>
-    | {
-        className?: string;
-        style?: React.CSSProperties;
-        wrapper?: (content: React.ReactNode) => React.ReactNode;
-      }
-    | undefined;
-}
+import TableColumn, { Column } from './TableColumn';
+import TableRow from './TableRow';
 
 interface DataTableProps<T> {
   data: T[];
@@ -37,7 +11,6 @@ interface DataTableProps<T> {
   initialSortOrder?: 'asc' | 'desc';
   overlayHover?: boolean;
   noPadding?: boolean;
-  square?: string;
 }
 
 export default function DataTable<T>({
@@ -48,7 +21,6 @@ export default function DataTable<T>({
   initialSortOrder = 'asc',
   overlayHover = false,
   noPadding = false,
-  square,
 }: DataTableProps<T>) {
   const [sortBy, setSortBy] = useState<string | undefined>(initialSortBy);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(initialSortOrder);
@@ -99,17 +71,40 @@ export default function DataTable<T>({
   const visibleColumns = columns.slice(0, maxColumns);
 
   return (
-    <div className={clsx('flex flex-col', square ? 'w-fit' : 'w-full')}>
-      <SquareTable
-        sortedData={sortedData}
-        visibleColumns={visibleColumns}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        onSort={handleSort}
-        overlayHover={overlayHover}
-        noPadding={noPadding}
-        square={square}
-      />
+    <div className="flex flex-col w-full">
+      <table className={clsx('border-collapse', 'divide-y divide-border', 'square')}>
+        {/* TABLE HEADER - Column definitions */}
+        <thead>
+          <tr className="border-b-2 border-border theme-transition">
+            {visibleColumns.map((column, index) => (
+              <TableColumn
+                key={index}
+                column={column}
+                index={index}
+                visibleColumnsLength={visibleColumns.length}
+                sortBy={sortBy}
+                onSort={handleSort}
+                noPadding={noPadding}
+              />
+            ))}
+          </tr>
+        </thead>
+
+        {/* TABLE BODY - Data rows */}
+        <tbody className="">
+          {sortedData.map((row, rowIndex) => (
+            <TableRow
+              key={rowIndex}
+              row={row}
+              rowIndex={rowIndex}
+              visibleColumns={visibleColumns}
+              sortedDataLength={sortedData.length}
+              overlayHover={overlayHover}
+              noPadding={noPadding}
+            />
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

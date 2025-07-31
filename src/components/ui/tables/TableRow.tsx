@@ -57,14 +57,14 @@ export default function TableRow<T>({
             rowSpan={rowspanValue}
             colSpan={colspanValue}
             className={clsx(
-              'text-sm theme-transition text-left align-middle',
+              'text-sm theme-transition align-middle',
+              !square && 'text-left',
               // Handle padding based on noPadding prop
               noPadding ? 'p-0' : 'py-2',
               noPadding ? '' : column.columnPadding || 'px-3',
               cellStyling?.className || 'text-primary',
               column.noWrap && 'whitespace-nowrap',
               column.className, // Column className can override text alignment
-              (rowspanValue ?? 0) > 1 ? 'align-middle' : 'align-top',
               // Column dividers for square tables - between cells but not on edges
               square && colIndex < visibleColumns.length - 1 && 'border-r border-border',
               // Regular dividers for non-square tables
