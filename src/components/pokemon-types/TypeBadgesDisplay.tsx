@@ -1,10 +1,11 @@
-import React from 'react';
-import TypeBadge, { TypeBadgeProps } from './TypeBadge';
+import { PokemonTypeName } from '~/server/routers/_app';
+import TypeBadge from './TypeBadge';
 
 interface TypeBadgesDisplayProps {
-  types: TypeBadgeProps[];
+  types: PokemonTypeName[];
   link?: boolean;
   compact?: boolean;
+  loading?: boolean;
   className?: string;
 }
 
@@ -12,6 +13,7 @@ export default function TypeBadgesDisplay({
   types,
   link = false,
   compact,
+  loading,
   className = '',
 }: TypeBadgesDisplayProps) {
   if (!types || types.length === 0) {
@@ -22,9 +24,9 @@ export default function TypeBadgesDisplay({
     <div
       className={`flex w-fit justify-center flex-nowrap mt-1 ${compact ? 'gap-1' : 'gap-2'} ${className}`}
     >
-      {types.map((typeInfo) => (
-        <div key={typeInfo.type.id}>
-          <TypeBadge type={typeInfo.type} link={link} compact={compact} />
+      {types.map((type) => (
+        <div key={type}>
+          <TypeBadge type={type} link={link} compact={compact} loading={loading} />
         </div>
       ))}
     </div>
