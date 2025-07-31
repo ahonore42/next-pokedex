@@ -11,7 +11,8 @@ export type IconType =
   | 'close'
   | 'chevron-left'
   | 'chevron-right'
-  | 'search';
+  | 'search'
+  | 'up';
 
 export interface IconProps {
   type: IconType;

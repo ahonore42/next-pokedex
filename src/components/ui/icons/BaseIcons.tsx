@@ -111,6 +111,19 @@ const ChevronRightIconInternal = ({ size = 'md', className }: BaseIconProps) => 
   </IconWrapper>
 );
 
+const UpArrowIconInternal = ({ size = 'md', className }: BaseIconProps) => (
+  <IconWrapper size={size} className={className}>
+    <BaseSVG>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M5 10l7-7m0 0l7 7m-7-7v18"
+      />
+    </BaseSVG>
+  </IconWrapper>
+);
+
 const SearchIconInternal = ({ size = 'md', className }: BaseIconProps) => (
   <IconWrapper size={size} className={className}>
     <BaseSVG>
@@ -136,4 +149,5 @@ export const iconMap = {
   'chevron-left': ChevronLeftIconInternal,
   'chevron-right': ChevronRightIconInternal,
   search: SearchIconInternal,
+  up: UpArrowIconInternal,
 } as const;
