@@ -1,14 +1,16 @@
 import { ReactNode, useState, useEffect } from 'react';
-import { TypeBadgeProps } from '../pokemon-types/TypeBadge';
+import { PokemonTypeName } from '~/server/routers/_app';
 import TypeBadgesDisplay from '../pokemon-types/TypeBadgesDisplay';
 import Icon from './icons';
+import Image from 'next/image';
 import { SkeletonSprite } from './skeletons';
 
 interface SpriteProps {
   src?: string;
+  alt?: string;
   title?: string;
   prefix?: string;
-  types?: TypeBadgeProps[];
+  types?: PokemonTypeName[];
   variant?: 'sm' | 'md' | 'lg';
   hover?: boolean;
   fallback?: boolean;
@@ -19,6 +21,7 @@ interface SpriteProps {
 
 export default function Sprite({
   src,
+  alt,
   title,
   prefix,
   types,
@@ -33,7 +36,7 @@ export default function Sprite({
   const [imageError, setImageError] = useState(false);
 
   const variants = {
-    sm: { img: 'w-16 h-16', container: 'w-20 h-20' },
+    sm: { img: 'w-16 h-16' },
     md: { img: 'w-24 h-24', text: 'text-sm', container: types ? 'min-w-36 h-36' : 'min-w-32 h-32' },
     lg: { img: 'w-32 h-32', text: 'text-sm', container: types ? 'w-44 h-44' : 'w-36 h-36' },
   };
@@ -78,32 +81,49 @@ export default function Sprite({
     );
   }
 
+  const spriteImage = (
+    <div
+      className={`relative ${variants[variant].img} flex items-center justify-center 
+      ${variant === 'sm' && shouldShowFallback && 'bg-slate-50 dark:bg-surface-elevated rounded-lg'}`}
+    >
+      {src && !shouldShowFallback && (
+        <Image
+          src={src}
+          alt={alt || 'Sprite'}
+          fill
+          sizes="(min-width: 360px) 448px, 48px"
+          priority={true}
+          quality={100}
+          className={`${variants[variant].img} transition-opacity duration-200 opacity-100 object-contain`}
+          fetchPriority="high"
+          loading="eager"
+          crossOrigin="anonymous"
+          onLoad={handleImageLoad}
+          onError={handleImageError}
+        />
+      )}
+
+      {shouldShowFallback && (
+        <div className="text-slate-300 dark:text-slate-500">
+          <Icon size="xl" type="image" />
+        </div>
+      )}
+    </div>
+  );
+
+  if (variant === 'sm') {
+    return spriteImage;
+  }
+
   return (
     <div
       className={`text-center flex flex-col items-center justify-center text-primary rounded-lg border border-border 
       ${hover ? 'surface-hover' : 'surface'} ${variants[variant].container} ${className}`}
     >
-      {/* Image Container - maintain consistent height */}
-      <div className={`relative ${variants[variant].img} flex items-center justify-center`}>
-        {src && !shouldShowFallback && (
-          <img
-            src={src}
-            alt={title}
-            className={`${variants[variant].img} transition-opacity duration-200 opacity-100`}
-            onLoad={handleImageLoad}
-            onError={handleImageError}
-          />
-        )}
-
-        {shouldShowFallback && (
-          <div className="text-slate-300 dark:text-slate-500">
-            <Icon size="xl" type="image" />
-          </div>
-        )}
-      </div>
+      {spriteImage}
 
       {/* Only render text content when image is loaded or fallback is shown */}
-      {title && variant !== 'sm' && (imageLoaded || shouldShowFallback) && (
+      {title && (imageLoaded || shouldShowFallback) && (
         <div>
           <div
             className={`flex justify-center align-center items-center gap-1 mb-2 leading-none text-nowrap ${variants[variant].text}`}
@@ -116,7 +136,7 @@ export default function Sprite({
       )}
 
       {/* Only render children when the title is not present and the image is loaded */}
-      {children && !title && variant !== 'sm' && imageLoaded && (
+      {children && !title && imageLoaded && (
         <div
           className={`flex justify-center items-center leading-none text-nowrap ${variants[variant].text}`}
         >

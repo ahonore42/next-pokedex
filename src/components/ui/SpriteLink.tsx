@@ -1,13 +1,13 @@
 import Link from 'next/link';
 import Sprite from './Sprite';
-import { TypeBadgeProps } from '../pokemon-types/TypeBadge';
+import { PokemonTypeName } from '~/server/routers/_app';
 
 interface SpriteLinkProps {
   href: string;
   src: string;
   title?: string;
   prefix?: string;
-  types?: TypeBadgeProps[];
+  types?: PokemonTypeName[];
   className?: string;
   onImageLoad?: () => void;
 }
