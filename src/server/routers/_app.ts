@@ -33,7 +33,9 @@ export type PokemonListOutput = PokemonRouterOutputs['list'];
 export type PokemonWithSpeciesOutput = PokemonRouterOutputs['pokemonWithSpecies'];
 export type PokemonStats = PokemonWithSpeciesOutput['stats'];
 // Random pokemon
-export type FeaturedPokemon = RouterOutputs['pokemon']['featured']['pokemon'][number];
+export type FeaturedPokemonOutput = PokemonRouterOutputs['featured'];
+export type FeaturedPokemon = FeaturedPokemonOutput[number];
+
 // Simple Pokémon data for list returns
 export type Pokemon = PokemonListOutput['pokemon'][number];
 // Single artwork for a given pokemon
@@ -46,7 +48,8 @@ export type PokemonArtworkByNames = NonNullable<PokemonRouterOutputs['officialAr
 export type PokemonSpecies = PokemonWithSpeciesOutput['pokemonSpecies'];
 export type PokemonSpeciesEvolutionChain = NonNullable<PokemonSpecies['evolutionChain']>;
 export type PokemonInSpecies = PokemonSpecies['pokemon'][number];
-export type PokemonMove = PokemonInSpecies['moves'][number];
+export type PokemonMoves = PokemonInSpecies['moves'];
+export type PokemonMove = PokemonMoves[number];
 export type PokemonFlavorText = PokemonSpecies['flavorTexts'][number];
 
 /**
@@ -84,6 +87,8 @@ export type EvolutionConditions = EvolutionSpecies['pokemonEvolutions'][number];
  */
 export type TypeOutput = RouterOutputs['types'];
 export type AllTypesOutput = TypeOutput['allTypes'];
+export type PokemonType = AllTypesOutput[number];
+export type PokemonTypeName = PokemonType['name'];
 export type AllEfficaciesOutput = TypeOutput['getAllTypeEfficacies'];
 export type PokemonByTypeOutput = TypeOutput['getPokemonByType'];
 export type MovesByTypeOutput = TypeOutput['getMovesByType'];

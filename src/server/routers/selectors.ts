@@ -1167,3 +1167,39 @@ export const pokemonWithSpeciesSelect = {
     },
   },
 } satisfies Prisma.PokemonSelect;
+
+export const featuredPokemonSelect = {
+  id: true,
+  name: true,
+  sprites: {
+    select: {
+      frontDefault: true,
+    },
+  },
+  types: {
+    select: {
+      slot: true,
+      type: {
+        select: {
+          id: true,
+          name: true,
+          names: {
+            where: { languageId: DEFAULT_LANGUAGE_ID },
+            select: { name: true },
+            take: 1,
+          },
+        },
+      },
+    },
+    orderBy: { slot: 'asc' as const },
+  },
+  pokemonSpecies: {
+    select: {
+      flavorTexts: {
+        where: { languageId: DEFAULT_LANGUAGE_ID },
+        select: { flavorText: true },
+        take: 1,
+      },
+    },
+  },
+} satisfies Prisma.PokemonSelect;

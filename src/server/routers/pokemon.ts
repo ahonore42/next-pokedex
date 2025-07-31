@@ -10,9 +10,11 @@ import {
   officialArtworkSelect,
   pokemonSearchSelect,
   pokemonWithSpeciesSelect,
+  featuredPokemonSelect,
 } from './selectors';
 import type { inferRouterOutputs } from '@trpc/server';
 import { evolutionChainsRouter } from './evolution-chains';
+import { significantPokemonIds } from '~/utils/pokemon';
 
 // Infer types directly from evolution-chains router
 type EvolutionChainsOutputs = inferRouterOutputs<typeof evolutionChainsRouter>;
@@ -266,6 +268,69 @@ export const pokemonRouter = router({
         nextCursor,
       };
     }),
+  featured: publicProcedure.query(async () => {
+    const currentHour = Math.floor(Date.now() / (1000 * 60 * 60));
+
+    const seedRandom = (seed: number) => {
+      const x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    };
+
+    const queue: number[] = [];
+    const used = new Set<number>();
+
+    // Simulate queue state up to current hour
+    for (let hour = 0; hour <= currentHour; hour++) {
+      // Only create initial queue if queue is empty
+      if (queue.length === 0) {
+        // Create initial queue of 6 pokemon
+        for (let i = 0; i < 6; i++) {
+          let pokemonId: number;
+          let attempts = 0;
+          do {
+            const randomIndex = Math.floor(
+              seedRandom(12345 + i + attempts * 1000) * significantPokemonIds.length,
+            );
+            pokemonId = significantPokemonIds[randomIndex];
+            attempts++;
+          } while (used.has(pokemonId) && attempts < 100);
+
+          used.add(pokemonId);
+          queue.push(pokemonId);
+        }
+      } else {
+        // Pop one pokemon and add a new one
+        const removedId = queue.shift();
+        if (removedId) {
+          used.delete(removedId);
+        }
+
+        let newPokemonId: number;
+        let attempts = 0;
+        do {
+          const randomIndex = Math.floor(
+            seedRandom(12345 + hour + attempts * 1000) * significantPokemonIds.length,
+          );
+          newPokemonId = significantPokemonIds[randomIndex];
+          attempts++;
+        } while (used.has(newPokemonId) && attempts < 100);
+
+        used.add(newPokemonId);
+        queue.push(newPokemonId);
+      }
+    }
+
+    // Query the current queue pokemon
+    const pokemon = await prisma.pokemon.findMany({
+      where: {
+        id: { in: queue },
+      },
+      select: featuredPokemonSelect,
+    });
+
+    // Return pokemon in queue order
+    return pokemon;
+  }),
   pokemonWithSpecies: publicProcedure
     .input(
       z.union([
@@ -336,32 +401,6 @@ export const pokemonRouter = router({
 
       return artwork;
     }),
-
-  featured: publicProcedure.query(async () => {
-    // 1. Get a pool of recently updated Pokémon
-    const recentPokemon = await prisma.pokemon.findMany({
-      select: { id: true },
-      orderBy: { updatedAt: 'desc' },
-      take: 50,
-    });
-    const pokemonPoolIds = recentPokemon.map((p) => p.id);
-
-    // 2. Use a daily seed to select from the pool
-    const seed = Math.floor(Date.now() / (1000 * 60 * 60 * 24)); // Days since epoch
-    const dailySelectionIds = Array.from(
-      { length: 6 },
-      (_, i) => pokemonPoolIds[(seed + i) % pokemonPoolIds.length],
-    );
-
-    // 3. Fetch the full data for the selected Pokémon
-    const pokemon = await prisma.pokemon.findMany({
-      where: { id: { in: dailySelectionIds } },
-      select: defaultPokemonSelect,
-    });
-
-    return { pokemon, date: new Date().toISOString().split('T')[0] };
-  }),
-
   allRegions: publicProcedure.query(async () => {
     return await prisma.region.findMany({
       select: {
