@@ -6,6 +6,9 @@ import {
   EncounterLocation,
   EncounterVersionGroup,
   EncounterConditions,
+  PokemonMoves,
+  AllEfficaciesOutput,
+  PokemonTypeName,
 } from '~/server/routers/_app';
 import { romanToInteger } from '~/utils/text';
 
@@ -86,6 +89,17 @@ export type VersionGroupEncounter = {
 export type EncountersByVersionGroup = Record<number, VersionGroupEncounter>;
 export type EncountersGroupedByLocation = Record<number, LocationGroupResult>;
 export type MergedGroupedEncounters = Record<string, MergedEncounter>;
+
+// --------------------------
+// Move Types
+// --------------------------
+
+export type MoveMap = Record<string, PokemonMoves>;
+// Extract the exact type from your AllEfficaciesOutput
+export type EfficacyType = AllEfficaciesOutput[number]['damageType']; // Same as targetType
+
+// Name-based efficacy map
+export type TypeEfficacyMap = Map<string, Map<string, number>>;
 
 // --------------------------
 // Stat Calculation Types
@@ -249,9 +263,174 @@ export const pokemonGameColorMap = {
 // Type for game names
 export type PokemonGameName = keyof typeof pokemonGameColorMap;
 
+// Significant Pokemon IDs - Top 10 most significant per generation
+// Includes: Legendaries, Competitively Viable Starters (final forms), Fan Favorites, Competitive Staples, Story-important Pokemon
+export const significantPokemonIds: number[] = [
+  // Generation 1 - Kanto
+  3, // Venusaur (competitively viable starter)
+  6, // Charizard (competitively viable starter)
+  9, // Blastoise (iconic starter)
+  25, // Pikachu (mascot)
+  144, // Articuno (legendary bird)
+  145, // Zapdos (legendary bird)
+  146, // Moltres (legendary bird)
+  150, // Mewtwo (legendary)
+  151, // Mew (mythical)
+  149, // Dragonite (pseudo-legendary)
+
+  // Generation 2 - Johto
+  157, // Typhlosion (somewhat viable starter)
+  160, // Feraligatr (somewhat viable starter)
+  249, // Lugia (legendary)
+  250, // Ho-Oh (legendary)
+  251, // Celebi (mythical)
+  196, // Espeon (fan favorite)
+  197, // Umbreon (fan favorite)
+  248, // Tyranitar (pseudo-legendary)
+  245, // Suicune (legendary beast)
+  227, // Skarmory (competitive staple)
+
+  // Generation 3 - Hoenn
+  254, // Sceptile (reasonably viable starter)
+  257, // Blaziken (competitively viable starter)
+  260, // Swampert (competitively viable starter)
+  382, // Kyogre (legendary)
+  383, // Groudon (legendary)
+  384, // Rayquaza (legendary)
+  385, // Jirachi (mythical)
+  386, // Deoxys (mythical)
+  373, // Salamence (pseudo-legendary)
+  376, // Metagross (pseudo-legendary)
+
+  // Generation 4 - Sinnoh
+  392, // Infernape (competitively viable starter)
+  395, // Empoleon (somewhat viable starter)
+  483, // Dialga (legendary)
+  484, // Palkia (legendary)
+  487, // Giratina (legendary)
+  493, // Arceus (mythical)
+  448, // Lucario (fan favorite)
+  445, // Garchomp (pseudo-legendary)
+  474, // Porygon-Z (competitive staple)
+  491, // Darkrai (mythical)
+
+  // Generation 5 - Unova
+  497, // Serperior (competitively viable with Contrary)
+  643, // Reshiram (legendary)
+  644, // Zekrom (legendary)
+  646, // Kyurem (legendary)
+  647, // Keldeo (mythical)
+  648, // Meloetta (mythical)
+  635, // Hydreigon (pseudo-legendary)
+  609, // Chandelure (fan favorite)
+  571, // Zoroark (fan favorite)
+  645, // Landorus (competitive staple)
+
+  // Generation 6 - Kalos
+  658, // Greninja (extremely competitively viable starter)
+  716, // Xerneas (legendary)
+  717, // Yveltal (legendary)
+  718, // Zygarde (legendary)
+  719, // Diancie (mythical)
+  720, // Hoopa (mythical)
+  700, // Sylveon (fan favorite)
+  681, // Aegislash (competitive staple)
+  663, // Talonflame (competitive staple)
+  706, // Goodra (pseudo-legendary)
+
+  // Generation 7 - Alola
+  724, // Decidueye (reasonably viable starter)
+  727, // Incineroar (extremely competitively viable starter)
+  730, // Primarina (competitively viable starter)
+  791, // Solgaleo (legendary)
+  792, // Lunala (legendary)
+  800, // Necrozma (legendary)
+  802, // Marshadow (mythical)
+  778, // Mimikyu (fan favorite)
+  784, // Kommo-o (pseudo-legendary)
+  785, // Tapu Koko (legendary/competitive staple)
+
+  // Generation 8 - Galar
+  812, // Rillaboom (competitively viable starter)
+  815, // Cinderace (competitively viable starter)
+  888, // Zacian (legendary)
+  889, // Zamazenta (legendary)
+  890, // Eternatus (legendary)
+  893, // Zarude (mythical)
+  884, // Duraludon (pseudo-legendary)
+  892, // Urshifu (legendary/competitive staple)
+  845, // Cramorant (fan favorite)
+  879, // Copperajah (competitive staple)
+
+  // Generation 9 - Paldea
+  908, // Meowscarada (competitively viable starter)
+  911, // Skeledirge (competitively viable starter)
+  1007, // Koraidon (legendary)
+  1008, // Miraidon (legendary)
+  1001, // Gholdengo (mythical evolution)
+  1024, // Terapagos (legendary)
+  998, // Baxcalibur (pseudo-legendary)
+  937, // Ceruledge (fan favorite)
+  959, // Tinkaton (fan favorite)
+  983, // Kingambit (competitive staple)
+];
+
 /* ------------------------------------------------------------------ */
 /* Utility Functions                                                  */
 /* ------------------------------------------------------------------ */
+
+// Define the order of learn methods for display
+const methodOrder = [
+  'level-up',
+  'machine', // TMs/TRs
+  'egg',
+  'tutor',
+  'transfer',
+  'light-ball-egg',
+  'colosseum-purification',
+  'xd-shadow',
+  'xd-purification',
+  'form-change',
+  'zygarde-cube',
+];
+
+// Get learn method display name
+export const getMethodDisplayName = (method: string, moves: PokemonMoves) => {
+  const methodData = moves[0]?.moveLearnMethod;
+  const displayName = methodData?.names[0]?.name || method;
+  // Add specific handling for common methods
+  switch (method) {
+    case 'level-up':
+      return 'Level Up';
+    case 'machine':
+      return 'TM/HM';
+    case 'egg':
+      return 'Egg Moves';
+    case 'tutor':
+      return 'Move Tutor';
+    case 'transfer':
+      return 'Transfer Only';
+    default:
+      return displayName.replaceAll('-', ' ');
+  }
+};
+
+// Sort move methods by predefined order, then alphabetically
+export const sortMovesByMethod = (moveMap: MoveMap) =>
+  Object.keys(moveMap).sort((a, b) => {
+    const aIndex = methodOrder.indexOf(a);
+    const bIndex = methodOrder.indexOf(b);
+
+    if (aIndex !== -1 && bIndex !== -1) {
+      return aIndex - bIndex;
+    } else if (aIndex !== -1) {
+      return -1;
+    } else if (bIndex !== -1) {
+      return 1;
+    } else {
+      return a.localeCompare(b);
+    }
+  });
 
 export function getGenerationDisplayName(genId: number): string {
   const romanNumerals = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'];
@@ -319,7 +498,46 @@ export function getTypeColor(type: string): string {
   return colors[type] || '#68A090';
 }
 
-export const truncateTypeName = (name: string, format: 'short' | 'medium' = 'medium') => {
+export const buildTypeEfficacyMap = (efficacies: AllEfficaciesOutput): TypeEfficacyMap => {
+  const efficacyMap = new Map<string, Map<string, number>>();
+
+  efficacies.forEach((efficacy) => {
+    const attackingTypeName = efficacy.damageType.name;
+    const defendingTypeName = efficacy.targetType.name;
+
+    if (!efficacyMap.has(attackingTypeName)) {
+      efficacyMap.set(attackingTypeName, new Map<string, number>());
+    }
+
+    efficacyMap.get(attackingTypeName)!.set(defendingTypeName, efficacy.damageFactor);
+  });
+
+  return efficacyMap;
+};
+
+// Clean lookup function accepting your full type objects
+export const getTypeEfficacy = (
+  efficacyMap: TypeEfficacyMap,
+  attackingType: EfficacyType['name'],
+  defendingType: EfficacyType['name'],
+): number => {
+  return efficacyMap.get(attackingType)?.get(defendingType) ?? 1;
+};
+
+export const getTypesByName = (
+  types: EfficacyType[],
+  names: readonly PokemonTypeName[],
+): EfficacyType[] => {
+  return types
+    .reduce((acc, type) => {
+      const index = names.indexOf(type.name);
+      if (index !== -1) acc[index] = type;
+      return acc;
+    }, new Array(names.length).fill(null))
+    .filter(Boolean) as EfficacyType[];
+};
+
+export const truncateTypeName = (name: PokemonTypeName, format: 'short' | 'medium' = 'medium') => {
   switch (name.toLowerCase()) {
     case 'normal':
       return format === 'short' ? 'NOR' : 'NORMAL';
@@ -375,6 +593,7 @@ export const getDamageFactorText = (factor: number) => {
 export const getDamageFactorColor = (factor: number) => {
   if (factor === 0) return 'bg-gray-900 text-white'; // No effect
   if (factor < 1) return 'bg-red-500 text-white'; // Not very effective
+  if (factor >= 4) return 'bg-green-700 text-white'; // Quadruple damage
   if (factor > 1) return 'bg-green-500 text-white'; // Super effective
   return 'dark:bg-gray-500 bg-gray-100'; // Normal effect
 };
