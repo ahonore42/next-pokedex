@@ -5,6 +5,8 @@ import { trpc } from '~/utils/trpc';
 import SectionCard from '~/components/ui/SectionCard';
 import PageHeading from '~/components/layout/PageHeading';
 import PokedexDisplay from '~/components/pokemon/PokedexDisplay';
+import MetricsGrid from '~/components/ui/MetricsGrid';
+import PageContent from '~/components/layout/PageContent';
 
 const PokedexGenerationPage: NextPageWithLayout = () => {
   const router = useRouter();
@@ -117,7 +119,7 @@ const PokedexGenerationPage: NextPageWithLayout = () => {
         subtitle={`${generationData.versionGroups.length} Version Group${generationData.versionGroups.length > 1 ? 's' : ''} Available`}
       />
 
-      <SectionCard title={`Generation ${generationId} Pokédex`} className="mb-8">
+      <PageContent>
         <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center space-x-4">
             <h2 className="text-xl font-bold">Generation {generationId} Pokédex</h2>
@@ -184,28 +186,26 @@ const PokedexGenerationPage: NextPageWithLayout = () => {
         </div>
 
         {/* Generation Info */}
-        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {generationData.versionGroups.length}
-              </p>
-              <p className="text-sm text-secondary">Version Groups</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {availablePokedexes.length}
-              </p>
-              <p className="text-sm text-secondary">Available Pokédexes</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {allRegions.length}
-              </p>
-              <p className="text-sm text-secondary">Regions</p>
-            </div>
-          </div>
-        </div>
+        <MetricsGrid
+          metrics={[
+            {
+              label: 'Version Groups',
+              value: generationData.versionGroups.length,
+              color: 'blue',
+            },
+            {
+              label: 'Available Pokédexes',
+              value: availablePokedexes.length,
+              color: 'green',
+            },
+            {
+              label: 'Regions',
+              value: allRegions.length,
+              color: 'purple',
+            },
+          ]}
+          columns={{ default: 1, md: 3 }}
+        />
 
         {/* Current Selection Info */}
         {selectedVersionGroup && selectedPokedex && (
@@ -227,9 +227,9 @@ const PokedexGenerationPage: NextPageWithLayout = () => {
             )}
           </div>
         )}
-      </SectionCard>
-      {/* Pokémon Display */}
-      {selectedPokedex && <PokedexDisplay pokedex={selectedPokedex} />}
+        {/* Pokémon Display */}
+        {selectedPokedex && <PokedexDisplay pokedex={selectedPokedex} />}
+      </PageContent>
     </>
   );
 };
