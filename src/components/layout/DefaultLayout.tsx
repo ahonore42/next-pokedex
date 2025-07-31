@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import HeaderMenu from '~/components/layout/HeaderMenu';
-import FooterMenu from '~/components/layout/FooterMenu';
+import FooterMenu from './footer';
 import Pokeball from '~/components/ui/Pokeball';
 
 type DefaultLayoutProps = {
@@ -34,13 +34,13 @@ export default function DefaultLayout({ children, isLoading = false }: DefaultLa
   const shouldShowLoading = isLoading || isRouteLoading;
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-dvh bg-background min-w-[360px]">
       <HeaderMenu />
 
-      <main className="flex-grow w-full min-w-[360px] mx-auto px-4 py-8 lg:py-12 max-w-7xl xl:max-w-[1536px] self-center flex flex-col">
+      <main className="flex-grow w-full mx-auto px-4 py-8 lg:py-12 max-w-7xl xl:max-w-[1536px] self-center flex flex-col">
         {shouldShowLoading ? (
-          <div className="flex-grow flex items-center justify-center bg-background">
-            <Pokeball size="xl" endlessSpin spinSpeed={1.5} />
+          <div className="flex-grow flex items-center justify-center">
+            <Pokeball size="lg" endlessSpin spinSpeed={3} />
           </div>
         ) : (
           children
