@@ -85,10 +85,16 @@ export type EvolutionConditions = EvolutionSpecies['pokemonEvolutions'][number];
 /**
  * Pokemon types router Outputs
  */
-export type TypeOutput = RouterOutputs['types'];
-export type AllTypesOutput = TypeOutput['allTypes'];
+export type TypeRouterOutputs = RouterOutputs['types'];
+export type AllTypesOutput = TypeRouterOutputs['allTypes'];
 export type PokemonType = AllTypesOutput[number];
 export type PokemonTypeName = PokemonType['name'];
-export type AllEfficaciesOutput = TypeOutput['getAllTypeEfficacies'];
-export type PokemonByTypeOutput = TypeOutput['getPokemonByType'];
-export type MovesByTypeOutput = TypeOutput['getMovesByType'];
+export type AllEfficaciesOutput = TypeRouterOutputs['getAllTypeEfficacies'];
+export type PokemonByTypeOutput = TypeRouterOutputs['getPokemonByType'];
+export type MovesByTypeOutput = TypeRouterOutputs['getMovesByType'];
+export type TypeWithPokemonAndMovesOutput = TypeRouterOutputs['getTypeWithPokemonAndMoves'];
+export type TypeData = TypeWithPokemonAndMovesOutput['type'];
+export type TypePokemon = TypeWithPokemonAndMovesOutput['pokemon'];
+export type TypeMoves = TypeWithPokemonAndMovesOutput['moves'];
+export type TypePokemonData = TypeWithPokemonAndMovesOutput['pokemon'][number];
+export type TypeMoveData = TypeWithPokemonAndMovesOutput['moves'][number];

@@ -1203,3 +1203,74 @@ export const featuredPokemonSelect = {
     },
   },
 } satisfies Prisma.PokemonSelect;
+
+// New selector for Pokemon data without moves, optimized for flat structure
+export const pokemonForTypeSelect = {
+  select: {
+    id: true,
+    name: true,
+    isDefault: true,
+    order: true,
+    pokemonSpeciesId: true,
+    sprites: {
+      select: {
+        frontDefault: true,
+        frontShiny: true,
+      },
+    },
+    types: {
+      select: {
+        slot: true,
+        type: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: { slot: 'asc' as const },
+    },
+    abilities: {
+      select: {
+        slot: true,
+        isHidden: true,
+        ability: {
+          select: {
+            id: true,
+            name: true,
+            names: {
+              where: { languageId: DEFAULT_LANGUAGE_ID },
+              select: { name: true },
+            },
+          },
+        },
+      },
+      orderBy: { slot: 'asc' as const },
+    },
+    stats: {
+      select: {
+        baseStat: true,
+        stat: {
+          select: {
+            id: true,
+            name: true,
+            names: {
+              where: { languageId: DEFAULT_LANGUAGE_ID },
+              select: { name: true },
+            },
+          },
+        },
+      },
+      orderBy: { stat: { id: 'asc' as const } },
+    },
+  },
+};
+
+// Enhanced type selector for complete type information
+export const completeTypeSelect = {
+  select: {
+    id: true,
+    name: true,
+    generationId: true,
+    moveDamageClassId: true,
+  },
+};
