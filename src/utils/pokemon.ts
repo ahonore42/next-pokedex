@@ -500,6 +500,42 @@ export function getTypeColor(type: string): string {
   return colors[type] || '#68A090';
 }
 
+export const getRgba = (hex: string, alpha = 1) => {
+  const hexToRgb = (hex: string) => {
+    // Remove # if present and handle both 3 and 6 digit hex codes
+    let h = hex.slice(hex.startsWith('#') ? 1 : 0);
+
+    // Convert 3-digit hex to 6-digit
+    if (h.length === 3) {
+      h = h
+        .split('')
+        .map((char) => char + char)
+        .join('');
+    }
+
+    // Validate hex format
+    if (h.length !== 6 || !/^[0-9A-Fa-f]{6}$/.test(h)) {
+      return null;
+    }
+
+    // Convert to RGB
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+
+    return [r, g, b];
+  };
+
+  const rgb = hexToRgb(hex);
+  if (!rgb) {
+    console.warn(`Invalid hex color: ${hex}`);
+    return 'rgba(0, 0, 0, 0)';
+  }
+
+  const [r, g, b] = rgb;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 export const buildTypeEfficacyMap = (efficacies: AllEfficaciesOutput): TypeEfficacyMap => {
   const efficacyMap = new Map<string, Map<string, number>>();
 
