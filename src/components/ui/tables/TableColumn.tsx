@@ -1,32 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
-
-export interface Column<T> {
-  header: string | React.ReactNode;
-  accessor: keyof T | ((data: T) => React.ReactNode);
-  className?: string;
-  headerClassName?: string;
-  headerAlignment?: 'left' | 'center' | 'right';
-  noWrap?: boolean;
-  sortable?: boolean;
-  sortKey?: keyof T | ((data: T) => any);
-  rowspan?: (data: T, index: number) => number | undefined;
-  colspan?: (data: T, index: number) => number | undefined;
-  skipRender?: (data: T, index: number) => boolean;
-  dividerAfter?: boolean | ((data: T) => boolean);
-  dividerBefore?: boolean | ((data: T) => boolean);
-  columnPadding?: string;
-  cellStyle?: (
-    data: T,
-    rowIndex: number,
-  ) =>
-    | {
-        className?: string;
-        style?: React.CSSProperties;
-        wrapper?: (content: React.ReactNode) => React.ReactNode;
-      }
-    | undefined;
-}
+import { Column } from './tables.config';
 
 interface TableColumnProps<T> {
   column: Column<T>;

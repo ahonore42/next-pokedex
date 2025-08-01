@@ -1,6 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
-import { Column } from './TableColumn';
+import { Column } from './tables.config';
 
 interface TableRowProps<T> {
   row: T;

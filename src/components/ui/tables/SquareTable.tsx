@@ -1,4 +1,5 @@
-import TableColumn, { Column } from './TableColumn';
+import { Column } from './tables.config';
+import TableColumn from './TableColumn';
 import TableRow from './TableRow';
 
 interface SquareTableProps<T> {
