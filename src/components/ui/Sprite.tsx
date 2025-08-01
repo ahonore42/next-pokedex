@@ -11,7 +11,7 @@ interface SpriteProps {
   title?: string;
   prefix?: string;
   types?: PokemonTypeName[];
-  variant?: 'sm' | 'md' | 'lg';
+  variant?: 'xs' | 'sm' | 'md' | 'lg';
   hover?: boolean;
   fallback?: boolean;
   children?: ReactNode;
@@ -36,6 +36,7 @@ export default function Sprite({
   const [imageError, setImageError] = useState(false);
 
   const variants = {
+    xs: { img: 'w-12 h-12' },
     sm: { img: 'w-16 h-16' },
     md: { img: 'w-24 h-24', text: 'text-sm', container: types ? 'min-w-36 h-36' : 'min-w-32 h-32' },
     lg: { img: 'w-32 h-32', text: 'text-sm', container: types ? 'w-44 h-44' : 'w-36 h-36' },
@@ -84,7 +85,7 @@ export default function Sprite({
   const spriteImage = (
     <div
       className={`relative ${variants[variant].img} flex items-center justify-center 
-      ${variant === 'sm' && shouldShowFallback && 'bg-slate-50 dark:bg-surface-elevated rounded-lg'}`}
+      ${(variant === 'sm' || variant === 'xs') && shouldShowFallback && 'bg-slate-50 dark:bg-surface-elevated rounded-lg'}`}
     >
       {src && !shouldShowFallback && (
         <Image
@@ -111,7 +112,7 @@ export default function Sprite({
     </div>
   );
 
-  if (variant === 'sm') {
+  if (variant === 'sm' || variant === 'xs') {
     return spriteImage;
   }
 

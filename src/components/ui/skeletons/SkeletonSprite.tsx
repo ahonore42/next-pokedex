@@ -1,7 +1,7 @@
 import Skeleton from './Skeleton';
 
 interface SkeletonSpriteProps {
-  variant?: 'sm' | 'md' | 'lg';
+  variant?: 'xs' | 'sm' | 'md' | 'lg';
   animation?: 'shimmer' | 'pulse';
   types?: boolean;
   className?: string;
@@ -15,15 +15,10 @@ export default function SkeletonSprite({
 }: SkeletonSpriteProps) {
   // Match the exact container variants from Sprite component for layout preservation
   const variants = {
-    sm: {
-      container: 'w-16 h-16',
-    },
-    md: {
-      container: types ? 'min-w-36 h-36' : 'min-w-32 h-32',
-    },
-    lg: {
-      container: types ? 'w-44 h-44' : 'w-36 h-36',
-    },
+    xs: { container: 'w-12 h-12' },
+    sm: { container: 'w-16 h-16' },
+    md: { container: types ? 'min-w-36 h-36' : 'min-w-32 h-32' },
+    lg: { container: types ? 'w-44 h-44' : 'w-36 h-36' },
   };
 
   const currentVariant = variants[variant];
