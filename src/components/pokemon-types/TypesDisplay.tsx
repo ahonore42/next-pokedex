@@ -1,11 +1,10 @@
 import SectionCard from '~/components/ui/SectionCard';
 import TypeBadge from '~/components/pokemon-types/TypeBadge';
-
 import { AllTypesOutput } from '~/server/routers/_app';
 import { useComponentHydration } from '~/hooks/useComponentHydration';
 
 interface TypesDisplayProps {
-  types: AllTypesOutput;
+  types: AllTypesOutput | { id: number; name: string }[];
 }
 
 export default function TypesDisplay({ types }: TypesDisplayProps) {
