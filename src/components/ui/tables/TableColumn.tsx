@@ -13,7 +13,7 @@ export interface Column<T> {
   rowspan?: (data: T, index: number) => number | undefined;
   colspan?: (data: T, index: number) => number | undefined;
   skipRender?: (data: T, index: number) => boolean;
-  dividerAfter?: boolean;
+  dividerAfter?: boolean | ((data: T) => boolean);
   dividerBefore?: boolean | ((data: T) => boolean);
   columnPadding?: string;
   cellStyle?: (
@@ -59,7 +59,7 @@ export default function TableColumn<T>({
           ? 'text-left'
           : !square && column.headerAlignment === 'right'
             ? 'text-right'
-            : 'text-left', // default to left
+            : 'text-center', // default to center
         // Bold font for active sort column, semibold for others
         isActiveSortColumn ? 'font-bold' : 'font-semibold',
         noPadding ? 'p-0' : 'py-4',

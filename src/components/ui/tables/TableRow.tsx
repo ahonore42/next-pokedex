@@ -24,9 +24,9 @@ export default function TableRow<T>({
   return (
     <tr
       className={clsx(
-        !square && 'border-b border-border theme-transition',
+        !square && 'theme-transition',
         // Add bottom border for square tables except on last row
-        square && rowIndex < sortedDataLength - 1 && 'border-b border-border',
+        rowIndex < sortedDataLength - 1 && 'border-b border-border',
         overlayHover && 'group',
       )}
     >
@@ -41,6 +41,12 @@ export default function TableRow<T>({
           typeof column.dividerBefore === 'function'
             ? column.dividerBefore(row)
             : column.dividerBefore;
+
+        const showDividerAfter =
+          typeof column.dividerAfter === 'function'
+            ? column.dividerAfter(row)
+            : column.dividerAfter;
+
         const cellStyling = column.cellStyle?.(row, rowIndex);
 
         const cellContent =
@@ -58,17 +64,16 @@ export default function TableRow<T>({
             colSpan={colspanValue}
             className={clsx(
               'text-sm theme-transition align-middle',
-              !square && 'text-left',
               // Handle padding based on noPadding prop
               noPadding ? 'p-0' : 'py-2',
               noPadding ? '' : column.columnPadding || 'px-3',
               cellStyling?.className || 'text-primary',
               column.noWrap && 'whitespace-nowrap',
-              column.className, // Column className can override text alignment
+              column.className || 'font-medium text-center', // Column className can override text alignment
               // Column dividers for square tables - between cells but not on edges
               square && colIndex < visibleColumns.length - 1 && 'border-r border-border',
               // Regular dividers for non-square tables
-              !square && column.dividerAfter && 'border-r-2 border-border',
+              !square && showDividerAfter && 'border-r-2 border-border',
               !square && showDividerBefore && 'border-l-2 border-border',
               // Darken the row on hover with subtle brightness reduction
               overlayHover && (!rowspanValue || rowspanValue === 1) && 'group-hover:brightness-90',

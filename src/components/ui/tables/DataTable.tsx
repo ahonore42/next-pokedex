@@ -11,6 +11,8 @@ interface DataTableProps<T> {
   initialSortOrder?: 'asc' | 'desc';
   overlayHover?: boolean;
   noPadding?: boolean;
+  border?: boolean;
+  rounded?: boolean;
 }
 
 export default function DataTable<T>({
@@ -21,6 +23,8 @@ export default function DataTable<T>({
   initialSortOrder = 'asc',
   overlayHover = false,
   noPadding = false,
+  border = false,
+  rounded = false,
 }: DataTableProps<T>) {
   const [sortBy, setSortBy] = useState<string | undefined>(initialSortBy);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(initialSortOrder);
@@ -71,8 +75,14 @@ export default function DataTable<T>({
   const visibleColumns = columns.slice(0, maxColumns);
 
   return (
-    <div className="flex flex-col w-full">
-      <table className={clsx('border-collapse', 'divide-y divide-border', 'square')}>
+    <div
+      className={clsx(
+        'flex flex-col w-full',
+        rounded && 'rounded-lg overflow-scroll',
+        border && 'border-2 border-border',
+      )}
+    >
+      <table className="border-collapse divide-y divide-border">
         {/* TABLE HEADER - Column definitions */}
         <thead>
           <tr className="border-b-2 border-border theme-transition">
