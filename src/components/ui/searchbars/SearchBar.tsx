@@ -12,6 +12,7 @@ export default function SearchBar<SearchResult>({
   placeholder = 'Search...',
   hover = true,
   size = 'md',
+  center = true,
   className = '',
   inputClassName = '',
   resultsClassName = '',
@@ -41,16 +42,25 @@ export default function SearchBar<SearchResult>({
 
   const sizeClasses = getSizeClasses();
 
+  // Remote data only when no local data
+  const remoteQuery = useSearchQuery(model, searchQuery, limit, staleTime, Boolean(data));
+
   // Extract results based on data source
-  const results: SearchResult[] = data
-    ? // Local data filtering
-      searchQuery.length > 0 && filterFunction
-      ? data.filter((item) => filterFunction(item, searchQuery)).slice(0, limit)
-      : searchQuery.length > 0
-        ? [] // No filter function provided, return empty
-        : []
-    : // tRPC data extraction
-      extractResults(model, searchResults.data);
+  let results: SearchResult[];
+  if (data) {
+    // Local filtering
+    if (searchQuery.length > 0 && filterFunction) {
+      results = data.filter((item) => filterFunction(item, searchQuery)).slice(0, limit);
+    } else {
+      results = [];
+    }
+  } else if (model) {
+    // tRPC data extraction
+    results = extractResults(model, remoteQuery.data);
+  } else {
+    // fallback: no data and no model → empty
+    results = [];
+  }
 
   const hasResults = results.length > 0;
 
@@ -78,7 +88,9 @@ export default function SearchBar<SearchResult>({
   const resultsContainerRenderer = renderResultsContainer || defaultRenderResultsContainer;
 
   return (
-    <div className={`max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl mx-auto ${className}`}>
+    <div
+      className={`max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl ${center && 'mx-auto'} ${className}`}
+    >
       <div className="relative">
         {/* Search Input Container */}
         <div

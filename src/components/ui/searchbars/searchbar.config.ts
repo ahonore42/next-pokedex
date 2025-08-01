@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { trpc } from '~/utils/trpc';
 
 // Supported search models (for tRPC query selection)
-export type SearchModel = 'pokemon' | 'moves' | 'abilities' | 'items';
+export type SearchModel = 'pokemon' | 'pokemonSpecies' | 'moves' | 'abilities' | 'items';
 
 // Type definitions for search results
 export type PokemonSearchResult = {
@@ -17,7 +17,7 @@ export type PokemonSearchResult = {
 export interface SearchBarProps<SearchResult> {
   // The search model to use (determines which tRPC query to call)
   // Only used when 'data' prop is not provided
-  model: SearchModel;
+  model?: SearchModel;
   // Optional local data array for in-page filtering
   // When provided, disables tRPC queries and uses local filtering instead
   data?: SearchResult[];
@@ -32,6 +32,7 @@ export interface SearchBarProps<SearchResult> {
   limit?: number; // Maximum number of results to return
   placeholder?: string; // Placeholder text for the search input
   hover?: boolean; // Whether to enable hover effects on the search container
+  center?: boolean; // Whether or not the conatainter should be centered
   size?: 'sm' | 'md' | 'lg'; // Size variant for the search bar
   className?: string; // Additional CSS classes for the container
   inputClassName?: string; // Additional CSS classes for the input
@@ -54,19 +55,20 @@ export interface SearchBarProps<SearchResult> {
 
 // Hook to get the appropriate search query based on the model
 export function useSearchQuery(
-  model: SearchModel,
+  model: SearchModel | undefined,
   query: string,
   limit: number,
   staleTime: number,
-  enabled = true,
+  hasLocalData: boolean,
 ) {
-  const queryEnabled = enabled && query.length > 0;
+  const enabled = !hasLocalData && Boolean(model) && query.length > 0;
 
   switch (model) {
     case 'pokemon':
-      return trpc.pokemon.search.useQuery({ query, limit }, { enabled: queryEnabled, staleTime });
+      return trpc.pokemon.search.useQuery({ query, limit }, { enabled, staleTime });
     default:
-      throw new Error(`Unsupported search model: ${String(model)}`);
+      // return a never-enabled query so TS is happy
+      return trpc.pokemon.search.useQuery({ query: '', limit: 0 }, { enabled: false });
   }
 }
 
