@@ -6,10 +6,10 @@ import { PokemonArtworkByNames, FeaturedPokemonOutput } from '~/server/routers/_
 import PageHeading from '~/components/layout/PageHeading';
 import PageContent from '~/components/layout/PageContent';
 import ArtworkImage from '~/components/ui/ArtworkImage';
-import SearchBar from '~/components/layout/SearchBar';
 import QuickAccess from '~/components/layout/QuickAccess';
 import FeaturedPokemonDisplay from '~/components/informational/FeaturedPokemonDisplay';
 import LatestUpdates from '~/components/informational/LatestUpdates';
+import SearchBar, { PokemonSearchResult, renderPokemonResult } from '~/components/ui/searchbars';
 
 const IndexPage: NextPageWithLayout = () => {
   const breakpointWidth = useBreakpointWidth();
@@ -82,7 +82,14 @@ const IndexPage: NextPageWithLayout = () => {
               </p>
             </div>
             <div className="max-w-sm mx-auto">
-              <SearchBar />
+              <SearchBar<PokemonSearchResult>
+                model="pokemon"
+                limit={10}
+                placeholder="Search Pokémon by name or number..."
+                hover
+                size="md"
+                renderResult={renderPokemonResult}
+              />
             </div>
           </div>
         ) : (
@@ -112,7 +119,14 @@ const IndexPage: NextPageWithLayout = () => {
                 </p>
               </div>
               <div className="mt-4 max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl mx-auto h-16">
-                <SearchBar />
+                <SearchBar<PokemonSearchResult>
+                  model="pokemon"
+                  limit={10}
+                  placeholder="Search Pokémon by name or number..."
+                  hover
+                  size="md"
+                  renderResult={renderPokemonResult}
+                />
               </div>
             </div>
           </div>
