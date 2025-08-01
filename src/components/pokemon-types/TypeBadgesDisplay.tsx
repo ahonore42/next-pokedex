@@ -21,9 +21,7 @@ export default function TypeBadgesDisplay({
   }
 
   return (
-    <div
-      className={`flex w-fit justify-center flex-nowrap mt-1 ${compact ? 'gap-1' : 'gap-2'} ${className}`}
-    >
+    <div className={`flex w-fit justify-center flex-nowrap gap-1 ${className}`}>
       {types.map((type) => (
         <div key={type}>
           <TypeBadge type={type} link={link} compact={compact} loading={loading} />
@@ -32,3 +30,21 @@ export default function TypeBadgesDisplay({
     </div>
   );
 }
+
+export const renderTypeBadgesDisplay = ({
+  types,
+  link,
+  compact,
+  loading,
+  className,
+}: TypeBadgesDisplayProps) => (
+  <div className="flex justify-center items-center">
+    <TypeBadgesDisplay
+      types={types}
+      link={link}
+      compact={compact}
+      loading={loading}
+      className={className}
+    />
+  </div>
+);
