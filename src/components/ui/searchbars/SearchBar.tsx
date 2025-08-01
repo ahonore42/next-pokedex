@@ -1,0 +1,127 @@
+'use client';
+
+import React, { useState } from 'react';
+import { extractResults, SearchBarProps, useSearchQuery } from './searchbar.config';
+
+// Generic SearchBar component that works with different search models
+export default function SearchBar<SearchResult>({
+  model,
+  data,
+  filterFunction,
+  limit = 10,
+  placeholder = 'Search...',
+  hover = true,
+  size = 'md',
+  className = '',
+  inputClassName = '',
+  resultsClassName = '',
+  staleTime = 1000 * 60 * 5, // 5 minutes
+  renderResult,
+  renderResultsContainer,
+}: SearchBarProps<SearchResult>) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Get the appropriate search query hook based on model (only when no local data)
+  const searchResults = useSearchQuery(model, searchQuery, limit, staleTime, !data);
+
+  // Handle result click - clears search automatically
+  const handleResultClick = () => {
+    setSearchQuery('');
+  };
+
+  // Get size-based classes
+  const getSizeClasses = () => {
+    const sizeMap = {
+      sm: { base: 'py-2', expanded: 'py-3', icon: 'pl-8' },
+      md: { base: 'py-3', expanded: 'py-4', icon: 'pl-10' },
+      lg: { base: 'py-4', expanded: 'py-5', icon: 'pl-12' },
+    };
+    return sizeMap[size];
+  };
+
+  const sizeClasses = getSizeClasses();
+
+  // Extract results based on data source
+  const results: SearchResult[] = data
+    ? // Local data filtering
+      searchQuery.length > 0 && filterFunction
+      ? data.filter((item) => filterFunction(item, searchQuery)).slice(0, limit)
+      : searchQuery.length > 0
+        ? [] // No filter function provided, return empty
+        : []
+    : // tRPC data extraction
+      extractResults(model, searchResults.data);
+
+  const hasResults = results.length > 0;
+
+  // Render individual results with proper keys
+  const resultElements = results.map((result) => (
+    <React.Fragment key={(result as any).id}>
+      {renderResult(result, handleResultClick)}
+    </React.Fragment>
+  ));
+
+  // Default results container renderer
+  const defaultRenderResultsContainer = (
+    resultElements: React.ReactNode[],
+    hasResults: boolean,
+  ) => (
+    <div
+      className={`absolute top-full mt-1 w-full bg-surface rounded-lg shadow-lg overflow-hidden transition-colors duration-300 z-50 ${
+        hasResults ? 'border border-border' : ''
+      } ${resultsClassName}`}
+    >
+      {resultElements}
+    </div>
+  );
+
+  const resultsContainerRenderer = renderResultsContainer || defaultRenderResultsContainer;
+
+  return (
+    <div className={`max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl mx-auto ${className}`}>
+      <div className="relative">
+        {/* Search Input Container */}
+        <div
+          className={`relative overflow-hidden rounded-lg border-2 border-border transition-all duration-300 ${
+            hover ? 'hover:border-brand/50' : ''
+          }`}
+        >
+          <input
+            type="text"
+            placeholder={placeholder}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={`w-full px-4 ${sizeClasses.base} ${sizeClasses.icon} bg-surface text-primary transition-all duration-300 placeholder:text-subtle border-none outline-none ${
+              hover ? `hover:${sizeClasses.expanded}` : ''
+            } ${searchQuery.length > 0 && hover ? sizeClasses.expanded : ''} ${inputClassName}`}
+          />
+        </div>
+
+        {/* Search Icon */}
+        <div
+          className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 ${
+            hover ? 'hover:right-5' : ''
+          }`}
+        >
+          <svg
+            className="w-5 h-5 text-subtle transition-colors duration-300"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        </div>
+
+        {/* Search Results */}
+        {(data ? searchQuery.length > 0 && hasResults : searchResults.data) &&
+          resultsContainerRenderer(resultElements, hasResults)}
+      </div>
+    </div>
+  );
+}
