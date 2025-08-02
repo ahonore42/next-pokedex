@@ -1,9 +1,6 @@
-import Link from 'next/link';
-import { useEffect } from 'react';
-// import { AllTypesOutput } from '~/server/routers/_app';
 import { getTypeColor, truncateTypeName } from '~/utils/pokemon';
-import SkeletonBadge from '../ui/skeletons/SkeletonBadge';
 import { PokemonTypeName } from '~/server/routers/_app';
+import Badge from '../ui/Badge';
 
 export interface TypeBadgeProps {
   type: PokemonTypeName;
@@ -24,48 +21,41 @@ export default function TypeBadge({
   loading = false,
   onDataLoad,
 }: TypeBadgeProps) {
-  // Call onDataLoad when not loading
-  useEffect(() => {
-    if (onDataLoad) {
-      onDataLoad();
-    }
-  }, [onDataLoad]);
-
-  // Show skeleton while loading
-  if (loading) {
-    return <SkeletonBadge square={square} compact={compact} />;
-  }
-
-  const squareSizes = {
-    sm: 'size-8',
-    md: 'size-10',
-    lg: 'size-12',
-  };
-
   const color = getTypeColor(type);
   const nameLength = square ? 'short' : 'medium';
   const displayName = truncateTypeName(type, nameLength);
 
-  const badgeContent = (
-    <span
-      className={`flex items-center justify-center text-white font-medium capitalize shadow-xs text-xs
-        ${square && squareSize ? squareSizes[squareSize] : 'w-14 rounded'} ${compact ? 'leading-none py-0.5' : 'px-2 py-0.5  '}
-        `}
-      style={{
-        backgroundColor: color,
-      }}
+  return (
+    <Badge
+      backgroundColor={color}
+      href={link ? `/pokemon-types/${type}` : undefined}
+      square={square}
+      squareSize={squareSize}
+      compact={compact}
+      loading={loading}
+      onDataLoad={onDataLoad}
     >
       {displayName}
-    </span>
+    </Badge>
   );
-
-  if (link) {
-    return (
-      <Link href={`/pokemon-types/${type}`} className="hover:scale-105 transition-interactive">
-        {badgeContent}
-      </Link>
-    );
-  }
-
-  return badgeContent;
 }
+
+export const renderTypeBadge = ({
+  type,
+  link,
+  square,
+  squareSize,
+  compact,
+  loading,
+  onDataLoad,
+}: TypeBadgeProps) => (
+  <TypeBadge
+    type={type}
+    link={link}
+    square={square}
+    squareSize={squareSize}
+    compact={compact}
+    loading={loading}
+    onDataLoad={onDataLoad}
+  />
+);
