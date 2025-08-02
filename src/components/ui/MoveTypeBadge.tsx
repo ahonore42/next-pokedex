@@ -1,23 +1,22 @@
 import { getDamageClassColor, getDamageClassIcon } from '~/utils/pokemon';
+import Badge from './Badge';
 
 interface MoveTypeBadgeProps {
-  moveDamageClass: {
-    id: number;
-    name: string;
-    names: { name: string }[];
-  };
+  damageClass: string;
 }
 
-export default function MoveTypeBadge({ moveDamageClass }: MoveTypeBadgeProps) {
-  const displayName = moveDamageClass.names[0]?.name || moveDamageClass.name;
-  const damageClassColor = getDamageClassColor(moveDamageClass.name);
-  const damageClassIcon = getDamageClassIcon(moveDamageClass.name);
+export default function MoveTypeBadge({ damageClass }: MoveTypeBadgeProps) {
+  const damageClassColor = getDamageClassColor(damageClass);
+  const damageClassIcon = getDamageClassIcon(damageClass);
+  const truncatedName = damageClass.slice(0, 4);
   return (
-    <span
-      className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${damageClassColor}`}
-    >
+    <Badge className={`${damageClassColor}`}>
       <span>{damageClassIcon}</span>
-      <span className="capitalize">{displayName}</span>
-    </span>
+      <span className='text-gray-100'>{truncatedName}</span>
+    </Badge>
   );
 }
+
+export const renderMoveTypeBadge = ({ damageClass }: MoveTypeBadgeProps) => (
+  <MoveTypeBadge damageClass={damageClass} />
+);
