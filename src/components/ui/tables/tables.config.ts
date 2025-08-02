@@ -79,6 +79,7 @@ export const pokemonColumns: Column<PokemonColumns>[] = [
   {
     header: 'Pokémon',
     headerAlignment: 'left',
+    className: 'max-w-32',
     accessor: (row) =>
       renderTableLink({
         href: `/pokemon/${row.pokemonId}`,
