@@ -1,12 +1,10 @@
-import Button from '.';
-
 export interface FilterOption<T> {
   value: T;
   label: string;
   disabled?: boolean;
 }
 
-export interface FilterButtonsProps<T> {
+export interface FilterOptionsProps<T> {
   /** Current selected filter value */
   currentFilter?: T;
   /** Array of filter options */
@@ -17,18 +15,17 @@ export interface FilterButtonsProps<T> {
   className?: string;
 }
 
-export default function FilterButtons<T>({
+export default function FilterOptions<T>({
   currentFilter,
   options,
   onFilterChange,
   className = '',
-}: FilterButtonsProps<T>) {
+}: FilterOptionsProps<T>) {
   const selectedOption = options.find((option) => option.value === currentFilter);
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      {/* Mobile Dropdown (below md) */}
-      <div className="block md:hidden flex items-center gap-2">
+      <div className="flex items-center gap-2">
         <select
           value={selectedOption ? String(selectedOption.value) : ''}
           onChange={(e) => {
@@ -49,27 +46,6 @@ export default function FilterButtons<T>({
             </option>
           ))}
         </select>
-      </div>
-
-      {/* Desktop Buttons (md and above) */}
-      <div className="hidden md:flex items-center gap-2">
-        {options.map((option) => {
-          const isSelected = currentFilter === option.value;
-
-          return (
-            <Button
-              key={String(option.value)}
-              size="xs"
-              variant={isSelected ? 'outline' : 'secondary'}
-              active={isSelected}
-              disabled={option.disabled}
-              onClick={() => onFilterChange(option.value)}
-              className="whitespace-nowrap"
-            >
-              {option.label}
-            </Button>
-          );
-        })}
       </div>
     </div>
   );

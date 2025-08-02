@@ -9,6 +9,7 @@ export type ButtonVariant =
   | 'brand'
   | 'outline'
   | 'ghost'
+  | 'tab'
   | 'destructive'
   | 'success';
 
@@ -102,6 +103,13 @@ export const colorVariants = {
     hover: 'hover:bg-interactive hover:text-brand',
     active: 'active:bg-active',
     focus: 'focus:bg-interactive focus:text-brand',
+    disabled: 'disabled:text-disabled-text',
+  },
+  tab: {
+    base: 'bg-transparent border-transparent',
+    hover: '',
+    active: 'active:text-brand',
+    focus: 'focus:text-brand',
     disabled: 'disabled:text-disabled-text',
   },
   destructive: {
