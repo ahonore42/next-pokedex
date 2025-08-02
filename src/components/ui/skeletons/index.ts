@@ -5,6 +5,7 @@ export { default as Skeleton } from './Skeleton';
 export { default as SkeletonBadge } from './SkeletonBadge';
 export { default as SkeletonSprite } from './SkeletonSprite';
 export { default as SkeletonArtwork } from './SkeletonArtwork';
+export { default as SkeletonTableRow } from './SkeletonTableRow';
 export { default as SkeletonText } from './SkeletonText';
 export { default as SkeletonCard } from './SkeletonCard';
 export { default as SkeletonInteractiveLink } from './SkeletonInteractiveLink';
