@@ -10,7 +10,7 @@ import ThemeToggle from '../ui/ThemeToggle';
 import Modal from '../ui/Modal';
 
 export default function HeaderMenu() {
-  const { searchArray } = usePokemonCache();
+  const { pokemonDataArray } = usePokemonCache();
 
   const navigationItems = [
     { href: '/pokedex', label: 'Pokédex' },
@@ -71,7 +71,7 @@ export default function HeaderMenu() {
                 triggerClassName="w-8 h-8 bg-surface hover:bg-indigo-50 hover:text-brand dark:hover:bg-indigo-900/30 mr-2"
               >
                 <SearchBar
-                  data={searchArray}
+                  data={pokemonDataArray}
                   filterFunction={pokemonTableFilter}
                   placeholder="Search Pokémon by name, number, type, or ability..."
                   renderResult={renderPokemonTableResult}
@@ -97,7 +97,7 @@ export default function HeaderMenu() {
                 triggerClassName="w-8 h-8 bg-surface hover:bg-indigo-50 hover:text-brand dark:hover:bg-indigo-900/30 mr-2"
               >
                 <SearchBar
-                  data={searchArray}
+                  data={pokemonDataArray}
                   filterFunction={pokemonTableFilter}
                   placeholder="Search Pokémon..."
                   renderResult={renderPokemonTableResult}

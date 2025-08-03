@@ -3,7 +3,7 @@ import { trpc } from '~/utils/trpc';
 import { PokemonColumns } from '~/components/ui/tables';
 
 interface PokemonCacheContextValue {
-  searchArray: PokemonColumns[];
+  pokemonDataArray: PokemonColumns[];
   isLoading: boolean;
   error: string | null;
   clearCache: () => void;
@@ -54,8 +54,8 @@ export function PokemonCacheProvider({ children }: PokemonCacheProviderProps) {
     }
   }, [data?.national]);
 
-  // Simple searchArray getter - populated after initial load
-  const searchArray = Array.from(allPokemonCacheRef.current.values());
+  // Simple pokemonDataArray getter - populated after initial load
+  const pokemonDataArray = Array.from(allPokemonCacheRef.current.values());
 
   const clearCache = useCallback(() => {
     allPokemonCacheRef.current.clear();
@@ -77,7 +77,7 @@ export function PokemonCacheProvider({ children }: PokemonCacheProviderProps) {
   }, []);
 
   const value = {
-    searchArray,
+    pokemonDataArray,
     isLoading,
     error: error?.message || null,
     clearCache,

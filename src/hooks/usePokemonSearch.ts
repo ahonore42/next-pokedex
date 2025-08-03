@@ -3,7 +3,7 @@ import { PokemonColumns } from '~/components/ui/tables';
 import { usePokemonCache } from '~/lib/contexts/PokemonCacheContext';
 
 export function usePokemonSearch(query: string, limit = 200) {
-  const { searchArray } = usePokemonCache();
+  const { pokemonDataArray } = usePokemonCache();
 
   return useMemo(() => {
     if (!query.trim()) return [];
@@ -11,7 +11,7 @@ export function usePokemonSearch(query: string, limit = 200) {
     const lower = query.toLowerCase();
     const results: PokemonColumns[] = [];
 
-    for (const pokemon of searchArray) {
+    for (const pokemon of pokemonDataArray) {
       if (results.length >= limit) break;
 
       // Name match
@@ -47,5 +47,5 @@ export function usePokemonSearch(query: string, limit = 200) {
     }
 
     return results;
-  }, [searchArray, query, limit]);
+  }, [pokemonDataArray, query, limit]);
 }
