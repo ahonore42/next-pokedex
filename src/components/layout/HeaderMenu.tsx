@@ -1,46 +1,51 @@
 'use client';
 
 import Link from 'next/link';
+import Toolbar, { ToolbarGroup, ToolbarSection } from '../ui/toolbars';
 import { DropdownTrigger } from '../ui/dropdowns';
+import SearchBar, { pokemonTableFilter, renderPokemonTableResult } from '../ui/searchbars';
 import Pokeball from '../ui/Pokeball';
 import ThemeToggle from '../ui/ThemeToggle';
-import { useBreakpointWidth } from '~/hooks';
+import Modal from '../ui/Modal';
 
 export default function HeaderMenu() {
-  const breakpointWidth = useBreakpointWidth();
-
   const navigationItems = [
     { href: '/pokedex', label: 'Pokédex' },
     { href: '/moves', label: 'Moves' },
     { href: '/abilities', label: 'Abilities' },
     { href: '/pokemon-types', label: 'Types' },
     { href: '/items', label: 'Items' },
-    { href: '/locations', label: 'Locations' },
   ];
-
-  // Show dropdown below lg breakpoint (1024px)
-  const shouldShowDropdown = breakpointWidth < 1024;
 
   return (
     <header className="border-b-2 border-indigo-600 dark:border-indigo-700 shadow-sm flex justify-center relative">
       <div className="mx-auto px-4 py-1 w-full">
-        <div className="flex items-center justify-between">
-          {/* Logo Section */}
-          <Link
-            href="/"
-            className="flex items-center gap-x-2 focus-visible focus:outline-none rounded-lg m-0 group"
-            aria-label="Go to homepage"
-          >
-            <Pokeball size="sm" rotationDegrees={45} />
-            <div>
-              <h1 className="text-xl font-bold tracking-tight indigo-gradient">Evolve Pokédex</h1>
-              <p className="text-sm text-muted">Pokémon Reference</p>
-            </div>
-          </Link>
+        <Toolbar
+          mobileBreakpoint={768}
+          spacing="normal"
+          justify="between"
+          align="center"
+          className="flex items-center"
+          aria-label="Main navigation"
+        >
+          {/* Logo Section - Always visible */}
+          <ToolbarSection>
+            <Link
+              href="/"
+              className="flex items-center gap-x-2 focus-visible focus:outline-none rounded-lg m-0 group"
+              aria-label="Go to homepage"
+            >
+              <Pokeball size="sm" rotationDegrees={45} />
+              <div>
+                <h1 className="text-xl font-bold tracking-tight indigo-gradient">Evolve Pokédex</h1>
+                <p className="text-sm text-muted">Pokémon Reference</p>
+              </div>
+            </Link>
+          </ToolbarSection>
 
-          {/* Desktop Navigation (lg+ screens) */}
-          {!shouldShowDropdown && (
-            <div className="flex gap-x-2 xl:gap-x-4 items-center">
+          {/* Desktop Navigation - Hidden on mobile */}
+          <ToolbarSection hideOnMobile>
+            <ToolbarGroup>
               <nav className="flex gap-x-2 xl:gap-x-4 items-center">
                 {navigationItems.map((item) => (
                   <Link
@@ -55,21 +60,52 @@ export default function HeaderMenu() {
                 ))}
               </nav>
 
-              <div className="ml-2">
-                <ThemeToggle />
-              </div>
-            </div>
-          )}
+              <Modal
+                triggerIcon="search"
+                triggerLabel="Search Pokemon"
+                modalTitle="Search Pokemon"
+                maxWidth="lg"
+                triggerClassName="w-8 h-8 bg-surface hover:bg-indigo-50 hover:text-brand dark:hover:bg-indigo-900/30 mr-2"
+              >
+                <SearchBar
+                  data={[]}
+                  filterFunction={pokemonTableFilter}
+                  placeholder="Search Pokemon..."
+                  renderResult={renderPokemonTableResult}
+                  center
+                  className="w-full"
+                />
+              </Modal>
+              <ThemeToggle />
+            </ToolbarGroup>
+          </ToolbarSection>
 
-          {/* Dropdown Navigation (below lg screens) */}
-          {shouldShowDropdown && (
-            <div className="flex items-center gap-2">
+          {/* Mobile Navigation - Hidden on desktop */}
+          <ToolbarSection hideOnDesktop>
+            <ToolbarGroup>
+              <Modal
+                triggerIcon="search"
+                triggerLabel="Search Pokemon"
+                modalTitle="Search Pokemon"
+                maxWidth="lg"
+                triggerClassName="w-8 h-8 bg-surface hover:bg-indigo-50 hover:text-brand dark:hover:bg-indigo-900/30 mr-2"
+              >
+                <SearchBar
+                  data={[]} // TODO: add necessary data
+                  filterFunction={pokemonTableFilter}
+                  placeholder="Search Pokemon..."
+                  renderResult={renderPokemonTableResult}
+                  center
+                  className="w-full"
+                />
+              </Modal>
+              {/* Navigation Dropdown */}
               <DropdownTrigger
                 triggerType="actions-button"
                 triggerMode="click"
                 placement="bottom"
                 toolbar
-                actionsButtonClassName="w-10 h-10" // Slightly larger for header
+                actionsButtonClassName="w-10 h-10"
                 contentClassName="bg-background rounded-lg shadow-lg min-w-[200px] border-b-2 border-indigo-600 dark:border-indigo-700"
               >
                 <div className="py-2">
@@ -92,9 +128,9 @@ export default function HeaderMenu() {
                   </div>
                 </div>
               </DropdownTrigger>
-            </div>
-          )}
-        </div>
+            </ToolbarGroup>
+          </ToolbarSection>
+        </Toolbar>
       </div>
     </header>
   );

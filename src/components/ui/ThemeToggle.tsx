@@ -24,7 +24,7 @@ export default function ThemeToggle() {
   }
 
   const themeDisplay = theme === 'light' ? '☀️' : '🌙';
-  return breakpointWidth >= 1024 ? (
+  return breakpointWidth >= 768 ? (
     <button
       onClick={toggleTheme}
       className="relative w-10 h-10 rounded-lg border border-border dark:border-gray-600 
