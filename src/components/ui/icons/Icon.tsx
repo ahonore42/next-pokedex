@@ -1,18 +1,5 @@
 import { iconMap } from './BaseIcons';
-import { IconSize } from './IconWrapper';
-
-export type IconType =
-  | 'plus'
-  | 'download'
-  | 'external-link'
-  | 'image'
-  | 'microphone'
-  | 'loading'
-  | 'close'
-  | 'chevron-left'
-  | 'chevron-right'
-  | 'search'
-  | 'up';
+import { IconSize, IconType } from './icons.config';
 
 export interface IconProps {
   type: IconType;
