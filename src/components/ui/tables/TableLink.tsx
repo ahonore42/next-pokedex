@@ -13,7 +13,7 @@ export default function TableLink({ href, src, label, className = '' }: TableLin
   return (
     <Link
       href={href}
-      className={`flex items-center justify-start gap-2 hover:underline ${className}`}
+      className={`flex items-center justify-start gap-1 ${src ? 'hover:bg-surface hover:rounded-lg active:bg-surface-elevated active:text-brand' : 'hover:text-brand'} ${className}`}
     >
       {src && <Sprite src={src} alt={label} variant="xs" />}
       <span className="capitalize font-medium">{formattedLabel}</span>

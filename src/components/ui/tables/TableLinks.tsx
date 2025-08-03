@@ -7,7 +7,7 @@ export interface TableLinksProps {
 
 export default function TableLinks({ links, className = '' }: TableLinksProps) {
   return (
-    <div className={`flex flex-col items-center gap-0.5 ${className}`}>
+    <div className={`flex flex-col items-center gap-0.5 leading-none ${className}`}>
       {links.map((link, index) => (
         <div>
           <TableLink
