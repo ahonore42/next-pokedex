@@ -8,3 +8,5 @@ export {
   pokemonMovesConfig,
   pokemonEncountersConfig,
 } from './useGenerationFilter';
+export { useComponentHydration } from './useComponentHydration';
+export { usePokemonSearch } from './usePokemonSearch';
