@@ -1253,10 +1253,6 @@ export const pokemonForTypeSelect = {
           select: {
             id: true,
             name: true,
-            names: {
-              where: { languageId: DEFAULT_LANGUAGE_ID },
-              select: { name: true },
-            },
           },
         },
       },

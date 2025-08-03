@@ -444,11 +444,53 @@ export const pokemonRouter = router({
           select: { name: true, id: true },
         },
         pokemon: {
-          where: { isDefault: true },
+          where: {
+            OR: [
+              { isDefault: true },
+              { name: { contains: '-alola' } },
+              { name: { contains: '-galar' } },
+              { name: { contains: '-hisui' } },
+              { name: { contains: '-paldea' } },
+              { name: { contains: '-mega' } },
+              { name: { contains: '-power-construct' } },
+              { name: { contains: '-complete' } },
+              { name: { contains: '-10' } },
+            ],
+          },
           select: {
+            id: true,
             name: true,
             types: basicTypeSelect,
-            sprites: { select: { frontDefault: true } },
+            sprites: { select: { frontDefault: true, frontShiny: true } },
+            abilities: {
+              select: {
+                slot: true,
+                isHidden: true,
+                ability: {
+                  select: {
+                    id: true,
+                    name: true,
+                    names: {
+                      where: { languageId: DEFAULT_LANGUAGE_ID },
+                      select: { name: true },
+                    },
+                  },
+                },
+              },
+              orderBy: { slot: 'asc' as const },
+            },
+            stats: {
+              select: {
+                baseStat: true,
+                stat: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+              orderBy: { stat: { id: 'asc' as const } },
+            },
           },
         },
         pokedexNumbers: {
