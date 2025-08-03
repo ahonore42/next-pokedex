@@ -142,10 +142,8 @@ const FilterIconInternal = ({ size = 'md', className }: BaseIconProps) => (
   <IconWrapper size={size} className={className}>
     <BaseSVG>
       <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+        fill="currentColor"
+        d="M4 3h16a1 1 0 011 1v2a1 1 0 01-.293.707L15 12.414V19a1 1 0 01-.553.894l-3 1.5A1 1 0 0110 20.5V12.414L4.293 6.707A1 1 0 014 6V4a1 1 0 011-1z"
       />
     </BaseSVG>
   </IconWrapper>

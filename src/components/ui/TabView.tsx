@@ -1,12 +1,11 @@
 import { useState, ReactNode } from 'react';
 import Tabs, { TabItem } from './tabs';
-import clsx from 'clsx';
 
 interface TabViewProps {
   tabs: TabItem[];
   initialTab?: string;
   filter?: ReactNode; // Pre-configured SearchBar component
-  containerSize?: string;
+  containerHeight?: string;
   className?: string;
 }
 
@@ -14,7 +13,7 @@ export default function TabView({
   tabs,
   initialTab,
   filter,
-  containerSize = '',
+  containerHeight = 'h-96',
   className = '',
 }: TabViewProps) {
   const [selectedTab, setSelectedTab] = useState(
@@ -22,7 +21,7 @@ export default function TabView({
   );
 
   return (
-    <div className={`flex flex-col w-full ${className}`}>
+    <div className={`flex flex-col w-full gap-4 ${className}`}>
       {/* Header container with tabs and optional search bar */}
       <div className="w-full border-b border-border">
         <div className="flex items-center">
@@ -42,7 +41,7 @@ export default function TabView({
       </div>
 
       {/* Tab content */}
-      <div className={clsx('mt-4 ', containerSize && `${containerSize} overflow-scroll`)}>
+      <div className={`${containerHeight} overflow-y-auto`}>
         {tabs.find((tab) => tab.label === selectedTab)?.content}
       </div>
     </div>

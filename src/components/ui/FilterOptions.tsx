@@ -126,7 +126,7 @@ export default function FilterOptions<T>({
           <div className="flex items-center justify-between">
             <span className="truncate">{option.label}</span>
             {currentFilter === option.value && (
-              <Icon type="close" size="sm" className="rotate-45 text-brand" />
+              <Icon type="filter" size="sm" className="text-brand" />
             )}
           </div>
         </button>
