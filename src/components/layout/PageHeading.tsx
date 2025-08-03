@@ -2,6 +2,7 @@ import React from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import BreadcrumbNavigation, { BreadcrumbLink } from './BreadcrumbNavigation';
+import { useBreakpointWidth } from '~/hooks';
 
 export interface PageHeadingProps {
   // Essential SEO
@@ -49,6 +50,7 @@ export default function PageHeading({
   titleId,
 }: PageHeadingProps) {
   const router = useRouter();
+  const breakpointWidth = useBreakpointWidth();
 
   // Generate full canonical URL from current route
   const canonicalUrl =
@@ -130,26 +132,26 @@ export default function PageHeading({
       {title && (
         <div className={className}>
           {/* Top row: Breadcrumbs and Title aligned at bottom */}
-          <div className="flex justify-between items-end">
-            {breadcrumbLinks && (
-              <div className="flex-shrink-0 hidden md:block">
-                <BreadcrumbNavigation links={breadcrumbLinks} currentPage={currentPage} />
-              </div>
+          <div className="flex justify-between items-center">
+            {breakpointWidth >= 768 && breadcrumbLinks && (
+              <BreadcrumbNavigation links={breadcrumbLinks} currentPage={currentPage} />
             )}
 
-            <div className="flex items-end justify-end space-x-3">
-              <h1 id={titleId} className="text-4xl font-bold capitalize indigo-gradient">
+            <div className="flex flex-col md:items-end md:justify-end">
+              <h1
+                id={titleId}
+                className="text-3xl md:text-4xl font-bold capitalize indigo-gradient"
+              >
                 {title}
               </h1>
+              {/* Bottom row: Subtitle */}
+              {subtitle && (
+                <div className="md:text-right">
+                  <p className="text-lg font-base text-subtle">{subtitle}</p>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Bottom row: Subtitle */}
-          {subtitle && (
-            <div className="text-right">
-              <p className="text-lg font-base text-subtle">{subtitle}</p>
-            </div>
-          )}
         </div>
       )}
     </>

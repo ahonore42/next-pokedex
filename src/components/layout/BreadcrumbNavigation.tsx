@@ -2,26 +2,17 @@
 
 import Link from 'next/link';
 
-// src/types/breadcrumb.ts
-
 export interface BreadcrumbLink {
-  /** The display text for the breadcrumb link */
-  label: string;
-  /** The href/path for the breadcrumb link */
-  href: string;
+  label: string; // The display text for the breadcrumb link
+  href: string; // The href/path for the breadcrumb link
 }
 
 export interface BreadcrumbNavigationProps {
-  /** Array of breadcrumb links with href and label */
-  links: BreadcrumbLink[];
-  /** The current page name that will be rendered as a non-clickable span at the end */
-  currentPage: string;
-  /** Custom separator between breadcrumbs (default: '/') */
-  separator?: string;
-  /** Additional CSS classes for the nav element */
-  className?: string;
-  /** Custom aria-label for the breadcrumb navigation */
-  ariaLabel?: string;
+  links: BreadcrumbLink[]; // Array of breadcrumb links with href and label
+  currentPage: string; // The current page name that will be rendered as a non-clickable span at the end
+  separator?: string; // Custom separator between breadcrumbs (default: '/')
+  className?: string; // Additional CSS classes for the nav element
+  ariaLabel?: string; // Custom aria-label for the breadcrumb navigation
 }
 
 export default function BreadcrumbNavigation({

@@ -37,7 +37,7 @@ export default function DefaultLayout({ children, isLoading = false }: DefaultLa
     <div className="flex flex-col min-h-dvh bg-background min-w-[360px]">
       <HeaderMenu />
 
-      <main className="flex-grow w-full mx-auto px-4 py-8 lg:py-12 max-w-7xl xl:max-w-[1536px] self-center flex flex-col">
+      <main className="flex-grow w-full mx-auto px-4 pt-4 pb-8 lg:pt-8 lg:pb-12 max-w-7xl xl:max-w-[1536px] self-center flex flex-col">
         {shouldShowLoading ? (
           <div className="flex-grow flex items-center justify-center">
             <Pokeball size="lg" endlessSpin spinSpeed={3} />

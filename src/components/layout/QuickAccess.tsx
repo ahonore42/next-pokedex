@@ -65,6 +65,7 @@ export default function QuickAccess() {
             description={section.desc}
             showArrow={true}
             ariaLabel={`Navigate to ${section.name}: ${section.desc}`}
+            height="md"
           />
         ))}
       </div>
