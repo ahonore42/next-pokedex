@@ -9,6 +9,7 @@ export type IconType =
   | 'chevron-left'
   | 'chevron-right'
   | 'chevron-down'
+  | 'chevron-up'
   | 'search'
   | 'up'
   | 'filter'

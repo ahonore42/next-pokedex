@@ -172,6 +172,14 @@ const ChevronDownIconInternal = ({ size = 'md', className }: BaseIconProps) => (
   </IconWrapper>
 );
 
+const ChevronUpIconInternal = ({ size = 'md', className }: BaseIconProps) => (
+  <IconWrapper size={size} className={className}>
+    <BaseSVG>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+    </BaseSVG>
+  </IconWrapper>
+);
+
 // Icon mapping for the generic Icon component
 export const iconMap = {
   plus: PlusIconInternal,
@@ -184,6 +192,7 @@ export const iconMap = {
   'chevron-left': ChevronLeftIconInternal,
   'chevron-right': ChevronRightIconInternal,
   'chevron-down': ChevronDownIconInternal,
+  'chevron-up': ChevronUpIconInternal,
   search: SearchIconInternal,
   up: UpArrowIconInternal,
   filter: FilterIconInternal,
