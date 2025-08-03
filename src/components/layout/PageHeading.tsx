@@ -2,7 +2,6 @@ import React from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import BreadcrumbNavigation, { BreadcrumbLink } from './BreadcrumbNavigation';
-import { clsx } from 'clsx';
 
 export interface PageHeadingProps {
   // Essential SEO
@@ -129,7 +128,7 @@ export default function PageHeading({
       </Head>
 
       {title && (
-        <div className={clsx('mb-4', className)}>
+        <div className={className}>
           {/* Top row: Breadcrumbs and Title aligned at bottom */}
           <div className="flex justify-between items-end">
             {breadcrumbLinks && (
