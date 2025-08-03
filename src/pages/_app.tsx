@@ -6,6 +6,7 @@ import '@xyflow/react/dist/style.css';
 
 import { ThemeProvider } from 'next-themes';
 import { trpc } from '~/utils/trpc';
+import { PokemonCacheProvider } from '~/lib/contexts/PokemonCacheContext';
 import DefaultLayout from '~/components/layout/DefaultLayout';
 
 export type NextPageWithLayout<TProps = Record<string, unknown>, TInitialProps = TProps> = NextPage<
@@ -26,9 +27,11 @@ const MyApp = (({ Component, pageProps }: AppPropsWithLayout) => {
         <link rel="dns-prefetch" href="https://raw.githubusercontent.com" />
       </Head>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-        <DefaultLayout>
-          <Component {...pageProps} />
-        </DefaultLayout>
+        <PokemonCacheProvider>
+          <DefaultLayout>
+            <Component {...pageProps} />
+          </DefaultLayout>
+        </PokemonCacheProvider>
       </ThemeProvider>
     </>
   );
