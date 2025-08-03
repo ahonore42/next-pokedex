@@ -150,3 +150,5 @@ export default function DropdownTrigger({
     </div>
   );
 }
+
+DropdownTrigger.displayName = 'DropdownTrigger';

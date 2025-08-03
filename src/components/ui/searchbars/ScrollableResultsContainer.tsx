@@ -52,8 +52,8 @@ export default function ScrollableResultsContainer({
       {/* Scroll indicator */}
       {showScrollIndicator && (
         <div className="absolute top-full mt-1 w-full flex justify-center z-50 pointer-events-none">
-          <div className="p-1 shadow-lg mt-72">
-            <Icon type="chevron-down" size="sm" className="text-subtle" />
+          <div className="p-1 mt-72">
+            <Icon type="chevron-down" size="sm" className="text-brand" />
           </div>
         </div>
       )}

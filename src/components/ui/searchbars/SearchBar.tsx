@@ -12,7 +12,7 @@ export default function SearchBar<SearchResult>({
   filterFunction,
   limit = 10,
   placeholder = 'Search...',
-  hover = true,
+  hover = false,
   size = 'md',
   center = true,
   className = '',
@@ -130,3 +130,5 @@ export default function SearchBar<SearchResult>({
     </div>
   );
 }
+
+SearchBar.displayName = 'SearchBar';
