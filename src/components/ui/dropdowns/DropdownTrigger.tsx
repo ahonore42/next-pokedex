@@ -109,8 +109,10 @@ export default function DropdownTrigger({
         {...triggerProps}
         className={clsx(
           'inline-flex items-center justify-center',
-          'w-8 h-8 rounded cursor-pointer border border-border',
-          'bg-surface hover:bg-brand/10 dark:hover:bg-brand/40 active:bg-brand/20 dark:active:bg-brand/50',
+          'rounded cursor-pointer',
+          isMobile
+            ? 'w-8 h-8 bg-surface hover:bg-brand/10 dark:hover:bg-brand/40 active:bg-brand/20 dark:active:bg-brand/50'
+            : 'rounded-full hover:bg-surface active:bg-surface-elevated',
           'text-subtle',
           actionsButtonClassName,
         )}
