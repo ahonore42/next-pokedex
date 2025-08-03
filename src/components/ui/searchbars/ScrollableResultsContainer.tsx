@@ -1,4 +1,3 @@
-// src/components/ui/searchbars/ScrollableResultsContainer.tsx
 'use client';
 
 import { useState, useRef, useEffect } from 'react';

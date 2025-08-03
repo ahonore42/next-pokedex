@@ -8,7 +8,7 @@ export type SearchModel = 'pokemon' | 'pokemonSpecies' | 'moves' | 'abilities' |
 export type PokemonSearchResult = {
   id: number;
   name: string;
-  sprites: { frontDefault: string | null } | null;
+  sprites: { frontDefault: string | null; frontShiny: string | null } | null;
   types: { type: { name: string } }[];
   pokemonSpecies: { id: number };
 };
@@ -38,6 +38,7 @@ export interface SearchBarProps<SearchResult> {
   inputClassName?: string; // Additional CSS classes for the input
   resultsClassName?: string; // Additional CSS classes for the results container
   staleTime?: number; // Custom stale time for the query cache (5 minute default)
+  scroll?: boolean; // Whether or not to display results as a scrollable list
   /**
    * Render function for each search result
    * @param result - The search result data
