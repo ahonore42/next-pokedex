@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePokemonCache } from '~/lib/contexts/PokemonCacheContext';
 import Toolbar, { ToolbarGroup, ToolbarSection } from '../ui/toolbars';
 import { DropdownTrigger } from '../ui/dropdowns';
 import SearchBar, { pokemonTableFilter, renderPokemonTableResult } from '../ui/searchbars';
@@ -9,6 +10,8 @@ import ThemeToggle from '../ui/ThemeToggle';
 import Modal from '../ui/Modal';
 
 export default function HeaderMenu() {
+  const { searchArray } = usePokemonCache();
+
   const navigationItems = [
     { href: '/pokedex', label: 'Pokédex' },
     { href: '/moves', label: 'Moves' },
@@ -62,18 +65,21 @@ export default function HeaderMenu() {
 
               <Modal
                 triggerIcon="search"
-                triggerLabel="Search Pokemon"
-                modalTitle="Search Pokemon"
-                maxWidth="lg"
+                triggerLabel="Search Pokémon"
+                modalTitle="Search Pokémon"
+                maxWidth="2xl"
                 triggerClassName="w-8 h-8 bg-surface hover:bg-indigo-50 hover:text-brand dark:hover:bg-indigo-900/30 mr-2"
               >
                 <SearchBar
-                  data={[]}
+                  data={searchArray}
                   filterFunction={pokemonTableFilter}
-                  placeholder="Search Pokemon..."
+                  placeholder="Search Pokémon by name, number, type, or ability..."
                   renderResult={renderPokemonTableResult}
                   center
+                  scroll
+                  limit={200}
                   className="w-full"
+                  resultsClassName="h-96"
                 />
               </Modal>
               <ThemeToggle />
@@ -85,18 +91,21 @@ export default function HeaderMenu() {
             <ToolbarGroup>
               <Modal
                 triggerIcon="search"
-                triggerLabel="Search Pokemon"
-                modalTitle="Search Pokemon"
+                triggerLabel="Search Pokémon"
+                modalTitle="Search Pokémon"
                 maxWidth="lg"
                 triggerClassName="w-8 h-8 bg-surface hover:bg-indigo-50 hover:text-brand dark:hover:bg-indigo-900/30 mr-2"
               >
                 <SearchBar
-                  data={[]} // TODO: add necessary data
+                  data={searchArray}
                   filterFunction={pokemonTableFilter}
-                  placeholder="Search Pokemon..."
+                  placeholder="Search Pokémon..."
                   renderResult={renderPokemonTableResult}
                   center
+                  scroll
+                  limit={200}
                   className="w-full"
+                  resultsClassName="h-1/2"
                 />
               </Modal>
               {/* Navigation Dropdown */}

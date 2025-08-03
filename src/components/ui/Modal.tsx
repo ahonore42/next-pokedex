@@ -119,7 +119,7 @@ export default function Modal({
           onClick={handleBackdropClick}
         >
           {/* Modal Content */}
-          <div className="w-full h-2/3 flex flex-col items-center">
+          <div className="w-full h-[80vh] flex flex-col items-center">
             <div
               className={clsx(
                 'bg-background border border-border rounded-lg shadow-xl',

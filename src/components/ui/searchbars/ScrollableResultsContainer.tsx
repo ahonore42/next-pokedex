@@ -44,7 +44,7 @@ export default function ScrollableResultsContainer({
       <div
         className={`absolute top-full mt-1 w-full bg-surface rounded-lg shadow-lg transition-colors duration-300 z-50 border border-border ${resultsClassName}`}
       >
-        <div ref={scrollContainerRef} className="max-h-80 overflow-y-auto">
+        <div ref={scrollContainerRef} className="max-h-[50vh] overflow-y-auto">
           {results}
         </div>
       </div>
@@ -52,8 +52,8 @@ export default function ScrollableResultsContainer({
       {/* Scroll indicator */}
       {showScrollIndicator && (
         <div className="absolute top-full mt-1 w-full flex justify-center z-50 pointer-events-none">
-          <div className="p-1 mt-72">
-            <Icon type="chevron-down" size="sm" className="text-brand" />
+          <div className="p-1 mt-[calc(50vh-2rem)]">
+            <Icon type="chevron-down" size="md" className="text-brand" />
           </div>
         </div>
       )}
