@@ -71,7 +71,7 @@ export type PokemonColumns = {
 export const pokemonColumns: Column<PokemonColumns>[] = [
   {
     header: 'No.',
-    accessor: (row) => `#${row.speciesId}`,
+    accessor: (row) => `#${row.speciesId.toString().padStart(3, '0')}`,
     className: 'text-center',
     sortable: true,
     sortKey: (row) => row.speciesId,

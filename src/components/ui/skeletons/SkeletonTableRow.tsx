@@ -17,7 +17,12 @@ export default function SkeletonTableRow<T>({
   className = '',
 }: SkeletonTableRowProps<T>) {
   return (
-    <tr className={clsx('theme-transition border-b border-border', className)}>
+    <tr 
+      className={clsx(
+        'theme-transition border-b border-border',
+        className
+      )}
+    >
       {columns.map((column, colIndex) => (
         <td
           key={colIndex}
@@ -29,7 +34,10 @@ export default function SkeletonTableRow<T>({
             column.className || 'font-medium text-center',
           )}
         >
-          <Skeleton className="h-4 w-full rounded" animation={animation} />
+          <Skeleton 
+            className="h-4 w-full rounded" 
+            animation={animation} 
+          />
         </td>
       ))}
     </tr>

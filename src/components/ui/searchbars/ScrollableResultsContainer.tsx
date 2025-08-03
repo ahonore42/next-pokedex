@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, ReactNode } from 'react';
 import Icon from '../icons';
 
 interface ScrollableResultsContainerProps {
@@ -61,6 +61,6 @@ export default function ScrollableResultsContainer({
   );
 }
 
-export const renderScrollableResults = (results: React.ReactNode[], hasResults: boolean) => (
+export const renderScrollableResults = (results: ReactNode[], hasResults: boolean) => (
   <ScrollableResultsContainer results={results} hasResults={hasResults} />
 );
