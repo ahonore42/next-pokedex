@@ -1,9 +1,24 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import clsx from 'clsx';
 import { Column } from './tables.config';
 import TableColumn from './TableColumn';
 import TableRow from './TableRow';
 import SkeletonTableRow from '../skeletons/SkeletonTableRow';
+
+// Simplified interfaces - focus on preventing horizontal layout shifts
+type LayoutStabilizationConfig = {
+  enabled: boolean;
+  fixedLayout?: boolean; // Use CSS table-layout: fixed
+  preCalculatedWidths?: string[]; // Fixed widths per column ['w-24', 'w-32', etc.]
+  minColumnWidth?: string; // Minimum width for all columns
+};
+
+type VirtualScrollConfig = {
+  enabled: boolean;
+  rowHeight: number; // Must match standardRowHeight in pixels
+  overscan?: number; // Extra rows to render (default: 5)
+  threshold?: number; // When to enable virtualization (default: 100 rows)
+};
 
 interface InfiniteScrollConfig {
   onLoadMore: () => void;
@@ -28,6 +43,8 @@ interface DataTableProps<T> {
     enabled: boolean;
     maxHeight?: string;
   };
+  layoutStabilization?: LayoutStabilizationConfig;
+  virtualScroll?: VirtualScrollConfig;
 }
 
 export default function DataTable<T>({
@@ -42,11 +59,26 @@ export default function DataTable<T>({
   rounded = false,
   infiniteScroll,
   stickyHeader,
+  layoutStabilization = {
+    enabled: true,
+    fixedLayout: true, // Prevents column width recalculation
+    minColumnWidth: 'min-w-24', // Minimum width to prevent squashing
+  },
+  virtualScroll = {
+    enabled: true,
+    rowHeight: 72,
+    overscan: 5,
+    threshold: 100,
+  },
 }: DataTableProps<T>) {
   const [sortBy, setSortBy] = useState<string | undefined>(initialSortBy);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(initialSortOrder);
   const lastElementRef = useRef<HTMLTableRowElement | null>(null);
+  const tableContainerRef = useRef<HTMLDivElement | null>(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
 
+  // Enhanced sorting logic with scroll-to-top
   const handleSort = (column: Column<T>) => {
     if (!column.sortable) return;
 
@@ -55,7 +87,18 @@ export default function DataTable<T>({
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
       setSortBy(newSortKey);
-      setSortOrder('desc');
+      // Sort alphabetically ascending on first click for name/text columns
+      const isNameColumn =
+        typeof column.sortKey === 'function' && column.sortKey.toString().includes('row.name');
+      setSortOrder(isNameColumn ? 'asc' : 'desc');
+    }
+
+    // Scroll to top after sorting if not already at the top
+    if (tableContainerRef.current && tableContainerRef.current.scrollTop > 0) {
+      tableContainerRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
     }
   };
 
@@ -90,9 +133,82 @@ export default function DataTable<T>({
     return sorted;
   }, [data, sortBy, sortOrder, columns]);
 
-  // Intersection Observer for infinite scroll
+  // Virtual scrolling calculations
+  const shouldUseVirtualScroll = useMemo(() => {
+    return virtualScroll.enabled && sortedData.length >= (virtualScroll.threshold || 100);
+  }, [virtualScroll.enabled, sortedData.length, virtualScroll.threshold]);
+
+  const virtualScrollParams = useMemo(() => {
+    if (!shouldUseVirtualScroll || containerHeight === 0) {
+      return {
+        startIndex: 0,
+        endIndex: sortedData.length,
+        offsetY: 0,
+        totalHeight: sortedData.length * virtualScroll.rowHeight,
+      };
+    }
+
+    const itemHeight = virtualScroll.rowHeight;
+    const overscan = virtualScroll.overscan || 5;
+    const visibleCount = Math.ceil(containerHeight / itemHeight);
+
+    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
+    const endIndex = Math.min(sortedData.length, startIndex + visibleCount + overscan * 2);
+
+    const offsetY = startIndex * itemHeight;
+    const totalHeight = sortedData.length * itemHeight;
+
+    return {
+      startIndex,
+      endIndex,
+      offsetY,
+      totalHeight,
+    };
+  }, [shouldUseVirtualScroll, containerHeight, scrollTop, sortedData.length, virtualScroll]);
+
+  // Get visible data for rendering
+  const visibleData = useMemo(() => {
+    if (!shouldUseVirtualScroll) {
+      return sortedData;
+    }
+    return sortedData.slice(virtualScrollParams.startIndex, virtualScrollParams.endIndex);
+  }, [
+    shouldUseVirtualScroll,
+    sortedData,
+    virtualScrollParams.startIndex,
+    virtualScrollParams.endIndex,
+  ]);
+
+  // Scroll handler for virtual scrolling
+  const handleScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      if (shouldUseVirtualScroll) {
+        setScrollTop(e.currentTarget.scrollTop);
+      }
+    },
+    [shouldUseVirtualScroll],
+  );
+
+  // Container height measurement
   useEffect(() => {
-    if (!infiniteScroll || infiniteScroll.isLoading) return;
+    if (!shouldUseVirtualScroll || !tableContainerRef.current) return;
+
+    const container = tableContainerRef.current;
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerHeight(entry.contentRect.height);
+      }
+    });
+
+    resizeObserver.observe(container);
+    setContainerHeight(container.clientHeight);
+
+    return () => resizeObserver.disconnect();
+  }, [shouldUseVirtualScroll]);
+
+  // Enhanced intersection observer for infinite scroll
+  useEffect(() => {
+    if (!infiniteScroll || infiniteScroll.isLoading || shouldUseVirtualScroll) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -116,12 +232,13 @@ export default function DataTable<T>({
         observer.unobserve(currentElement);
       }
     };
-  }, [infiniteScroll]);
+  }, [infiniteScroll, shouldUseVirtualScroll]);
 
   const visibleColumns = columns.slice(0, maxColumns);
 
   return (
     <div
+      ref={tableContainerRef}
       className={clsx(
         'flex flex-col w-full',
         stickyHeader?.enabled && (stickyHeader.maxHeight || 'max-h-128'),
@@ -130,8 +247,15 @@ export default function DataTable<T>({
         border && 'border-2 border-border',
         stickyHeader?.enabled && rounded && 'rounded-lg',
       )}
+      onScroll={handleScroll}
     >
-      <table className="border-collapse divide-y divide-border">
+      <table
+        className={clsx(
+          'border-collapse divide-y divide-border',
+          // Fixed layout prevents horizontal shifts by not recalculating column widths
+          layoutStabilization.enabled && layoutStabilization.fixedLayout && 'table-fixed w-full',
+        )}
+      >
         {/* TABLE HEADER - Column definitions */}
         <thead>
           <tr
@@ -149,6 +273,12 @@ export default function DataTable<T>({
                 sortBy={sortBy}
                 onSort={handleSort}
                 noPadding={noPadding}
+                fixedWidth={
+                  layoutStabilization.enabled
+                    ? layoutStabilization.preCalculatedWidths?.[index] ||
+                      layoutStabilization.minColumnWidth
+                    : undefined
+                }
               />
             ))}
           </tr>
@@ -156,17 +286,55 @@ export default function DataTable<T>({
 
         {/* TABLE BODY - Data rows */}
         <tbody className="">
-          {sortedData.map((row, rowIndex) => (
-            <TableRow
-              key={rowIndex}
-              row={row}
-              rowIndex={rowIndex}
-              visibleColumns={visibleColumns}
-              sortedDataLength={sortedData.length}
-              overlayHover={overlayHover}
-              noPadding={noPadding}
-            />
-          ))}
+          {/* Virtual scroll spacer top */}
+          {shouldUseVirtualScroll && virtualScrollParams.offsetY > 0 && (
+            <tr>
+              <td
+                colSpan={visibleColumns.length}
+                className="p-0 border-0"
+                style={{
+                  height: virtualScrollParams.offsetY,
+                }}
+              />
+            </tr>
+          )}
+
+          {/* Visible data rows */}
+          {visibleData.map((row, dataIndex) => {
+            const actualIndex = shouldUseVirtualScroll
+              ? virtualScrollParams.startIndex + dataIndex
+              : dataIndex;
+
+            return (
+              <TableRow
+                key={actualIndex}
+                row={row}
+                rowIndex={actualIndex}
+                visibleColumns={visibleColumns}
+                sortedDataLength={sortedData.length}
+                overlayHover={overlayHover}
+                noPadding={noPadding}
+              />
+            );
+          })}
+
+          {/* Virtual scroll spacer bottom */}
+          {shouldUseVirtualScroll && (
+            <tr>
+              <td
+                colSpan={visibleColumns.length}
+                className="p-0 border-0"
+                style={{
+                  height: Math.max(
+                    0,
+                    virtualScrollParams.totalHeight -
+                      virtualScrollParams.offsetY -
+                      visibleData.length * virtualScroll.rowHeight,
+                  ),
+                }}
+              />
+            </tr>
+          )}
 
           {/* Skeleton rows while loading more data */}
           {infiniteScroll?.isLoading &&
@@ -179,7 +347,7 @@ export default function DataTable<T>({
             ))}
 
           {/* Intersection observer sentinel row for infinite scroll */}
-          {infiniteScroll && infiniteScroll.hasMore && (
+          {infiniteScroll && infiniteScroll.hasMore && !shouldUseVirtualScroll && (
             <tr ref={lastElementRef} style={{ height: '1px' }}>
               <td colSpan={visibleColumns.length} style={{ padding: 0, border: 'none' }} />
             </tr>
