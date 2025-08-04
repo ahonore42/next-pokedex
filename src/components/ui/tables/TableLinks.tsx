@@ -9,15 +9,13 @@ export default function TableLinks({ links, className = '' }: TableLinksProps) {
   return (
     <div className={`flex flex-col items-center gap-0.5 leading-none ${className}`}>
       {links.map((link, index) => (
-        <div>
-          <TableLink
-            key={`${link.label}_${index}`}
-            href={link.href}
-            src={link.src}
-            label={link.label}
-            className={link.className}
-          />
-        </div>
+        <TableLink
+          key={`${link.label}_${index}`}
+          href={link.href}
+          src={link.src}
+          label={link.label}
+          className={link.className}
+        />
       ))}
     </div>
   );

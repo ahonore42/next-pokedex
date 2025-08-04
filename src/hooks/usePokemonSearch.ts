@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { PokemonColumns } from '~/components/ui/tables';
+import { PokemonListData } from '~/lib/types';
 import { usePokemonCache } from '~/lib/contexts/PokemonCacheContext';
 
 export function usePokemonSearch(query: string, limit = 200) {
@@ -9,7 +9,7 @@ export function usePokemonSearch(query: string, limit = 200) {
     if (!query.trim()) return [];
 
     const lower = query.toLowerCase();
-    const results: PokemonColumns[] = [];
+    const results: PokemonListData[] = [];
 
     for (const pokemon of pokemonDataArray) {
       if (results.length >= limit) break;

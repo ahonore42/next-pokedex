@@ -3,6 +3,7 @@ import { renderTableLink } from './TableLink';
 import { renderTableLinks } from './TableLinks';
 import { renderTypeBadge } from '~/components/pokemon-types/TypeBadge';
 import { renderMoveTypeBadge } from '../MoveTypeBadge';
+import { PokemonListAbility, PokemonListData } from '~/lib/types';
 
 // Types and interfaces
 export interface Column<T> {
@@ -32,43 +33,8 @@ export interface Column<T> {
     | undefined;
 }
 
-type TableSprites = {
-  frontDefault?: string | null;
-  frontShiny?: string | null;
-};
-
-type TableAbility = {
-  ability: {
-    id: number;
-    name: string;
-    names: {
-      name: string;
-    }[];
-  };
-  slot: number;
-  isHidden: boolean;
-};
-
-type TableStat = {
-  stat: {
-    id: number;
-    name: string;
-  };
-  baseStat: number;
-};
-
-export type PokemonColumns = {
-  pokemonId: number;
-  speciesId: number;
-  name: string;
-  sprites: TableSprites;
-  types: string[];
-  abilities: TableAbility[];
-  stats: TableStat[];
-};
-
 // Reusable configuration for Pokémon table displays
-export const pokemonColumns: Column<PokemonColumns>[] = [
+export const pokemonColumns: Column<PokemonListData>[] = [
   {
     header: 'No.',
     accessor: (row) => `#${row.speciesId.toString().padStart(3, '0')}`,
@@ -96,7 +62,7 @@ export const pokemonColumns: Column<PokemonColumns>[] = [
   {
     header: 'Abilities',
     accessor: (row) => {
-      const abilityLinks = row.abilities.map(({ ability }: TableAbility) => ({
+      const abilityLinks = row.abilities.map(({ ability }: PokemonListAbility) => ({
         href: `/abilities/${ability.name}`,
         label: ability.names[0]?.name || ability.name,
         containerStyle: 'flex flex-col gap-0.5',

@@ -1,19 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import { PokemonListData } from '~/lib/types';
 import { capitalizeName } from '~/utils/text';
-import { PokemonColumns } from '~/components/ui/tables';
 import Sprite from '../Sprite';
 import TypeBadgesDisplay from '~/components/pokemon-types/TypeBadgesDisplay';
 
 export interface PokemonTableSearchResultRowProps {
-  pokemon: PokemonColumns;
+  pokemon: PokemonListData;
   onClick: () => void;
   searchQuery?: string;
 }
 
 // Helper function to determine what was matched
-const getMatchBadge = (pokemon: PokemonColumns, query: string): string | null => {
+const getMatchBadge = (pokemon: PokemonListData, query: string): string | null => {
   if (!query.trim()) return null;
 
   const lower = query.toLowerCase();
@@ -95,7 +95,7 @@ export default function PokemonTableSearchResultRow({
 let currentSearchQuery = '';
 
 // Filter function
-export const pokemonTableFilter = (pokemon: PokemonColumns, query: string): boolean => {
+export const pokemonTableFilter = (pokemon: PokemonListData, query: string): boolean => {
   currentSearchQuery = query; // Store for render function
 
   if (!query.trim()) return false;
@@ -125,7 +125,7 @@ export const pokemonTableFilter = (pokemon: PokemonColumns, query: string): bool
 };
 
 // Render function
-export const renderPokemonTableResult = (pokemon: PokemonColumns, onResultClick: () => void) => (
+export const renderPokemonTableResult = (pokemon: PokemonListData, onResultClick: () => void) => (
   <PokemonTableSearchResultRow
     pokemon={pokemon}
     onClick={onResultClick}
