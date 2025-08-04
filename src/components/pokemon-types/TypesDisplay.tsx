@@ -1,30 +1,24 @@
-import SectionCard from '~/components/ui/SectionCard';
+import { pokemonTypeMap } from '~/utils/pokemon';
 import TypeBadge from '~/components/pokemon-types/TypeBadge';
-import { AllTypesOutput } from '~/server/routers/_app';
-import { useComponentHydration } from '~/hooks/useComponentHydration';
 
 interface TypesDisplayProps {
-  types: AllTypesOutput | { id: number; name: string }[];
+  link?: boolean;
+  onClick?: () => void;
+  className?: string;
 }
 
-export default function TypesDisplay({ types }: TypesDisplayProps) {
-  const { containerRef, allDataLoaded, handleDataLoad } = useComponentHydration(
-    types.length,
-    'types-display',
-  );
-
+export default function TypesDisplay({ link = false, onClick, className }: TypesDisplayProps) {
+  const interactive = onClick || link;
+  const types = Object.keys(pokemonTypeMap);
   return (
-    <SectionCard colorVariant="transparent" className="min-h-28 sm:min-h-20 xl:min-h-12">
-      <div ref={containerRef} className="flex flex-wrap gap-4 justify-center xl:justify-between">
-        {types.map((type) => (
-          <TypeBadge
-            key={type.id}
-            type={type.name}
-            loading={!allDataLoaded}
-            onDataLoad={handleDataLoad}
-          />
-        ))}
-      </div>
-    </SectionCard>
+    <div
+      className={`py-4 flex flex-wrap gap-2 justify-center ${interactive && 'cursor-pointer'} ${className}`}
+    >
+      {types.map((type, index) => (
+        <span onClick={onClick}>
+          <TypeBadge key={`${type}_${index}`} type={type} link={link} />
+        </span>
+      ))}
+    </div>
   );
 }
