@@ -98,3 +98,7 @@ export type TypePokemon = TypeWithPokemonAndMovesOutput['pokemon'];
 export type TypeMoves = TypeWithPokemonAndMovesOutput['moves'];
 export type TypePokemonData = TypeWithPokemonAndMovesOutput['pokemon'][number];
 export type TypeMoveData = TypeWithPokemonAndMovesOutput['moves'][number];
+
+// Pokemon and species IDs by generation
+export type GenerationPokemonIdsOutput = PokemonRouterOutputs['generationPokemonIds'];
+export type GenerationWithPokemonIds = GenerationPokemonIdsOutput[number];

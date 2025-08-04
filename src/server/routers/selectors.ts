@@ -1270,3 +1270,17 @@ export const completeTypeSelect = {
     moveDamageClassId: true,
   },
 };
+
+export const pokemonFilter = {
+  OR: [
+    { isDefault: true },
+    { name: { contains: '-alola' } },
+    { name: { contains: '-galar' } },
+    { name: { contains: '-hisui' } },
+    { name: { contains: '-paldea' } },
+    { name: { contains: '-mega' } },
+    { name: { contains: '-power-construct' } },
+    { name: { contains: '-complete' } },
+    { name: { contains: '-10' } },
+  ],
+};

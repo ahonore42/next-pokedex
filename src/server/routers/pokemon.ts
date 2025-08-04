@@ -11,6 +11,7 @@ import {
   pokemonSearchSelect,
   pokemonWithSpeciesSelect,
   featuredPokemonSelect,
+  pokemonFilter,
 } from './selectors';
 import type { inferRouterOutputs } from '@trpc/server';
 import { evolutionChainsRouter } from './evolution-chains';
@@ -444,19 +445,7 @@ export const pokemonRouter = router({
           select: { name: true, id: true },
         },
         pokemon: {
-          where: {
-            OR: [
-              { isDefault: true },
-              { name: { contains: '-alola' } },
-              { name: { contains: '-galar' } },
-              { name: { contains: '-hisui' } },
-              { name: { contains: '-paldea' } },
-              { name: { contains: '-mega' } },
-              { name: { contains: '-power-construct' } },
-              { name: { contains: '-complete' } },
-              { name: { contains: '-10' } },
-            ],
-          },
+          where: pokemonFilter,
           select: {
             id: true,
             name: true,
@@ -540,6 +529,42 @@ export const pokemonRouter = router({
       },
       generations,
     };
+  }),
+
+  generationPokemonIds: publicProcedure.query(async () => {
+    const generations = await prisma.generation.findMany({
+      select: {
+        id: true,
+        name: true,
+        pokemonSpecies: {
+          select: {
+            id: true,
+            pokemon: {
+              where: pokemonFilter,
+              select: {
+                id: true,
+              },
+            },
+          },
+          orderBy: {
+            id: 'asc',
+          },
+        },
+      },
+      orderBy: {
+        id: 'asc',
+      },
+    });
+
+    // Transform the data to a more usable format
+    return generations.map((generation) => ({
+      id: generation.id,
+      name: generation.name,
+      pokemonIds: generation.pokemonSpecies.flatMap((species) =>
+        species.pokemon.map((pokemon) => pokemon.id),
+      ),
+      speciesIds: generation.pokemonSpecies.map((species) => species.id),
+    }));
   }),
 
   regionalPokedexesByGeneration: publicProcedure

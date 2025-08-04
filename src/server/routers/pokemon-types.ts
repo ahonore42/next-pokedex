@@ -102,22 +102,8 @@ export const pokemonTypesRouter = router({
     .input(z.object({ typeName: z.string() }))
     .query(async ({ input }) => {
       const { typeName } = input;
-      // First query gets allTypes for navigation purposes
-      const allTypes = await prisma.type.findMany({
-        where: {
-          name: {
-            notIn: ['shadow', 'unknown', 'stellar'],
-          },
-        },
-        select: {
-          id: true,
-          name: true,
-        },
-        orderBy: {
-          id: 'asc',
-        },
-      });
-      // Second query gets everything for the input Type through model relations
+
+      // Gets everything for the input Type through model relations
       const typeWithData = await prisma.type.findUnique({
         where: { name: typeName },
         select: {
@@ -195,7 +181,6 @@ export const pokemonTypesRouter = router({
           name: typeWithData.name,
           generationId: typeWithData.generationId,
         },
-        types: allTypes,
         pokemon: processedPokemon,
         moves: typeWithData.moves,
       };
