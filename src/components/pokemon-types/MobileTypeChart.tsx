@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import { AllEfficaciesOutput, AllTypesOutput } from '~/server/routers/_app';
-import { buildTypeEfficacyMap, getTypeEfficacy } from '~/utils/pokemon';
+import { AllEfficaciesOutput } from '~/server/routers/_app';
+import { buildTypeEfficacyMap, getTypeEfficacy, pokemonTypes } from '~/utils/pokemon';
 import TypeBadge from '~/components/pokemon-types/TypeBadge';
 
 interface MobileTypeChartProps {
-  types: AllTypesOutput; // TODO: Replace any with actual type
   efficacies: AllEfficaciesOutput;
 }
 
-export default function MobileTypeChart({ types, efficacies }: MobileTypeChartProps) {
+export default function MobileTypeChart({ efficacies }: MobileTypeChartProps) {
   const [selectedAttackingType, setSelectedAttackingType] = useState<string>('normal'); // Default to Normal type (id 1)
   const efficacyMap = buildTypeEfficacyMap(efficacies);
   return (
@@ -29,9 +28,9 @@ export default function MobileTypeChart({ types, efficacies }: MobileTypeChartPr
           <option value="" disabled>
             Select a Type
           </option>
-          {types.map((type) => (
-            <option key={type.id} value={type.name} className="capitalize">
-              {type.name}
+          {pokemonTypes.map((type) => (
+            <option key={type} value={type} className="capitalize">
+              {type}
             </option>
           ))}
         </select>
@@ -45,13 +44,13 @@ export default function MobileTypeChart({ types, efficacies }: MobileTypeChartPr
               Super Effective Against (2x)
             </h3>
             <div className="flex flex-wrap gap-2">
-              {types
+              {pokemonTypes
                 .filter(
                   (defendingType) =>
-                    getTypeEfficacy(efficacyMap, selectedAttackingType, defendingType.name) > 1,
+                    getTypeEfficacy(efficacyMap, selectedAttackingType, defendingType) > 1,
                 )
                 .map((defendingType) => (
-                  <TypeBadge key={defendingType.id} type={defendingType.name} link={false} />
+                  <TypeBadge key={defendingType} type={defendingType} link={false} />
                 ))}
             </div>
           </div>
@@ -62,14 +61,14 @@ export default function MobileTypeChart({ types, efficacies }: MobileTypeChartPr
               Not Very Effective Against (0.5x)
             </h3>
             <div className="flex flex-wrap gap-2">
-              {types
+              {pokemonTypes
                 .filter(
                   (defendingType) =>
-                    getTypeEfficacy(efficacyMap, selectedAttackingType, defendingType.name) < 1 &&
-                    getTypeEfficacy(efficacyMap, selectedAttackingType, defendingType.name) !== 0,
+                    getTypeEfficacy(efficacyMap, selectedAttackingType, defendingType) < 1 &&
+                    getTypeEfficacy(efficacyMap, selectedAttackingType, defendingType) !== 0,
                 )
                 .map((defendingType) => (
-                  <TypeBadge key={defendingType.id} type={defendingType.name} link={false} />
+                  <TypeBadge key={defendingType} type={defendingType} link={false} />
                 ))}
             </div>
           </div>
@@ -80,13 +79,13 @@ export default function MobileTypeChart({ types, efficacies }: MobileTypeChartPr
               No Effect On (0x)
             </h3>
             <div className="flex flex-wrap gap-2">
-              {types
+              {pokemonTypes
                 .filter(
                   (defendingType) =>
-                    getTypeEfficacy(efficacyMap, selectedAttackingType, defendingType.name) === 0,
+                    getTypeEfficacy(efficacyMap, selectedAttackingType, defendingType) === 0,
                 )
                 .map((defendingType) => (
-                  <TypeBadge key={defendingType.id} type={defendingType.name} link={false} />
+                  <TypeBadge key={defendingType} type={defendingType} link={false} />
                 ))}
             </div>
           </div>
@@ -97,13 +96,13 @@ export default function MobileTypeChart({ types, efficacies }: MobileTypeChartPr
               Normal Effectiveness (1x)
             </h3>
             <div className="flex flex-wrap gap-2">
-              {types
+              {pokemonTypes
                 .filter(
                   (defendingType) =>
-                    getTypeEfficacy(efficacyMap, selectedAttackingType, defendingType.name) === 1,
+                    getTypeEfficacy(efficacyMap, selectedAttackingType, defendingType) === 1,
                 )
                 .map((defendingType) => (
-                  <TypeBadge key={defendingType.id} type={defendingType.name} link={false} />
+                  <TypeBadge key={defendingType} type={defendingType} link={false} />
                 ))}
             </div>
           </div>

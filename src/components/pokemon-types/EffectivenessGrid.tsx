@@ -1,24 +1,9 @@
-import { getDamageFactorColor, getTypesByName } from '~/utils/pokemon';
+import { getDamageFactorColor } from '~/utils/pokemon';
 import SectionCard from '../ui/SectionCard';
 import TypeBadgesDisplay from './TypeBadgesDisplay';
-import { AllTypesOutput } from '~/server/routers/_app';
 import { useMemo } from 'react';
 
-interface EffectivenessGridProps {
-  types: AllTypesOutput;
-}
-
-export default function EffectivenessGrid({ types }: EffectivenessGridProps) {
-  // Find all needed types at once
-  const [water, fire, electric, grass, ground, rock] = getTypesByName(types, [
-    'water',
-    'fire',
-    'electric',
-    'grass',
-    'ground',
-    'rock',
-  ]);
-
+export default function EffectivenessGrid() {
   // Effectiveness examples with consistent colors matching TypeEffectivenessKey and pre-mapped types
   const examplesWithTypes = useMemo(
     () => [
@@ -27,43 +12,43 @@ export default function EffectivenessGrid({ types }: EffectivenessGridProps) {
         label: 'Quadruple Damage',
         description: 'Double-type advantage stacks for maximum damage',
         color: getDamageFactorColor(4),
-        attackingType: water,
-        defendingTypes: [ground, rock],
+        attackingType: 'water',
+        defendingTypes: ['ground', 'rock'],
       },
       {
         multiplier: '2',
         label: 'Super Effective',
         description: 'Single-type advantage deals double damage',
         color: getDamageFactorColor(2),
-        attackingType: water,
-        defendingTypes: [fire],
+        attackingType: 'water',
+        defendingTypes: ['fire'],
       },
       {
         multiplier: '1',
         label: 'Normal Damage',
         description: 'Standard effectiveness with no advantage',
         color: getDamageFactorColor(1),
-        attackingType: water,
-        defendingTypes: [electric],
+        attackingType: 'water',
+        defendingTypes: ['electric'],
       },
       {
         multiplier: '½',
         label: 'Not Very Effective',
         description: 'Type disadvantage deals half damage',
         color: getDamageFactorColor(0.5),
-        attackingType: water,
-        defendingTypes: [grass],
+        attackingType: 'water',
+        defendingTypes: ['grass'],
       },
       {
         multiplier: '0',
         label: 'No Effect',
         description: 'Complete immunity to certain attacks',
         color: getDamageFactorColor(0),
-        attackingType: electric,
-        defendingTypes: [ground],
+        attackingType: 'electric',
+        defendingTypes: ['ground'],
       },
     ],
-    [water, fire, electric, grass, ground, rock],
+    [],
   );
 
   return (
@@ -90,12 +75,9 @@ export default function EffectivenessGrid({ types }: EffectivenessGridProps) {
               {/* Type Badge Examples */}
               <div className="space-y-2">
                 <div className="flex items-center justify-center gap-1.5 text-sm">
-                  <TypeBadgesDisplay types={[item.attackingType.name]} link={false} />
+                  <TypeBadgesDisplay types={[item.attackingType]} link={false} />
                   <span className="text-subtle mx-0.5">vs</span>
-                  <TypeBadgesDisplay
-                    types={item.defendingTypes.map((type) => type.name)}
-                    link={false}
-                  />
+                  <TypeBadgesDisplay types={item.defendingTypes} link={false} />
                 </div>
               </div>
             </div>

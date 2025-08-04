@@ -1,4 +1,4 @@
-import { pokemonTypeMap } from '~/utils/pokemon';
+import { pokemonTypes } from '~/utils/pokemon';
 import TypeBadge from '~/components/pokemon-types/TypeBadge';
 
 interface TypesDisplayProps {
@@ -9,12 +9,11 @@ interface TypesDisplayProps {
 
 export default function TypesDisplay({ link = false, onClick, className }: TypesDisplayProps) {
   const interactive = onClick || link;
-  const types = Object.keys(pokemonTypeMap);
   return (
     <div
       className={`py-4 flex flex-wrap gap-2 justify-center ${interactive && 'cursor-pointer'} ${className}`}
     >
-      {types.map((type, index) => (
+      {pokemonTypes.map((type, index) => (
         <span onClick={onClick}>
           <TypeBadge key={`${type}_${index}`} type={type} link={link} />
         </span>
