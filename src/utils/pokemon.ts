@@ -206,7 +206,7 @@ export const starterIds: Record<number, number[]> = {
   9: [906, 909, 912],
 };
 
-export const pokemonTypeMap = {
+export const pokemonTypeMap: Record<PokemonTypeName, number> = {
   normal: 1,
   fighting: 2,
   flying: 3,
@@ -226,6 +226,27 @@ export const pokemonTypeMap = {
   dark: 17,
   fairy: 18,
 } as const;
+
+export const pokemonTypes: PokemonTypeName[] = [
+  'normal',
+  'fighting',
+  'flying',
+  'poison',
+  'ground',
+  'rock',
+  'bug',
+  'ghost',
+  'steel',
+  'fire',
+  'water',
+  'grass',
+  'electric',
+  'psychic',
+  'ice',
+  'dragon',
+  'dark',
+  'fairy',
+];
 
 // Pokemon Game Color Map - Tailwind classes with proper contrast
 export const pokemonGameColorMap = {
@@ -401,6 +422,11 @@ export const significantPokemonIds: number[] = [
 /* ------------------------------------------------------------------ */
 /* Utility Functions                                                  */
 /* ------------------------------------------------------------------ */
+
+export function getOrCreateMapArray<K, V>(map: Map<K, V[]>, key: K): V[] {
+  if (!map.has(key)) map.set(key, []);
+  return map.get(key)!;
+}
 
 // Define the order of learn methods for display
 const methodOrder = [
