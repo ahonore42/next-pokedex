@@ -1,6 +1,8 @@
 import { EvolutionConditions, PokemonSpeciesEvolutionChain } from '~/server/routers/_app';
 import { capitalizeWords } from './text';
 
+// -------------------- Types -----------------------------
+
 type SeparationOptions = {
   rankdir: 'TB' | 'LR';
   containerWidth: number;
@@ -15,6 +17,8 @@ export type ComputeNodesepOptions = SeparationOptions;
 export type ComputeRanksepOptions = SeparationOptions & {
   rankCount: number;
 };
+
+// -------------------- Constants -------------------------
 
 const specialEvolutionCases: Record<string, string> = {
   'primeape-annihilape': 'Level up after using Rage Fist 20 times',
@@ -32,6 +36,8 @@ const specialEvolutionCases: Record<string, string> = {
   'applin-dipplin': 'Use Syrupy Apple',
   'dipplin-hydrapple': 'Level up knowing Dragon Cheer',
 };
+
+// -------------------- Functions -------------------------
 
 export const formatEvolutionConditions = (
   evolution: EvolutionConditions,

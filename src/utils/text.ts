@@ -1,3 +1,5 @@
+// -------------------- Functions -------------------------
+
 // Utility function to capitalize Pokemon names
 export function capitalizeName(name: string): string {
   return name
@@ -53,3 +55,6 @@ export function romanToInteger(roman: string): number | null {
 
   return result > 0 ? result : null;
 }
+
+export const formatPercentage = (percentage: number) =>
+  percentage === 100 ? percentage : percentage.toFixed(1);
