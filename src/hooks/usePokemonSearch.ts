@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { PokemonListData } from '~/lib/types';
-import { usePokemonCache } from '~/lib/contexts/PokemonCacheContext';
+import { usePokemonCache } from '~/lib/contexts/PokedexCacheContext';
 
 export function usePokemonSearch(query: string, limit = 200) {
   const { pokemonDataArray } = usePokemonCache();

@@ -11,7 +11,7 @@ interface AutoLoadConfig {
 interface UsePaginationOptions<T> {
   data: T[];
   itemsPerPage: number;
-  resetDependency?: any;
+  resetDependency?: number | string;
   autoLoad?: AutoLoadConfig;
 }
 
