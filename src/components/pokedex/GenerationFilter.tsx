@@ -1,5 +1,4 @@
 import React from 'react';
-import { getGenerationDisplayName } from '~/utils/pokemon';
 
 interface GenerationFilterProps {
   title: string;
@@ -38,7 +37,7 @@ export default function GenerationFilter({
         >
           {availableGenerations.map((genId) => (
             <option key={genId} value={genId}>
-              {getGenerationDisplayName(genId)}
+              {`Generation ${genId}`}
             </option>
           ))}
         </select>
