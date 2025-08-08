@@ -3,14 +3,19 @@ import { useComponentHydration } from '~/hooks';
 import InfiniteScroll from '../ui/InfiniteScroll';
 import { usePagination } from '~/hooks';
 import { PokemonListData } from '~/lib/types';
-import { capitalizeName } from '~/utils/text';
+import { capitalizeName } from '~/utils';
 
 interface PokedexDisplayProps {
-  pokemon: PokemonListData[];
-  itemsPerPage?: number;
+  pokemon: PokemonListData[]; // The complete dataset of Pokemon to display
+  itemsPerPage?: number; // How many Pokemon to show per pagination page (default: 100)
+  resetDependency?: number | string; // When this value changes, pagination resets to page 1 (default: pokemon.length)
 }
 
-export default function PokedexDisplay({ pokemon, itemsPerPage = 100 }: PokedexDisplayProps) {
+export default function PokedexDisplay({
+  pokemon,
+  itemsPerPage = 100,
+  resetDependency,
+}: PokedexDisplayProps) {
   const {
     displayedData: displayedPokemon,
     hasMore,
@@ -19,7 +24,7 @@ export default function PokedexDisplay({ pokemon, itemsPerPage = 100 }: PokedexD
   } = usePagination({
     data: pokemon,
     itemsPerPage,
-    resetDependency: pokemon.length, // Reset when pokedex changes
+    resetDependency: resetDependency ?? pokemon.length, // Reset when pokedex changes or custom dependency
   });
 
   const { handleDataLoad, containerRef, loadProgress, totalData } = useComponentHydration(
@@ -27,7 +32,7 @@ export default function PokedexDisplay({ pokemon, itemsPerPage = 100 }: PokedexD
     pokemon.length,
   );
 
-  // Determine if we're loading new content
+  // Determine if loading new content
   const isLoadingNewContent = totalDisplayed !== totalData && loadProgress < 100;
 
   return (
@@ -35,7 +40,7 @@ export default function PokedexDisplay({ pokemon, itemsPerPage = 100 }: PokedexD
       onLoadMore={handleLoadMore}
       hasMore={hasMore}
       isLoading={isLoadingNewContent}
-      eagerLoad
+      eagerLoad={true}
     >
       <div
         ref={containerRef}
