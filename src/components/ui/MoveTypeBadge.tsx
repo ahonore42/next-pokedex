@@ -1,4 +1,4 @@
-import { getDamageClassColor, getDamageClassIcon } from '~/utils/pokemon';
+import { getDamageClassColor, getDamageClassIcon } from '~/utils';
 import Badge from './Badge';
 
 interface MoveTypeBadgeProps {

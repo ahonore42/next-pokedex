@@ -118,7 +118,7 @@ export default function Sprite({
 
   return (
     <div
-      className={`text-center flex flex-col items-center justify-center text-primary rounded-lg border border-border 
+      className={`text-center flex flex-col items-center justify-center text-primary rounded-lg border border-border gap-1
       ${hover ? 'surface-hover' : 'surface'} ${variants[variant].container} ${className}`}
     >
       {spriteImage}
@@ -127,12 +127,13 @@ export default function Sprite({
       {title && (imageLoaded || shouldShowFallback) && (
         <div>
           <div
-            className={`flex justify-center align-center items-center gap-1 mb-2 leading-none text-nowrap ${variants[variant].text}`}
+            className={`flex justify-center align-start items-center gap-0.5 leading-none text-ellipsis  ${variants[variant].text}`}
           >
-            {prefix && <p className="text-muted">#{prefix}</p>}
-            <p className="font-semibold capitalize">{title}</p>
+            <p className="font-semibold capitalize">
+              {prefix && <span className="font-medium text-muted">#{prefix}</span>} {title}
+            </p>
           </div>
-          {types && <TypeBadgesDisplay types={types} className="mx-auto mb-2" compact />}
+          {types && <TypeBadgesDisplay types={types} className="mx-auto" compact />}
         </div>
       )}
 

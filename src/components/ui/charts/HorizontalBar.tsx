@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
-import { getBarColor } from '~/utils/pokemon';
+import { getBarColor } from '~/utils';
 
 export interface HorizontalBarProps {
   value: number;
