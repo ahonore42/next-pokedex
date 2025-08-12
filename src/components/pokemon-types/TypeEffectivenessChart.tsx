@@ -6,7 +6,7 @@ import {
   getTypeEfficacy,
   pokemonTypeMap,
   pokemonTypes,
-} from '~/utils/pokemon';
+} from '~/utils';
 import { SquareTable, Column } from '../ui/tables';
 import TypeBadge from '~/components/pokemon-types/TypeBadge';
 import { useBreakpointWidth } from '~/hooks';

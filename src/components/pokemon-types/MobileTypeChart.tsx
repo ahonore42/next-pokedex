@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AllEfficaciesOutput } from '~/server/routers/_app';
-import { buildTypeEfficacyMap, getTypeEfficacy, pokemonTypes } from '~/utils/pokemon';
+import { buildTypeEfficacyMap, getTypeEfficacy, pokemonTypes } from '~/utils';
 import TypeBadge from '~/components/pokemon-types/TypeBadge';
 
 interface MobileTypeChartProps {

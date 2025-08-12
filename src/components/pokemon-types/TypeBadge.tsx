@@ -1,4 +1,4 @@
-import { getTypeColor, truncateTypeName } from '~/utils/pokemon';
+import { getTypeColor, truncateTypeName } from '~/utils';
 import { PokemonTypeName } from '~/server/routers/_app';
 import Badge from '../ui/Badge';
 

@@ -1,4 +1,4 @@
-import { getDamageFactorColor } from '~/utils/pokemon';
+import { getDamageFactorColor } from '~/utils';
 import SectionCard from '../ui/SectionCard';
 import TypeBadgesDisplay from './TypeBadgesDisplay';
 import { useMemo } from 'react';

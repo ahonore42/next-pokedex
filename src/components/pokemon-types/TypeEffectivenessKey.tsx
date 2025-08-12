@@ -1,4 +1,4 @@
-import { getDamageFactorColor } from '~/utils/pokemon';
+import { getDamageFactorColor } from '~/utils';
 
 // Type Effectiveness Chart key/legend
 export default function TypeEffectivenessKey() {
