@@ -4,7 +4,7 @@ export { default as TableColumn } from './TableColumn';
 export { default as TableRow } from './TableRow';
 
 // Types
-export type { Column, PokemonColumns, MoveColumns, MoveTableRow } from './tables.config';
+export type { Column, MoveColumns, MoveTableRow } from './tables.config';
 
 // Config
 export { pokemonColumns, moveColumns } from './tables.config';

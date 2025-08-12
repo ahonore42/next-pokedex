@@ -37,13 +37,15 @@ export interface Column<T> {
 export const pokemonColumns: Column<PokemonListData>[] = [
   {
     header: 'No.',
-    accessor: (row) => `#${row.speciesId.toString().padStart(3, '0')}`,
+    headerClassName: 'hover:text-brand',
+    accessor: (row) => `#${row.speciesId.toString()}`,
     className: 'text-center',
     sortable: true,
     sortKey: (row) => row.speciesId,
   },
   {
     header: 'Pokémon',
+    headerClassName: 'hover:text-brand',
     headerAlignment: 'left',
     className: 'max-w-40',
     accessor: (row) =>
@@ -72,6 +74,7 @@ export const pokemonColumns: Column<PokemonListData>[] = [
   },
   {
     header: 'HP',
+    headerClassName: 'hover:text-brand',
     accessor: (row) => row.stats.find((stat) => stat.stat.name === 'hp')?.baseStat || '—',
     className: 'text-center',
     sortable: true,
@@ -79,6 +82,7 @@ export const pokemonColumns: Column<PokemonListData>[] = [
   },
   {
     header: 'Atk',
+    headerClassName: 'hover:text-brand',
     accessor: (row) => row.stats.find((stat) => stat.stat.name === 'attack')?.baseStat || '—',
     className: 'text-center',
     sortable: true,
@@ -86,6 +90,7 @@ export const pokemonColumns: Column<PokemonListData>[] = [
   },
   {
     header: 'Def',
+    headerClassName: 'hover:text-brand',
     accessor: (row) => row.stats.find((stat) => stat.stat.name === 'defense')?.baseStat || '—',
     className: 'text-center',
     sortable: true,
@@ -93,7 +98,7 @@ export const pokemonColumns: Column<PokemonListData>[] = [
   },
   {
     header: 'Sp. Atk',
-    headerClassName: 'whitespace-nowrap',
+    headerClassName: 'hover:text-brand whitespace-nowrap',
     accessor: (row) =>
       row.stats.find((stat) => stat.stat.name === 'special-attack')?.baseStat || '—',
     className: 'text-center',
@@ -102,7 +107,7 @@ export const pokemonColumns: Column<PokemonListData>[] = [
   },
   {
     header: 'Sp. Def',
-    headerClassName: 'whitespace-nowrap',
+    headerClassName: 'hover:text-brand whitespace-nowrap',
     accessor: (row) =>
       row.stats.find((stat) => stat.stat.name === 'special-defense')?.baseStat || '—',
     className: 'text-center',
@@ -111,6 +116,7 @@ export const pokemonColumns: Column<PokemonListData>[] = [
   },
   {
     header: 'Spd',
+    headerClassName: 'hover:text-brand',
     accessor: (row) => row.stats.find((stat) => stat.stat.name === 'speed')?.baseStat || '—',
     className: 'text-center',
     sortable: true,
@@ -118,6 +124,7 @@ export const pokemonColumns: Column<PokemonListData>[] = [
   },
   {
     header: 'Total',
+    headerClassName: 'hover:text-brand',
     accessor: (row) => row.stats.reduce((sum, stat) => sum + stat.baseStat, 0),
     className: 'font-bold text-center',
     sortable: true,

@@ -241,7 +241,7 @@ export default function DataTable<T>({
       ref={tableContainerRef}
       className={clsx(
         'flex flex-col w-full',
-        stickyHeader?.enabled && (stickyHeader.maxHeight || 'max-h-128'),
+        stickyHeader?.enabled && (stickyHeader.maxHeight || 'min-h-96'),
         stickyHeader?.enabled && 'overflow-auto',
         !stickyHeader?.enabled && rounded && 'rounded-lg overflow-scroll',
         border && 'border-2 border-border',
