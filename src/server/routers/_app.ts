@@ -9,6 +9,7 @@ import { evolutionChainsRouter } from './evolution-chains';
 import { pokedexRouter } from './pokedex';
 import { movesRouter } from './moves';
 import { abilitiesRouter } from './abilities';
+import { itemsRouter } from './items';
 
 export const appRouter = router({
   healthcheck: publicProcedure.query(() => 'Hello!'),
@@ -18,6 +19,7 @@ export const appRouter = router({
   pokedex: pokedexRouter,
   moves: movesRouter,
   abilities: abilitiesRouter,
+  items: itemsRouter,
 });
 
 export const createCaller = createCallerFactory(appRouter);
@@ -106,6 +108,14 @@ export type AbilitiesRouterOutputs = RouterOutputs['abilities'];
 export type AbilitiesListOutput = AbilitiesRouterOutputs['list'];
 export type AbilityListItem = AbilitiesListOutput[number];
 export type AbilityDetailOutput = AbilitiesRouterOutputs['byName'];
+
+/**
+ * --------------------------- Items types -------------------------------------
+ */
+export type ItemsRouterOutputs = RouterOutputs['items'];
+export type ItemsListOutput = ItemsRouterOutputs['list'];
+export type ItemListItem = ItemsListOutput[number];
+export type ItemDetailOutput = ItemsRouterOutputs['byName'];
 
 /**
   * ------------------------- Pokémon Type types --------------------------------

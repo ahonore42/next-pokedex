@@ -368,6 +368,138 @@ export const orderedSingleEffectTextSelect = {
   take: 1,
 };
 
+export const itemDetailSelect = {
+  select: {
+    id: true,
+    name: true,
+    cost: true,
+    sprite: true,
+    flingPower: true,
+    generationId: true,
+    names: {
+      where: { languageId: DEFAULT_LANGUAGE_ID },
+      select: { name: true },
+    },
+    itemCategory: {
+      select: {
+        id: true,
+        name: true,
+        names: {
+          where: { languageId: DEFAULT_LANGUAGE_ID },
+          select: { name: true },
+        },
+        pocket: {
+          select: {
+            id: true,
+            name: true,
+            names: {
+              where: { languageId: DEFAULT_LANGUAGE_ID },
+              select: { name: true },
+            },
+          },
+        },
+      },
+    },
+    effectTexts: {
+      where: { languageId: DEFAULT_LANGUAGE_ID },
+      select: { effect: true, shortEffect: true },
+    },
+    flavorTexts: {
+      where: { languageId: DEFAULT_LANGUAGE_ID },
+      select: {
+        flavorText: true,
+        versionGroup: {
+          select: {
+            id: true,
+            name: true,
+            order: true,
+            generation: { select: { id: true, name: true } },
+            versions: {
+              select: {
+                id: true,
+                name: true,
+                names: {
+                  where: { languageId: DEFAULT_LANGUAGE_ID },
+                  select: { name: true },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { versionGroupId: 'asc' as const },
+    },
+    pokemonItems: {
+      select: {
+        rarity: true,
+        version: {
+          select: {
+            id: true,
+            name: true,
+            names: {
+              where: { languageId: DEFAULT_LANGUAGE_ID },
+              select: { name: true },
+            },
+          },
+        },
+        pokemon: {
+          select: {
+            id: true,
+            name: true,
+            sprites: { select: { frontDefault: true } },
+          },
+        },
+      },
+      orderBy: [{ pokemonId: 'asc' as const }, { versionId: 'asc' as const }],
+    },
+  },
+};
+
+export const itemListSelect = {
+  select: {
+    id: true,
+    name: true,
+    cost: true,
+    sprite: true,
+    generationId: true,
+    names: {
+      where: { languageId: DEFAULT_LANGUAGE_ID },
+      select: { name: true },
+    },
+    itemCategory: {
+      select: {
+        id: true,
+        name: true,
+        names: {
+          where: { languageId: DEFAULT_LANGUAGE_ID },
+          select: { name: true },
+        },
+        pocket: {
+          select: {
+            id: true,
+            name: true,
+            names: {
+              where: { languageId: DEFAULT_LANGUAGE_ID },
+              select: { name: true },
+            },
+          },
+        },
+      },
+    },
+    effectTexts: {
+      where: { languageId: DEFAULT_LANGUAGE_ID },
+      select: { shortEffect: true },
+      take: 1,
+    },
+    flavorTexts: {
+      where: { languageId: DEFAULT_LANGUAGE_ID },
+      select: { flavorText: true },
+      orderBy: { versionGroupId: 'desc' as const },
+      take: 1,
+    },
+  },
+};
+
 export const abilityListSelect = {
   select: {
     id: true,
