@@ -1,7 +1,8 @@
+import { TRPCError } from '@trpc/server';
 import { router, publicProcedure } from '../trpc';
 import { z } from 'zod';
 import { prisma } from '~/server/prisma';
-import { abilityListSelect } from './selectors';
+import { abilityListSelect, pokemonForTypeSelect, pokemonFilter } from './selectors';
 
 export const abilitiesRouter = router({
   generations: publicProcedure.query(async () => {
@@ -27,5 +28,26 @@ export const abilitiesRouter = router({
         ...abilityListSelect,
         orderBy: { id: 'asc' },
       });
+    }),
+
+  byName: publicProcedure
+    .input(z.object({ name: z.string() }))
+    .query(async ({ input }) => {
+      const ability = await prisma.ability.findUnique({
+        where: { name: input.name },
+        ...abilityListSelect,
+      });
+
+      if (!ability) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: `Ability "${input.name}" not found` });
+      }
+
+      const pokemonAbilities = await prisma.pokemonAbility.findMany({
+        where: { abilityId: ability.id, pokemon: pokemonFilter },
+        select: { slot: true, isHidden: true, pokemon: pokemonForTypeSelect },
+        orderBy: { pokemon: { id: 'asc' } },
+      });
+
+      return { ability, pokemon: pokemonAbilities };
     }),
 });

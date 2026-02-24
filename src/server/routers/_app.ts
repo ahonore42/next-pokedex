@@ -97,6 +97,7 @@ export type EvolutionConditions = EvolutionSpecies['pokemonEvolutions'][number];
  */
 export type MovesRouterOutputs = RouterOutputs['moves'];
 export type MovesListOutput = MovesRouterOutputs['list'];
+export type MoveDetailOutput = MovesRouterOutputs['byName'];
 
 /**
  * ------------------------- Abilities types -----------------------------------
@@ -104,6 +105,7 @@ export type MovesListOutput = MovesRouterOutputs['list'];
 export type AbilitiesRouterOutputs = RouterOutputs['abilities'];
 export type AbilitiesListOutput = AbilitiesRouterOutputs['list'];
 export type AbilityListItem = AbilitiesListOutput[number];
+export type AbilityDetailOutput = AbilitiesRouterOutputs['byName'];
 
 /**
   * ------------------------- Pokémon Type types --------------------------------

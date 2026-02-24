@@ -1,7 +1,8 @@
+import { TRPCError } from '@trpc/server';
 import { router, publicProcedure } from '../trpc';
 import { z } from 'zod';
 import { prisma } from '~/server/prisma';
-import { moveSelect } from './selectors';
+import { moveSelect, pokemonForTypeSelect, pokemonFilter } from './selectors';
 
 export const movesRouter = router({
   list: publicProcedure
@@ -23,5 +24,27 @@ export const movesRouter = router({
         ...moveSelect,
         orderBy: { id: 'asc' },
       });
+    }),
+
+  byName: publicProcedure
+    .input(z.object({ name: z.string() }))
+    .query(async ({ input }) => {
+      const move = await prisma.move.findUnique({
+        where: { name: input.name },
+        ...moveSelect,
+      });
+
+      if (!move) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: `Move "${input.name}" not found` });
+      }
+
+      const learners = await prisma.pokemonMove.findMany({
+        where: { moveId: move.id, pokemon: pokemonFilter },
+        distinct: ['pokemonId'],
+        select: { pokemon: pokemonForTypeSelect },
+        orderBy: { pokemon: { id: 'asc' } },
+      });
+
+      return { move, pokemon: learners.map((l) => l.pokemon) };
     }),
 });

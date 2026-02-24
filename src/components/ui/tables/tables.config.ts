@@ -134,6 +134,7 @@ export const pokemonColumns: Column<PokemonListData>[] = [
 
 export type MoveColumns = {
   name: string;
+  slug: string;
   type: string;
   damageClass: string;
   description: string;
@@ -195,7 +196,7 @@ export const moveColumns: Column<MoveTableRow>[] = [
   createMoveColumn({
     header: 'Move',
     spans2Rows: true,
-    accessor: (row) => row.move.name,
+    accessor: (row) => renderTableLink({ href: `/moves/${row.move.slug}`, label: row.move.name }),
     className: 'font-medium text-center capitalize',
     sortKey: (row) => row.move.name,
     dividerAfter: true,
@@ -299,6 +300,7 @@ export const moveColumns: Column<MoveTableRow>[] = [
 
 export type AbilityColumns = {
   name: string;
+  slug: string;
   generationId: number;
   description: string;
   isMainSeries: boolean;
@@ -349,7 +351,7 @@ export const abilityColumns: Column<AbilityTableRow>[] = [
   createAbilityColumn({
     header: 'Ability',
     spans2Rows: true,
-    accessor: (row) => row.ability.name,
+    accessor: (row) => renderTableLink({ href: `/abilities/${row.ability.slug}`, label: row.ability.name }),
     className: 'font-medium capitalize',
     sortKey: (row) => row.ability.name,
     dividerAfter: true,
