@@ -52,6 +52,7 @@ const PokemonTypeDetailPage: NextPageWithLayout = () => {
     moves.forEach((move) => {
       const formattedMove: MoveColumns = {
         name: move.names[0].name,
+        slug: move.name,
         type: move.type.name,
         damageClass: move.moveDamageClass.name,
         description:
