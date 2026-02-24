@@ -1,6 +1,6 @@
 import { useComponentHydration } from '~/hooks/useComponentHydration';
 import { FeaturedPokemon, FeaturedPokemonOutput } from '~/server/routers/_app';
-import { capitalizeWords } from '~/utils/text';
+import { capitalizeWords } from '~/utils';
 import SectionCard from '../ui/SectionCard';
 import InteractiveLink from '../ui/InteractiveLink';
 import Sprite from '../ui/Sprite';

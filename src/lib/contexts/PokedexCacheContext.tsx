@@ -47,7 +47,8 @@ interface PokedexCacheContextValue {
         descriptions: { description: string }[];
         pokemon: number[];
       }[]
-    | null;
+    | null
+    | undefined;
   clearRegionalPokedexesCache: () => void;
 }
 
@@ -64,11 +65,15 @@ export function PokedexCacheProvider({ children }: PokedexCacheProviderProps) {
   // Cache for regional pokedexes data
   const regionalPokedexesCacheRef = useRef<RegionalPokedexes>(new Map());
 
-  // Track dataset size for change detection
+  // Track dataset sizes for change detection
   const datasetSizeRef = useRef<number>(0);
+  const regionalDatasetSizeRef = useRef<number>(0);
 
   // Direct state for pokemonDataArray to ensure proper reactivity
   const [pokemonDataArray, setPokemonDataArray] = useState<PokemonListData[]>([]);
+
+  // Boolean state to track if regional pokedex cache has been populated
+  const [regionalPokedexCacheReady, setRegionalPokedexCacheReady] = useState(false);
 
   // tRPC query for Pokemon and Species IDs by generation
   const {
@@ -120,11 +125,37 @@ export function PokedexCacheProvider({ children }: PokedexCacheProviderProps) {
     }
   }, [pokemonData?.national?.pokemonListData]);
 
+  // Smart cache update logic for regional pokedexes
   useEffect(() => {
-    if (regionalPokedexData) {
-      regionalPokedexesCacheRef.current = regionalPokedexData;
+    if (!regionalPokedexData) return;
+
+    // Calculate total size of the Map structure
+    const totalPokedexes = Array.from(regionalPokedexData.values()).reduce(
+      (total, pokedexArray) => total + pokedexArray.length,
+      0,
+    );
+
+    const cacheIsEmpty = regionalPokedexesCacheRef.current.size === 0;
+    const datasetSizeChanged = regionalDatasetSizeRef.current !== totalPokedexes;
+
+    if (cacheIsEmpty || datasetSizeChanged) {
+      // Clear and repopulate cache
+      regionalPokedexesCacheRef.current.clear();
+
+      regionalPokedexData.forEach((pokedexArray, generationId) => {
+        regionalPokedexesCacheRef.current.set(generationId, pokedexArray);
+      });
+
+      // Update tracking
+      regionalDatasetSizeRef.current = totalPokedexes;
+      setRegionalPokedexCacheReady(true);
+
+      console.log(
+        `Regional Pokedex cache updated: ${cacheIsEmpty ? 'empty cache' : 'size changed'} - ${totalPokedexes} total pokedexes across ${regionalPokedexData.size} generations`,
+      );
     }
   }, [regionalPokedexData]);
+
   // Generation lookup map for efficient filtering
   const generationPokemonMap = useMemo(() => {
     if (!generationsData) return new Map<number, Set<number>>();
@@ -140,7 +171,9 @@ export function PokedexCacheProvider({ children }: PokedexCacheProviderProps) {
     allPokemonCacheRef.current.clear();
     regionalPokedexesCacheRef.current.clear();
     datasetSizeRef.current = 0;
+    regionalDatasetSizeRef.current = 0;
     setPokemonDataArray([]);
+    setRegionalPokedexCacheReady(false);
   }, []);
 
   const getCachedPokemon = useCallback((ids: number[]): PokemonListData[] => {
@@ -160,19 +193,18 @@ export function PokedexCacheProvider({ children }: PokedexCacheProviderProps) {
 
   const getPokemonByGeneration = useCallback(
     (generationId: number): PokemonListData[] => {
-      const pokemonIdsInGeneration = generationPokemonMap.get(generationId);
-      if (!pokemonIdsInGeneration) return [];
+      const allPokemonIds: number[] = [];
 
-      const result: PokemonListData[] = [];
-      for (const pokemonId of pokemonIdsInGeneration) {
-        const pokemon = allPokemonCacheRef.current.get(pokemonId);
-        if (pokemon) {
-          result.push(pokemon);
+      for (let genId = 1; genId <= generationId; genId++) {
+        const pokemonIdsInGeneration = generationPokemonMap.get(genId);
+        if (pokemonIdsInGeneration) {
+          allPokemonIds.push(...pokemonIdsInGeneration);
         }
       }
-      return result;
+
+      return getCachedPokemon(allPokemonIds);
     },
-    [generationPokemonMap],
+    [generationPokemonMap, getCachedPokemon],
   );
 
   const getAllGenerations = useCallback((): GenerationWithPokemonIds[] => {
@@ -198,12 +230,18 @@ export function PokedexCacheProvider({ children }: PokedexCacheProviderProps) {
           descriptions: { description: string }[];
           pokemon: number[];
         }[]
-      | null => regionalPokedexesCacheRef.current.get(generationId) ?? null,
-    [],
+      | null
+      | undefined => {
+      // Return undefined if cache is not ready (distinguishes from null = no data)
+      if (!regionalPokedexCacheReady) return undefined;
+      return regionalPokedexesCacheRef.current.get(generationId) ?? null;
+    },
+    [regionalPokedexCacheReady],
   );
 
   const clearRegionalPokedexesCache = useCallback(() => {
     regionalPokedexesCacheRef.current.clear();
+    setRegionalPokedexCacheReady(false);
   }, []);
 
   const value = {

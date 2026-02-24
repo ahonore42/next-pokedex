@@ -1,8 +1,8 @@
-import { getTypeColor } from '~/utils/pokemon';
-import type { PokemonDetailedById } from '~/server/routers/_app';
+import { getTypeColor } from '~/utils';
+import type { PokemonInSpecies } from '~/server/routers/_app';
 
 interface ComponentProps {
-  pokemon: PokemonDetailedById;
+  pokemon: PokemonInSpecies;
 }
 
 // Pokemon Types Component

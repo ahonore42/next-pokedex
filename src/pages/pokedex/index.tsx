@@ -1,50 +1,65 @@
 import { NextPageWithLayout } from '../_app';
-import { useEffect, useState } from 'react';
-import { trpc } from '~/utils/trpc';
-import { getNationalDexForGeneration } from '~/utils/pokemon';
-import { PokedexEntries } from '~/server/routers/_app';
+import { useMemo, useState } from 'react';
 import SectionCard from '~/components/ui/SectionCard';
 import PageHeading from '~/components/layout/PageHeading';
 import PageContent from '~/components/layout/PageContent';
-import PokedexDisplay from '~/components/pokemon/PokedexDisplay';
-import InteractiveLink from '~/components/ui/InteractiveLink';
-import FilterButtons, { FilterOption } from '~/components/ui/buttons/FilterButtons';
+import FilterOptions, { FilterOption } from '~/components/ui/FilterOptions';
+import Badge from '~/components/ui/Badge';
+import { usePokemonCache } from '~/lib/contexts/PokedexCacheContext';
+import { PokemonListData } from '~/lib/types';
+import PokemonTabs from '~/components/pokedex/PokemonTabs';
+import TypesDisplay from '~/components/pokemon-types/TypesDisplay';
+import { getRgba, getTypeColor } from '~/utils';
 
 const PokedexSelectionPage: NextPageWithLayout = () => {
-  const [nationalDex, setNationalDex] = useState<PokedexEntries>();
+  // Get all cached Pokemon data
+  const {
+    pokemonDataArray,
+    pokemonDataIsLoading,
+    generationsData,
+    generationsLoading,
+    getPokemonByGeneration,
+    // getAllGenerations,
+  } = usePokemonCache();
   const [currentGenFilter, setCurrentGenFilter] = useState<number | 'all'>('all');
+  const [currentTypeFilter, setCurrentTypeFilter] = useState<string | null>(null);
 
-  const generationsResponse = trpc.pokemon.pokedexByGeneration.useQuery();
-  const { data, isLoading } = generationsResponse;
-
-  // Initialize nationalDex with national data when available
-  useEffect(() => {
-    if (data?.national) {
-      setNationalDex(data.national);
+  // Filter Pokemon by generation (simple filtering on already-cached data)
+  const pokemonData: PokemonListData[] = useMemo(() => {
+    let filteredData: PokemonListData[];
+    if (currentGenFilter === 'all') {
+      filteredData = pokemonDataArray;
+    } else {
+      filteredData = getPokemonByGeneration(currentGenFilter);
     }
-  }, [data?.national]);
+
+    if (currentTypeFilter) {
+      filteredData = filteredData.filter((pokemon) => pokemon.types.includes(currentTypeFilter));
+    }
+    return filteredData;
+  }, [pokemonDataArray, currentGenFilter, currentTypeFilter, getPokemonByGeneration]);
 
   // Use the usePageLoading hook to manage loading state
-  const isPageLoading = isLoading || !data?.national || !data?.generations.length;
+  const isPageLoading =
+    pokemonDataIsLoading ||
+    generationsLoading ||
+    !pokemonDataArray.length ||
+    !generationsData?.length;
 
   if (isPageLoading) {
     return null; // Let DefaultLayout handle the loading display
   }
 
-  const { national, generations } = data;
-
   const handleDexFilter = (genFilter: number | 'all') => {
     setCurrentGenFilter(genFilter);
-    if (genFilter === 'all') {
-      setNationalDex(national);
-    } else {
-      const filteredDex = getNationalDexForGeneration(generations, genFilter);
-      setNationalDex(filteredDex);
-    }
   };
 
-  // Filter options for the FilterButtons component
-  const filterOptions: FilterOption<number | 'all'>[] = [
+  const handleTypeChange = (type: string | null) => {
+    setCurrentTypeFilter(type);
+  };
+
+  // Filter options for the FilterOptions component
+  const generationFilterOptions: FilterOption<number | 'all'>[] = [
     { value: 'all', label: 'All' },
     ...Array.from({ length: 9 }, (_, i) => ({
       value: i + 1,
@@ -53,56 +68,63 @@ const PokedexSelectionPage: NextPageWithLayout = () => {
   ];
 
   // Regional Pokédexes by Generation
-  const regionalDexes = generations.map((generation) => (
-    <InteractiveLink
+  const regionalDexes = generationsData.map((generation) => (
+    <Badge
       key={generation.id}
+      className={'bg-indigo-600 dark:bg-indigo-700'}
       href={`/pokedex/${generation.id}`}
-      ariaLabel={`Gen ${generation.id} Pokédex`}
-      showArrow
-      title={`Gen ${generation.id} Pokédex`}
-      className="whitespace-nowrap leading-none text-sm"
-      height="xs"
-    />
+    >{`Gen ${generation.id}`}</Badge>
   ));
 
-  const dexTitle =
-    currentGenFilter === 'all' ? 'National Dex' : `Gen ${currentGenFilter} National Dex`;
-
+  const typeColor = currentTypeFilter ? getTypeColor(currentTypeFilter) : undefined;
+  const bgOverlay = typeColor ? getRgba(typeColor, 0.1) : undefined;
   return (
-    <>
+    <PageContent className="max-h-dvh">
       <PageHeading
         pageTitle="National Pokédex - Complete Pokémon Database"
         metaDescription="Browse the complete National Pokédex with all Pokémon species from every generation. Search, filter, and explore detailed information for all 1000+ Pokémon."
         ogImage="/national-pokedex-preview.png"
         schemaType="WebPage"
         breadcrumbLinks={[{ label: 'Home', href: '/' }]}
-        currentPage="National Pokédex"
+        currentPage="Pokédex"
         title="National Pokédex"
         subtitle="Complete index of Pokémon species"
       />
-      <PageContent>
-        <SectionCard title="Regional Pokédexes by Generation" colorVariant="transparent">
-          <div className="flex flex-col items-center">
-            {/* Generation Pokemon Data Display */}
-            <div className="w-full">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-9 gap-4 xl:gap-2">
-                {regionalDexes}
-              </div>
-            </div>
-          </div>
+
+      <div className="grid grid-cols-1 justify-center items-start max-w-2xl mx-auto">
+        <SectionCard title="Regional Pokédexes" variant="compact" colorVariant="transparent">
+          {/* Generation Pokemon Data Display */}
+          <div className="flex flex-wrap justify-center items-center gap-2">{regionalDexes}</div>
         </SectionCard>
-        {/* National Pokédex - Featured prominently */}
-        <div className="flex items-center justify-between flex-wrap gap-y-4">
-          <h2 className="text-2xl font-bold">{dexTitle}</h2>
-          <FilterButtons
+        <SectionCard title="Filter by Type" variant="compact" colorVariant="transparent">
+          <TypesDisplay
+            onClick={handleTypeChange}
+            selectedType={currentTypeFilter}
+            allTypes={true}
+            link={false}
+          />
+        </SectionCard>
+      </div>
+      {/* National Pokédex - Featured prominently */}
+      <div className="flex items-center justify-between flex-wrap gap-y-4 text-primary">
+        <h2 className="text-xl font-bold">
+          National Dex{' '}
+          {currentGenFilter !== 'all' && (
+            <span className="text-subtle text-lg">Gen {currentGenFilter}</span>
+          )}
+        </h2>
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-2">
+          <span className="text-subtle">{pokemonData.length} Pokémon</span>
+          <FilterOptions
             currentFilter={currentGenFilter}
-            options={filterOptions}
+            options={generationFilterOptions}
             onFilterChange={handleDexFilter}
           />
         </div>
-        {nationalDex && <PokedexDisplay pokedex={nationalDex} />}
-      </PageContent>
-    </>
+      </div>
+      {/* Priority-Based Sections */}
+      <PokemonTabs data={pokemonData} tableStyle={bgOverlay} />
+    </PageContent>
   );
 };
 

@@ -5,6 +5,8 @@ import type {
   PokemonEncounter,
 } from '~/server/routers/_app';
 import ExpandableCard from '../ui/ExpandableCard';
+import GenerationFilter from '../pokedex/GenerationFilter';
+import { useGenerationFilter, pokemonEncountersConfig } from '~/hooks';
 import {
   calculateLevelSections,
   getEncounterChanceColor,
@@ -14,7 +16,7 @@ import {
   groupEncountersByVersionGroup,
   groupEncountersByMethodLevelChance,
   mergeGroupedEncounters,
-} from '~/utils/pokemon';
+} from '~/utils';
 
 // Props
 interface PokemonEncounterProps {
@@ -98,9 +100,17 @@ const makeKey = {
 };
 
 export default function PokemonEncounters({ encounters }: PokemonEncounterProps) {
-  // Single-pass flattening
+  // Generation filter - apply first to reduce dataset before complex processing
+  const {
+    selectedGenerationId,
+    setSelectedGenerationId,
+    filteredItems: filteredEncounters,
+    availableGenerations,
+  } = useGenerationFilter(encounters, pokemonEncountersConfig);
+
+  // Single-pass flattening on the generation-filtered data
   const flattenedData = React.useMemo<FlattenedData>(() => {
-    if (!encounters.length) {
+    if (!filteredEncounters.length) {
       return {
         versionGroups: [],
         locations: new Map(),
@@ -114,7 +124,7 @@ export default function PokemonEncounters({ encounters }: PokemonEncounterProps)
     const areas = new Map<string, FlatArea>();
     const encountersMap = new Map<string, FlatEncounter>();
 
-    const vgGroups = groupEncountersByVersionGroup(encounters);
+    const vgGroups = groupEncountersByVersionGroup(filteredEncounters);
     let vgIdx = 0;
     for (const vgKey in vgGroups) {
       const vgData = vgGroups[vgKey];
@@ -192,7 +202,7 @@ export default function PokemonEncounters({ encounters }: PokemonEncounterProps)
     }
 
     return { versionGroups, locations, areas, encounters: encountersMap };
-  }, [encounters]);
+  }, [filteredEncounters]); // Changed dependency from encounters to filteredEncounters
 
   // Styles
   const cssClasses = React.useMemo(
@@ -242,7 +252,12 @@ export default function PokemonEncounters({ encounters }: PokemonEncounterProps)
   if (!encounters.length) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Locations</h2>
+        <GenerationFilter
+          title="Locations"
+          selectedGenerationId={selectedGenerationId}
+          setSelectedGenerationId={setSelectedGenerationId}
+          availableGenerations={availableGenerations}
+        />
         <div className="text-center text-gray-600 dark:text-gray-400">
           <p>No encounter data available</p>
         </div>
@@ -250,11 +265,33 @@ export default function PokemonEncounters({ encounters }: PokemonEncounterProps)
     );
   }
 
+  // No filtered encounters state
+  if (!filteredEncounters.length) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <GenerationFilter
+          title="Locations"
+          selectedGenerationId={selectedGenerationId}
+          setSelectedGenerationId={setSelectedGenerationId}
+          availableGenerations={availableGenerations}
+        />
+        <div className="text-center text-gray-600 dark:text-gray-400">
+          <p>No encounters found for the selected generation.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-        Locations ({flattenedData.versionGroups.length} version groups)
-      </h2>
+      <GenerationFilter
+        title="Locations"
+        selectedGenerationId={selectedGenerationId}
+        setSelectedGenerationId={setSelectedGenerationId}
+        availableGenerations={availableGenerations}
+        titleClassName="text-2xl font-bold text-gray-900 dark:text-white mb-6"
+        className="mb-0"
+      />
 
       <div className="space-y-6">
         {flattenedData.versionGroups.map((vg) => (

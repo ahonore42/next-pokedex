@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePokemonCache } from '~/lib/contexts/PokemonCacheContext';
+import { usePokemonCache } from '~/lib/contexts/PokedexCacheContext';
 import Toolbar, { ToolbarGroup, ToolbarSection } from '../ui/toolbars';
 import { DropdownTrigger } from '../ui/dropdowns';
 import SearchBar, { pokemonTableFilter, renderPokemonTableResult } from '../ui/searchbars';

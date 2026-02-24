@@ -14,10 +14,9 @@ import EffectivenessGrid from '~/components/pokemon-types/EffectivenessGrid';
 
 const TypesPage: NextPageWithLayout = () => {
   const breakpointWidth = useBreakpointWidth();
-  const { data: types, isLoading } = trpc.types.allTypes.useQuery();
-  const { data: allEfficacies } = trpc.types.getAllTypeEfficacies.useQuery();
+  const { data: allEfficacies, isLoading } = trpc.types.getAllTypeEfficacies.useQuery();
 
-  const isPageLoading = isLoading || !types?.length || !allEfficacies?.length;
+  const isPageLoading = isLoading || !allEfficacies?.length;
   if (isPageLoading) {
     return null; // Let DefaultLayout handle the loading display
   }
@@ -32,20 +31,21 @@ const TypesPage: NextPageWithLayout = () => {
         breadcrumbLinks={[{ label: 'Home', href: '/' }]}
         currentPage="Pokémon Types"
         title="Pokémon Types"
+        subtitle="Type Effectiveness and Mechanics"
       />
 
-      <PageContent>
-        <TypesDisplay types={types} />
+      <PageContent className="flex-grow">
+        <TypesDisplay link />
         <div className="grid xl:grid-cols-2 gap-4">
           <TypeInfo />
           <SameTypeAttackBoost />
         </div>
-        <EffectivenessGrid types={types} />
+        <EffectivenessGrid />
 
         {breakpointWidth < 768 ? (
           <SectionCard title="Type Effectiveness" colorVariant="transparent">
             <div>
-              <MobileTypeChart types={types} efficacies={allEfficacies} />
+              <MobileTypeChart efficacies={allEfficacies} />
             </div>
           </SectionCard>
         ) : (
@@ -77,7 +77,7 @@ const TypesPage: NextPageWithLayout = () => {
                 <div className="flex flex-col xl:flex-row gap-4 items-center xl:min-h-[932px]">
                   <TypeEffectivenessKey />
                   <div className="min-h-[628px] lg:min-h-[780px] xl:min-h-[932px]">
-                    <TypeEffectivenessChart types={types} efficacies={allEfficacies} />
+                    <TypeEffectivenessChart efficacies={allEfficacies} />
                   </div>
                 </div>
               </div>

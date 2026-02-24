@@ -70,6 +70,7 @@ export const pokedexRouter = router({
           select: {
             id: true,
             name: true,
+            isDefault: true,
             types: basicTypeSelect,
             sprites: { select: { frontDefault: true, frontShiny: true } },
             abilities: {
@@ -143,12 +144,64 @@ export const pokedexRouter = router({
       }),
     );
 
-    // PokemonListData format
-    const pokemonListData = allSpecies.flatMap((species) =>
-      species.pokemon.map((pokemon) => ({
+    // PokemonListData format with hybrid deduplication
+    const pokemonListData = allSpecies.flatMap((species) => {
+      const { pokemon } = species;
+
+      // Explicit species list for deduplication (small list for performance)
+      const explicitDeduplicationList = [
+        'minior',
+        'vivillon',
+        'furfrou',
+        'pumpkaboo',
+        'gourgeist',
+        'basculin',
+        'keldeo',
+        'aegislash',
+        'rockruff',
+        'mimikyu',
+        'zarude',
+        'basculegion',
+        'oinkologne',
+        'maushold',
+        'squawkabilly',
+        'dudunsparce',
+        'tatsugiri',
+        'toxtricity',
+        'eiscue',
+        'indeedee',
+        'eternatus',
+        'palafin',
+        'ogerpon',
+
+        // Add more as needed
+      ];
+
+      // Handle explicit cases
+      if (explicitDeduplicationList.includes(species.name)) {
+        const defaultPokemon = pokemon.find((p) => p.isDefault) || pokemon[0];
+
+        return [
+          {
+            pokemonId: defaultPokemon.id,
+            speciesId: species.id,
+            name: species.name, // Use species name
+            sprites: {
+              frontDefault: defaultPokemon.sprites?.frontDefault,
+              frontShiny: defaultPokemon.sprites?.frontShiny,
+            },
+            types: defaultPokemon.types.map((t) => t.type.name),
+            abilities: defaultPokemon.abilities,
+            stats: defaultPokemon.stats,
+          },
+        ];
+      }
+
+      // Keep all forms for species with meaningful differences
+      return pokemon.map((pokemon) => ({
         pokemonId: pokemon.id,
         speciesId: species.id,
-        name: pokemon.name,
+        name: pokemon.name, // Keep individual form names
         sprites: {
           frontDefault: pokemon.sprites?.frontDefault,
           frontShiny: pokemon.sprites?.frontShiny,
@@ -156,8 +209,8 @@ export const pokedexRouter = router({
         types: pokemon.types.map((t) => t.type.name),
         abilities: pokemon.abilities,
         stats: pokemon.stats,
-      })),
-    );
+      }));
+    });
 
     return {
       national: {

@@ -1,6 +1,7 @@
 import React from 'react';
 import PokemonButton from './PokemonButton';
 import type { PokemonInSpecies } from '~/server/routers/_app';
+import SectionCard from '../ui/SectionCard';
 
 interface PokemonFormSwitcherProps {
   speciesPokemon: PokemonInSpecies[];
@@ -21,12 +22,12 @@ const PokemonFormSwitcher: React.FC<PokemonFormSwitcherProps> = ({
   }
 
   return (
-    <div className="mb-6 flex-1">
-      <div className="w-full">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">
-          {speciesName} Variants
-        </h3>
-      </div>
+    <SectionCard
+      title={`${speciesName} Variants`}
+      variant="wide"
+      colorVariant="transparent"
+      className="flex-1"
+    >
       <div
         className="grid gap-4 w-full"
         style={{
@@ -44,7 +45,7 @@ const PokemonFormSwitcher: React.FC<PokemonFormSwitcherProps> = ({
             />
           ))}
       </div>
-    </div>
+    </SectionCard>
   );
 };
 

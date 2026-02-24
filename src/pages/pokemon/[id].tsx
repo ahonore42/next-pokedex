@@ -6,88 +6,72 @@ import type { NextPageWithLayout } from '~/pages/_app';
 import { trpc } from '~/utils/trpc';
 import { capitalizeName } from '~/utils/text';
 import PokemonMoves from '~/components/pokemon/PokemonMoves';
-import PokemonGameData from '~/components/pokemon/PokemonGameData';
 import PokemonEncounters from '~/components/pokemon/PokemonEncounters';
-import PokemonHeader from '~/components/pokemon/PokemonHeader';
-import PokemonStats from '~/components/pokemon/PokemonStats';
 import PageHeading from '~/components/layout/PageHeading';
+import Button from '~/components/ui/buttons';
+import PageContent from '~/components/layout/PageContent';
+import { useBreakpointWidth } from '~/hooks';
+import SectionCard from '~/components/ui/SectionCard';
+import PokemonArtwork from '~/components/pokemon/PokemonArtwork';
+import PokemonFormSwitcher from '~/components/pokemon/PokemonFormSwitcher';
+import PokemonInfo from '~/components/pokemon/PokemonInfo';
+import PokemonFlavorText from '~/components/pokemon/PokemonFlavorText';
+import PokemonBaseStats from '~/components/pokemon/PokemonBaseStats';
+import PokemonAbilities from '~/components/pokemon/PokemonAbilities';
+import PokemonStatTable from '~/components/pokemon/PokemonStatTable';
+import MobileEvolutionChain from '~/components/evolutions/MobileEvolutionChain';
+import EvolutionChain from '~/components/evolutions/EvolutionChain';
 
 const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
-  const { query, isReady } = useRouter();
-  const id = Number(query.id);
+  const breakpointWidth = useBreakpointWidth();
+  const [varietyId, setVarietyId] = useState<number | null>(null);
 
   // Data
+  const { query, isReady } = useRouter();
+  const id = Number(query.id);
   const { data, error, isLoading } = trpc.pokemon.pokemonWithSpecies.useQuery(
     { id },
     { enabled: isReady && !Number.isNaN(id), retry: false, staleTime: 60_000 },
   );
 
-  // Local selection state
-  const [varietyId, setVarietyId] = useState<number | null>(null);
-
   // Memoised derived values
-  const { species, activePokemon, nationalDexNumber, genus, generationId } = useMemo(() => {
-    if (!data) {
+  const { species, speciesName, evolutionChain, activePokemon, nationalDexNumber, genus } =
+    useMemo(() => {
+      if (!data) {
+        return {
+          species: null,
+          activePokemon: null,
+          nationalDexNumber: 0,
+          genus: '',
+          generationId: 0,
+        };
+      }
+
+      const species = data.pokemonSpecies;
+      const speciesName = species.names[0].name;
+      const evolutionChain = species.evolutionChain;
+      const varieties = species.pokemon;
+
+      const pokemon =
+        varieties.find((p) => p.id === (varietyId ?? id)) ??
+        varieties.find((p) => p.isDefault) ??
+        varieties[0];
+      const nationalDexNumber =
+        species.pokedexNumbers.find((e) => e.pokedex.isMainSeries && e.pokedex.name === 'national')
+          ?.pokedexNumber ?? pokemon.id;
+
+      const genus = species.names[0]?.genus ?? '';
+
       return {
-        species: null,
-        activePokemon: null,
-
-        nationalDexNumber: 0,
-        genus: '',
-        generationId: 0,
+        species,
+        speciesName,
+        evolutionChain,
+        activePokemon: pokemon,
+        nationalDexNumber,
+        genus,
+        generationId: species.generationId,
       };
-    }
-
-    const species = data.pokemonSpecies;
-    const varieties = species.pokemon;
-    const pokemon =
-      varieties.find((p) => p.id === (varietyId ?? id)) ??
-      varieties.find((p) => p.isDefault) ??
-      varieties[0];
-    const nationalDexNumber =
-      species.pokedexNumbers.find((e) => e.pokedex.isMainSeries && e.pokedex.name === 'national')
-        ?.pokedexNumber ?? pokemon.id;
-
-    const genus = species.names[0]?.genus ?? '';
-
-    return {
-      species,
-      activePokemon: pokemon,
-      nationalDexNumber,
-      genus,
-      generationId: species.generationId,
-    };
-  }, [data, id, varietyId]);
-
-  const pokemonStats = useMemo(
-    () =>
-      activePokemon && (
-        <PokemonStats stats={activePokemon.stats} baseExperience={activePokemon.baseExperience} />
-      ),
-    [activePokemon],
-  );
-
-  const pokemonGameData = useMemo(
-    () =>
-      species && (
-        <PokemonGameData
-          pokedexNumbers={species.pokedexNumbers}
-          captureRate={species.captureRate}
-          baseHappiness={species.baseHappiness}
-        />
-      ),
-    [species],
-  );
-
-  const pokemonEncounters = useMemo(
-    () => activePokemon && <PokemonEncounters encounters={activePokemon.encounters} />,
-    [activePokemon],
-  );
-
-  const pokemonMoves = useMemo(
-    () => activePokemon && <PokemonMoves pokemon={activePokemon} />,
-    [activePokemon],
-  );
+    }, [data, id, varietyId]);
 
   // Preload artwork
   useEffect(() => {
@@ -123,49 +107,79 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
         schemaType="Article"
         breadcrumbLinks={[
           { label: 'Home', href: '/' },
-          { label: `Gen ${generationId} Pokédex`, href: `/pokedex/${generationId}` },
+          { label: `Pokédex`, href: `/pokedex` },
         ]}
         currentPage={activePokemonName}
         title={activePokemonName}
-        titleMetadata={`#${nationalDexNumber.toString().padStart(3, '0')}`}
-        subtitle={genus}
+        subtitle={`#${nationalDexNumber.toString().padStart(3, '0')} • ${genus}`}
       />
-      <div className="min-h-screen bg-background">
-        <main className="mx-auto">
-          <PokemonHeader
-            pokemon={activePokemon}
-            species={species}
-            onPokemonSwitch={handlePokemonSwitch}
-          />
+      <PageContent>
+        {/* <PokemonHeader
+          pokemon={activePokemon}
+          species={species}
+          onPokemonSwitch={handlePokemonSwitch}
+        /> */}
 
-          <div className="grid grid-cols-1 gap-8 mt-8">
-            <div className="lg:col-span-2 space-y-8">{pokemonStats}</div>
+        <SectionCard colorVariant="article">
+          <div className="flex flex-col gap-4">
+            <PokemonArtwork pokemon={activePokemon} />
+            <div className="w-full flex justify-center items-center">
+              <PokemonFormSwitcher
+                speciesPokemon={species.pokemon}
+                speciesName={speciesName}
+                activePokemon={activePokemon}
+                onPokemonSwitch={handlePokemonSwitch}
+              />
+            </div>
+            {/* Pokemon Info */}
+            <PokemonInfo pokemon={activePokemon} species={species} />
+
+            <SectionCard variant="compact">
+              {/* Flavor Text */}
+              <PokemonFlavorText flavorTexts={species.flavorTexts} />
+            </SectionCard>
           </div>
+        </SectionCard>
+        {/* <SectionCard colorVariant="article" className="grid grid-cols-1 gap-4"> */}
 
-          <div className="space-y-8 mt-8">{pokemonGameData}</div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <PokemonBaseStats stats={activePokemon.stats} />
+          {/* Abilities Section */}
+          <SectionCard title="Abilities" variant="compact">
+            <PokemonAbilities pokemon={activePokemon} />
+          </SectionCard>
+        </div>
+        <PokemonStatTable stats={activePokemon.stats} />
+        {/* Evolution Chain - Responsive Rendering */}
+        {evolutionChain?.pokemonSpecies.length &&
+          (breakpointWidth < 640 ? (
+            <SectionCard title="Evolution Chain" variant="compact">
+              {/* Mobile Evolution Chain - Visible on smaller screens, hidden on lg+ */}
+              <MobileEvolutionChain species={species} />
+            </SectionCard>
+          ) : (
+            <div>
+              {/* Desktop Evolution Chain - Hidden on smaller screens, visible on lg+ */}
+              <SectionCard title="Evolution Chain" variant="compact">
+                <EvolutionChain chain={evolutionChain} />
+              </SectionCard>
+            </div>
+          ))}
+        {/* </SectionCard> */}
 
-          <div className="mt-8">{pokemonEncounters}</div>
+        {activePokemon.encounters.length > 0 && (
+          <PokemonEncounters encounters={activePokemon.encounters} />
+        )}
+        {activePokemon.moves.length > 0 && <PokemonMoves moves={activePokemon.moves} />}
 
-          <div className="mt-8">{pokemonMoves}</div>
-          <div className="mt-12 text-center">
-            <button
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="inline-flex items-center px-4 py-2 bg-brand hover:bg-brand-hover text-brand-text rounded-lg shadow-sm hover:shadow-md"
-              aria-describedby="pokemon-title"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 10l7-7m0 0l7 7m-7-7v18"
-                />
-              </svg>
-              Back to Top
-            </button>
-          </div>
-        </main>
-      </div>
+        <Button
+          variant="brand"
+          iconLeft="up"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        >
+          Back to Top
+        </Button>
+      </PageContent>
     </>
   );
 };

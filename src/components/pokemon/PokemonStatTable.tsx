@@ -1,10 +1,17 @@
 import React, { useMemo } from 'react';
-import { CompetitiveRanges, StatValues, getStatColor } from '~/utils/pokemon';
-import DataTable, { Column } from '~/components/ui/DataTable';
+import {
+  convertStatsArrayToValues,
+  getCompetitiveStatRanges,
+  getStatName,
+  getStatColor,
+} from '~/utils';
+import DataTable, { Column } from '~/components/ui/tables';
+import { PokemonInSpecies } from '~/server/routers/_app';
+import SectionCard from '../ui/SectionCard';
+import { useBreakpointWidth } from '~/hooks';
 
 interface PokemonStatTableProps {
-  competitiveRanges: CompetitiveRanges;
-  baseStats: StatValues;
+  stats: PokemonInSpecies['stats'];
 }
 
 interface StatTableRow {
@@ -19,18 +26,20 @@ interface StatTableRow {
   isFirstRowOfGroup?: boolean; // To handle rowspan styling
 }
 
-const PokemonStatTable: React.FC<PokemonStatTableProps> = ({ competitiveRanges, baseStats }) => {
-  // Calculate total base stats
-  const totalBaseStat = Object.values(baseStats).reduce((sum, stat) => sum + stat, 0);
+const PokemonStatTable: React.FC<PokemonStatTableProps> = ({ stats }) => {
+  const breakpointWidth = useBreakpointWidth();
+  const isMobile = breakpointWidth < 1024;
+  const baseStats = convertStatsArrayToValues(stats);
+  const competitiveRanges = getCompetitiveStatRanges(baseStats);
 
   // Transform the CompetitiveRanges data into table rows
   const tableData = useMemo((): StatTableRow[] => {
     const rows: StatTableRow[] = [];
 
-    // Base Stats row
+    // Max Stats row
     rows.push({
-      category: 'Base Stats',
-      level: `Total: ${totalBaseStat}`,
+      category: 'Max Stats',
+      level: `Level`,
       hp: String(baseStats.hp),
       attack: String(baseStats.attack),
       defense: String(baseStats.defense),
@@ -42,7 +51,7 @@ const PokemonStatTable: React.FC<PokemonStatTableProps> = ({ competitiveRanges, 
 
     // Max Stats - Hindering Nature (2 rows)
     rows.push({
-      category: 'Max Stats\nHindering Nature',
+      category: 'Hindering Nature',
       level: 'Lv. 50',
       hp: `${competitiveRanges.level50.hp.neutral.min} - ${competitiveRanges.level50.hp.neutral.max}`,
       attack: `${competitiveRanges.level50.attack.hindering.min} - ${competitiveRanges.level50.attack.hindering.max}`,
@@ -67,7 +76,7 @@ const PokemonStatTable: React.FC<PokemonStatTableProps> = ({ competitiveRanges, 
 
     // Max Stats - Neutral Nature (2 rows)
     rows.push({
-      category: 'Max Stats\nNeutral Nature',
+      category: 'Neutral Nature',
       level: 'Lv. 50',
       hp: `${competitiveRanges.level50.hp.neutral.min} - ${competitiveRanges.level50.hp.neutral.max}`,
       attack: `${competitiveRanges.level50.attack.neutral.min} - ${competitiveRanges.level50.attack.neutral.max}`,
@@ -92,7 +101,7 @@ const PokemonStatTable: React.FC<PokemonStatTableProps> = ({ competitiveRanges, 
 
     // Max Stats - Beneficial Nature (2 rows)
     rows.push({
-      category: 'Max Stats\nBeneficial Nature',
+      category: 'Beneficial Nature',
       level: 'Lv. 50',
       hp: `${competitiveRanges.level50.hp.neutral.min} - ${competitiveRanges.level50.hp.neutral.max}`,
       attack: `${competitiveRanges.level50.attack.beneficial.min} - ${competitiveRanges.level50.attack.beneficial.max}`,
@@ -116,22 +125,22 @@ const PokemonStatTable: React.FC<PokemonStatTableProps> = ({ competitiveRanges, 
     });
 
     return rows;
-  }, [competitiveRanges, baseStats, totalBaseStat]);
+  }, [competitiveRanges, baseStats]);
 
   // Define table columns - stats as columns with rowspan support
   const columns = useMemo(
     (): Column<StatTableRow>[] => [
       {
-        header: '',
+        header: 'Stats',
         accessor: 'category',
-        className: 'font-medium text-gray-900 dark:text-white whitespace-pre-line',
+        className: 'font-medium text-gray-900 dark:text-white',
         headerClassName: 'font-semibold',
         rowspan: (row) => {
-          // Base Stats gets rowspan 1, Max Stats categories get rowspan 2
-          if (row.isFirstRowOfGroup && row.category !== 'Base Stats') {
+          // Max Stats gets rowspan 1, Max Stats categories get rowspan 2
+          if (row.isFirstRowOfGroup && row.category !== 'Max Stats') {
             return 2;
           }
-          if (row.category === 'Base Stats') {
+          if (row.category === 'Max Stats') {
             return 1;
           }
           return undefined;
@@ -140,94 +149,115 @@ const PokemonStatTable: React.FC<PokemonStatTableProps> = ({ competitiveRanges, 
           // Skip rendering for second rows of Max Stats groups (when category is empty)
           return row.category === '' && !row.isFirstRowOfGroup;
         },
+        columnPadding: 'pr-2'
       },
       {
         header: '',
         accessor: 'level',
-        className: 'text-center font-medium text-gray-700 dark:text-gray-300',
+        className: 'text-center font-medium text-primary',
         headerClassName: 'text-center font-semibold',
-        dividerBefore: (row) => row.category !== 'Base Stats',
+        dividerBefore: true,
+        noWrap: true,
+        columnPadding: isMobile ? 'px-2' : 'px-4',
       },
       {
         header: 'HP',
         accessor: 'hp',
-        className: 'text-center font-mono text-sm',
+        className: 'text-center text-sm',
         headerClassName: 'text-center font-semibold',
         cellStyle: (row) => ({
           className:
-            row.category === 'Base Stats'
+            row.category === 'Max Stats'
               ? `${getStatColor(baseStats.hp, 'text')} font-bold`
               : undefined,
         }),
+        dividerBefore: true,
+        noWrap: true,
+        columnPadding: isMobile ? 'px-2' : 'px-4',
       },
       {
-        header: 'Attack',
+        header: getStatName('attack'),
         accessor: 'attack',
-        className: 'text-center font-mono text-sm',
+        className: 'text-center text-sm',
         headerClassName: 'text-center font-semibold',
         cellStyle: (row) => ({
           className:
-            row.category === 'Base Stats'
+            row.category === 'Max Stats'
               ? `${getStatColor(baseStats.attack, 'text')} font-bold`
               : undefined,
         }),
+        dividerBefore: true,
+        noWrap: true,
+        columnPadding: isMobile ? 'px-2' : 'px-4',
       },
       {
-        header: 'Defense',
+        header: getStatName('defense'),
         accessor: 'defense',
-        className: 'text-center font-mono text-sm',
+        className: 'text-center text-sm',
         headerClassName: 'text-center font-semibold',
         cellStyle: (row) => ({
           className:
-            row.category === 'Base Stats'
+            row.category === 'Max Stats'
               ? `${getStatColor(baseStats.defense, 'text')} font-bold`
               : undefined,
         }),
+        dividerBefore: true,
+        noWrap: true,
+        columnPadding: isMobile ? 'px-2' : 'px-4',
       },
       {
-        header: 'Sp. Attack',
+        header: getStatName('special-attack'),
         accessor: 'specialAttack',
-        className: 'text-center font-mono text-sm',
+        className: 'text-center text-sm',
         headerClassName: 'text-center font-semibold',
         cellStyle: (row) => ({
           className:
-            row.category === 'Base Stats'
+            row.category === 'Max Stats'
               ? `${getStatColor(baseStats.specialAttack, 'text')} font-bold`
               : undefined,
         }),
+        dividerBefore: true,
+        noWrap: true,
+        columnPadding: isMobile ? 'px-2' : 'px-4',
       },
       {
-        header: 'Sp. Defense',
+        header: getStatName('special-defense'),
         accessor: 'specialDefense',
-        className: 'text-center font-mono text-sm',
+        className: 'text-center text-sm',
         headerClassName: 'text-center font-semibold',
         cellStyle: (row) => ({
           className:
-            row.category === 'Base Stats'
+            row.category === 'Max Stats'
               ? `${getStatColor(baseStats.specialDefense, 'text')} font-bold`
               : undefined,
         }),
+        dividerBefore: true,
+        noWrap: true,
+        columnPadding: isMobile ? 'px-2' : 'px-4',
       },
       {
-        header: 'Speed',
+        header: getStatName('speed'),
         accessor: 'speed',
-        className: 'text-center font-mono text-sm',
+        className: 'text-center text-sm',
         headerClassName: 'text-center font-semibold',
         cellStyle: (row) => ({
           className:
-            row.category === 'Base Stats'
+            row.category === 'Max Stats'
               ? `${getStatColor(baseStats.speed, 'text')} font-bold`
               : undefined,
         }),
+        dividerBefore: true,
+        noWrap: true,
+        columnPadding: isMobile ? 'px-2' : 'px-4',
       },
     ],
-    [baseStats],
+    [baseStats, isMobile],
   );
 
   return (
-    <div className="space-y-4">
+    <SectionCard variant="wide" colorVariant="transparent" className='overflow-scroll'>
       <DataTable data={tableData} columns={columns} />
-    </div>
+    </SectionCard>
   );
 };
 

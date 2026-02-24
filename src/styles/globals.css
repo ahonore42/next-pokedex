@@ -368,6 +368,10 @@
   border: 1px solid var(--color-border);
 }
 
+.muted-bg {
+  filter: brightness(0.8);
+}
+
 @media (prefers-contrast: high) {
   :root {
     --color-text-primary: #000000;

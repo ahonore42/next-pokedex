@@ -7,15 +7,14 @@ import DataTable, {
   MoveColumns,
   MoveTableRow,
   pokemonColumns,
-  PokemonColumns,
 } from '~/components/ui/tables';
 import TabView from '~/components/ui/TabView';
 import PageHeading from '~/components/layout/PageHeading';
 import { capitalizeName } from '~/utils/text';
 import PageContent from '~/components/layout/PageContent';
-import { getRgba, getTypeColor } from '~/utils/pokemon';
-
+import { getRgba, getTypeColor } from '~/utils';
 import TypesDisplay from '~/components/pokemon-types/TypesDisplay';
+import { PokemonListData } from '~/lib/types';
 
 const PokemonTypeDetailPage: NextPageWithLayout = () => {
   const router = useRouter();
@@ -32,9 +31,9 @@ const PokemonTypeDetailPage: NextPageWithLayout = () => {
   if (isPageLoading) {
     return null; // Let DefaultLayout handle the loading display
   }
-  const { type, types, pokemon, moves } = data;
+  const { type, pokemon, moves } = data;
 
-  const pokemonData: PokemonColumns[] = pokemon.map((pkmn) => {
+  const pokemonData: PokemonListData[] = pokemon.map((pkmn) => {
     return {
       pokemonId: pkmn.id,
       speciesId: pkmn.pokemonSpeciesId,
@@ -109,7 +108,7 @@ const PokemonTypeDetailPage: NextPageWithLayout = () => {
       />
 
       <PageContent>
-        <TypesDisplay types={types} />
+        <TypesDisplay link />
         <div className="rounded-lg">
           <TabView
             tabs={[
@@ -120,7 +119,36 @@ const PokemonTypeDetailPage: NextPageWithLayout = () => {
                     className="shadow-lg rounded-lg overflow-hidden"
                     style={{ backgroundColor: bgOverlay }}
                   >
-                    <DataTable data={pokemonData} columns={pokemonColumns} border rounded />
+                    <DataTable
+                      data={pokemonData}
+                      columns={pokemonColumns}
+                      border
+                      rounded
+                      layoutStabilization={{
+                        enabled: true,
+                        fixedLayout: true, // Prevents column width recalculation
+                        minColumnWidth: 'min-w-16', // Minimum width to prevent squashing
+                        preCalculatedWidths: [
+                          'w-16',
+                          'w-40',
+                          'w-24',
+                          'w-40',
+                          'w-16',
+                          'w-16',
+                          'w-16',
+                          'w-18',
+                          'w-18',
+                          'w-18',
+                          'w-18',
+                        ], // Optional: specific widths per column
+                      }}
+                      virtualScroll={{
+                        enabled: true,
+                        rowHeight: 65,
+                        overscan: 10,
+                        threshold: 100,
+                      }}
+                    />
                   </div>
                 ),
                 badge: pokemon.length,
@@ -139,6 +167,7 @@ const PokemonTypeDetailPage: NextPageWithLayout = () => {
               },
             ]}
             initialTab="Pokémon"
+            containerHeight="h-full"
           />
         </div>
       </PageContent>

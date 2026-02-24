@@ -170,7 +170,7 @@ export class PokemonDataSeeder {
       // // PHASE 2: Game Infrastructure (safe to re-run)
       // this.log('\n\n\n=== 🧩 PHASE 2: Game Infrastructure ===\n\n');
       // await this.delay(3000);
-      // await this.seedVersionGroups('premium');
+      await this.seedVersionGroups('premium');
 
       // // PHASE 3: Supplementary Data (safe to re-run)
       // this.log('\n\n\n=== 🧩 PHASE 3: Supplementary Data ===\n\n');
@@ -231,7 +231,7 @@ export class PokemonDataSeeder {
       // await this.seedPokemon('premium');
       // await this.seedPokemonSpeciesVarieties('premium');
       // await this.seedGenderSpeciesAssociations('premium');
-      await this.seedPokemonSpritesOfficialArtwork('premium');
+      // await this.seedPokemonSpritesOfficialArtwork('premium');
 
       // // Final statistics
       await this.getModelStatistics();
@@ -715,7 +715,8 @@ export class PokemonDataSeeder {
       const existingIds = await processor.getExistingIds();
       itemsToProcess = allItems.filter((item) => {
         const itemId = this.extractIdFromUrl(item.url);
-        return itemId && !existingIds.has(itemId);
+        return itemId
+        // return itemId && !existingIds.has(itemId);
       });
       this.log(
         `Processing ${itemsToProcess.length} new ${categoryName} (${existingIds.size} already exist)`,
@@ -2652,25 +2653,37 @@ export class PokemonDataSeeder {
     mode: 'premium' | 'standard',
   ): Promise<void> {
     const vgData = await this.fetchWithProxy(versionGroup.url, mode);
+
     // Required field
     const generationId = this.extractIdFromUrl(vgData.generation.url);
     if (!generationId) {
       throw new Error(`Missing generation ID for version group ${vgData.name}`);
     }
+
     // Create version group
     await this.upsertRecord(prisma.versionGroup, vgData.id, {
       name: vgData.name,
       order: vgData.order,
       generationId,
     });
-    // Create versions
+
+    // Process relationships
+    await this.processVersionGroupRelationships(
+      vgData.id,
+      vgData.name,
+      vgData.pokedexes,
+      'pokedex',
+    );
+    await this.processVersionGroupRelationships(vgData.id, vgData.name, vgData.regions, 'region');
+
+    // Create versions (existing code)
     for (const version of vgData.versions) {
       const versionData = await this.fetchWithProxy(version.url, mode);
       await this.upsertRecord(prisma.version, versionData.id, {
         name: versionData.name,
         versionGroupId: vgData.id,
       });
-      // Add version names
+
       await this.addJoinedRecordData(
         prisma.versionName,
         'versionId',
@@ -2679,6 +2692,74 @@ export class PokemonDataSeeder {
         ['name'],
         'languageId',
       );
+    }
+  }
+
+  private async processVersionGroupRelationships(
+    versionGroupId: number,
+    versionGroupName: string,
+    references: any[],
+    type: 'pokedex' | 'region',
+  ): Promise<void> {
+    if (!references || !Array.isArray(references)) return;
+
+    for (const ref of references) {
+      const relatedId = this.extractIdFromUrl(ref.url);
+      if (!relatedId) continue;
+
+      // Verify related entity exists
+      const exists =
+        type === 'pokedex'
+          ? await prisma.pokedex.findUnique({
+              where: { id: relatedId },
+              select: { id: true },
+            })
+          : await prisma.region.findUnique({
+              where: { id: relatedId },
+              select: { id: true },
+            });
+
+      if (!exists) {
+        this.log(`${type} ${relatedId} not found for version group ${versionGroupName}`, 'warn');
+        continue;
+      }
+
+      try {
+        if (type === 'pokedex') {
+          await prisma.versionGroupPokedex.upsert({
+            where: {
+              versionGroupId_pokedexId: {
+                versionGroupId,
+                pokedexId: relatedId,
+              },
+            },
+            update: {},
+            create: {
+              versionGroupId,
+              pokedexId: relatedId,
+            },
+          });
+        } else {
+          await prisma.versionGroupRegion.upsert({
+            where: {
+              versionGroupId_regionId: {
+                versionGroupId,
+                regionId: relatedId,
+              },
+            },
+            update: {},
+            create: {
+              versionGroupId,
+              regionId: relatedId,
+            },
+          });
+        }
+      } catch (error: unknown) {
+        this.log(
+          `Failed to create version group ${type} relationship for ${versionGroupName}: ${(error as Error).message}`,
+          'warn',
+        );
+      }
     }
   }
 

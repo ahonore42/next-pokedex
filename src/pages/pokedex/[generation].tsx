@@ -1,83 +1,96 @@
 import { useRouter } from 'next/router';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { NextPageWithLayout } from '../_app';
-import { trpc } from '~/utils/trpc';
+import { usePokemonCache } from '~/lib/contexts/PokedexCacheContext';
 import SectionCard from '~/components/ui/SectionCard';
 import PageHeading from '~/components/layout/PageHeading';
-import PokedexDisplay from '~/components/pokemon/PokedexDisplay';
 import MetricsGrid from '~/components/ui/MetricsGrid';
 import PageContent from '~/components/layout/PageContent';
+import FilterOptions, { FilterOption } from '~/components/ui/FilterOptions';
+import PokemonTabs from '~/components/pokedex/PokemonTabs';
+import Badge from '~/components/ui/Badge';
+import { getRgba, getTypeColor } from '~/utils';
+import TypesDisplay from '~/components/pokemon-types/TypesDisplay';
 
 const PokedexGenerationPage: NextPageWithLayout = () => {
   const router = useRouter();
   const { generation } = router.query;
-  // State hooks
-  const [selectedVersionGroupId, setSelectedVersionGroupId] = useState<number | null>(null);
+
+  const generationId = typeof generation === 'string' ? parseInt(generation) : null;
+
+  const {
+    getCachedPokemon,
+    getRegionalPokedexesFromCache,
+    generationsData,
+    pokemonDataArray,
+    pokemonDataIsLoading,
+    pokemonError,
+    regionalPokedexIsLoading,
+  } = usePokemonCache();
+
   const [selectedPokedexId, setSelectedPokedexId] = useState<number | null>(null);
+  const [currentTypeFilter, setCurrentTypeFilter] = useState<string | null>(null);
 
-  // Query hook
-  const generationId = typeof generation === 'string' ? parseInt(generation) : 0;
-  const { data: generationData, isLoading } = trpc.pokemon.regionalPokedexesByGeneration.useQuery(
-    { generationId },
-    { enabled: !!generationId, staleTime: 5 * 60 * 1000 },
+  // Array of pokedexes for this generation
+  const regionalPokedexes = useMemo(
+    () => (generationId ? getRegionalPokedexesFromCache(generationId) : null),
+    [generationId, getRegionalPokedexesFromCache],
   );
 
-  // Loading context
-  const isPageLoading = isLoading || !generationData;
+  const selectedPokedex = useMemo(() => {
+    if (!selectedPokedexId || !regionalPokedexes) return null;
+    return regionalPokedexes.find((pokedex) => pokedex.id === selectedPokedexId) ?? null;
+  }, [selectedPokedexId, regionalPokedexes]);
 
-  // Memoised look-ups
-  const versionGroupMap = useMemo(
-    () => new Map(generationData?.versionGroups.map((vg) => [vg.id, vg])),
-    [generationData],
-  );
+  const regionalPokemonArray = useMemo(() => {
+    if (!selectedPokedex?.pokemon || pokemonDataArray?.length === 0) return [];
+    // const orderedPokemon = selectedPokedex
+    let filteredData = getCachedPokemon(selectedPokedex.pokemon);
 
-  const selectedVersionGroup = useMemo(
+    if (currentTypeFilter) {
+      filteredData = filteredData.filter((pokemon) => pokemon.types.includes(currentTypeFilter));
+    }
+    return filteredData;
+  }, [selectedPokedex, getCachedPokemon, pokemonDataArray, currentTypeFilter]);
+
+  // Dropdown options based on pokedexes
+  const pokedexOptions: FilterOption<number>[] = useMemo(
     () =>
-      versionGroupMap.get(
-        selectedVersionGroupId ??
-          (generationData?.versionGroups.length ? generationData.versionGroups[0].id : 0),
-      ),
-    [selectedVersionGroupId, versionGroupMap, generationData],
+      regionalPokedexes?.map((pokedex) => ({
+        value: pokedex.id,
+        label:
+          pokedex.names?.[0]?.name ||
+          pokedex.name
+            .split('-')
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(' '),
+      })) ?? [],
+    [regionalPokedexes],
   );
 
-  const availablePokedexes = useMemo(
-    () => selectedVersionGroup?.pokedexes.map((p) => p.pokedex) ?? [],
-    [selectedVersionGroup],
-  );
+  // Default to first pokedex when data arrives
+  useEffect(() => {
+    if (!selectedPokedexId && regionalPokedexes?.length) {
+      setSelectedPokedexId(regionalPokedexes[0].id);
+    }
+  }, [regionalPokedexes, selectedPokedexId]);
 
-  const pokedexMap = useMemo(
-    () => new Map(availablePokedexes.map((p) => [p.id, p])),
-    [availablePokedexes],
-  );
+  const isPageLoading =
+    pokemonDataIsLoading ||
+    regionalPokedexIsLoading ||
+    !generationId ||
+    !generationsData ||
+    regionalPokemonArray.length === 0;
 
-  const selectedPokedex = useMemo(
-    () => pokedexMap.get(selectedPokedexId ?? availablePokedexes[0]?.id),
-    [selectedPokedexId, pokedexMap, availablePokedexes],
-  );
+  if (isPageLoading) return null;
 
-  const allRegions = useMemo(
-    () =>
-      Array.from(
-        new Map(
-          generationData?.versionGroups
-            .flatMap((vg) => vg.pokedexes.map((p) => p.pokedex.region))
-            .filter(Boolean)
-            .map((r) => [r!.id, r]),
-        ).values(),
-      ) ?? [],
-    [generationData],
-  );
-
-  if (isPageLoading) {
-    return null; // Let DefaultLayout handle the loading display
-  }
-
-  if (!generationData.versionGroups.length) {
+  // No data for this generation
+  if (!regionalPokedexes?.length) {
     return (
       <SectionCard title="No Data Found">
         <div className="text-center">
           <p className="text-lg text-secondary mb-4">
-            No version group or Pokédex data found for generation {generation}.
+            No Pokédex data found for generation {generation}.
           </p>
           <button
             onClick={() => router.push('/pokedex')}
@@ -90,18 +103,41 @@ const PokedexGenerationPage: NextPageWithLayout = () => {
     );
   }
 
-  // Handle version group selection change
-  const handleVersionGroupChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const versionGroupId = parseInt(event.target.value);
-    setSelectedVersionGroupId(versionGroupId || null);
-    setSelectedPokedexId(null); // Reset pokedex selection when version group changes
+  if (pokemonError) {
+    return (
+      <SectionCard title="Error Loading Pokémon Data">
+        <div className="text-center">
+          <p className="text-lg text-secondary mb-4">{pokemonError}</p>
+          <button
+            onClick={() => router.push('/pokedex')}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          >
+            Back to Pokédex Selection
+          </button>
+        </div>
+      </SectionCard>
+    );
+  }
+
+  const regionalDexes = generationsData.map((generation) => (
+    <Badge
+      key={generation.id}
+      className={'bg-indigo-600 dark:bg-indigo-700'}
+      href={`/pokedex/${generation.id}`}
+    >{`Gen ${generation.id}`}</Badge>
+  ));
+
+  // Handler
+  const handlePokedexChange = (pokedexId: number) => {
+    setSelectedPokedexId(pokedexId);
   };
 
-  // Handle pokedex selection change
-  const handlePokedexChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const pokedexId = parseInt(event.target.value);
-    setSelectedPokedexId(pokedexId || null);
+  const handleTypeChange = (type: string | null) => {
+    setCurrentTypeFilter(type);
   };
+
+  const typeColor = currentTypeFilter ? getTypeColor(currentTypeFilter) : undefined;
+  const bgOverlay = typeColor ? getRgba(typeColor, 0.1) : undefined;
 
   return (
     <>
@@ -112,123 +148,58 @@ const PokedexGenerationPage: NextPageWithLayout = () => {
         schemaType="WebPage"
         breadcrumbLinks={[
           { label: 'Home', href: '/' },
-          { label: 'Pokédex Selection', href: '/pokedex' },
+          { label: 'Pokédex', href: '/pokedex' },
         ]}
         currentPage={`Generation ${generationId} Pokédex`}
         title={`Generation ${generationId} Pokédex`}
-        subtitle={`${generationData.versionGroups.length} Version Group${generationData.versionGroups.length > 1 ? 's' : ''} Available`}
+        subtitle={`${regionalPokedexes?.length ?? 0} Pokédex${regionalPokedexes?.length === 1 ? '' : 'es'} Available`}
       />
 
       <PageContent>
+        <div className="grid grid-cols-1 justify-center items-start max-w-2xl mx-auto">
+          <SectionCard title="Regional Pokédexes" variant="compact" colorVariant="transparent">
+            {/* Generation Pokemon Data Display */}
+            <div className="flex flex-wrap justify-center items-center gap-2">{regionalDexes}</div>
+          </SectionCard>
+          <SectionCard title="Filter by Type" variant="compact" colorVariant="transparent">
+            <TypesDisplay
+              onClick={handleTypeChange}
+              selectedType={currentTypeFilter}
+              allTypes={true}
+              link={false}
+            />
+          </SectionCard>
+        </div>
         <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center space-x-4">
             <h2 className="text-xl font-bold">Generation {generationId} Pokédex</h2>
             <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
-              {generationData.versionGroups.length} Version Group
-              {generationData.versionGroups.length > 1 ? 's' : ''}
+              {regionalPokedexes?.length ?? 0} Pokédex
+              {(regionalPokedexes?.length ?? 0) === 1 ? '' : 'es'}
             </span>
           </div>
-
           <div className="flex items-center space-x-4">
-            {/* Version Group Selector */}
-            {generationData.versionGroups.length > 1 && (
+            {/* Pokédex Selector */}
+            {(regionalPokedexes?.length ?? 0) > 1 && (
               <div className="flex items-center space-x-2">
-                <label htmlFor="version-group-select" className="text-sm font-medium">
-                  Version Group:
-                </label>
-                <select
-                  id="version-group-select"
-                  className="p-2 border rounded-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  onChange={handleVersionGroupChange}
-                  value={selectedVersionGroupId || generationData.versionGroups[0]?.id || ''}
-                >
-                  {generationData.versionGroups.map((versionGroup) => (
-                    <option key={versionGroup.id} value={versionGroup.id}>
-                      {versionGroup.name
-                        .split('-')
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(' ')}
-                    </option>
-                  ))}
-                </select>
+                <label className="text-sm font-medium">Pokédex:</label>
+                <FilterOptions<number>
+                  currentFilter={selectedPokedexId ?? regionalPokedexes?.[0]?.id}
+                  options={pokedexOptions}
+                  onFilterChange={handlePokedexChange}
+                  placeholder="Select Pokédex"
+                />
               </div>
             )}
-
-            {/* Pokedex Selector */}
-            {availablePokedexes.length > 1 && (
-              <div className="flex items-center space-x-2">
-                <label htmlFor="pokedex-select" className="text-sm font-medium">
-                  Pokédex:
-                </label>
-                <select
-                  id="pokedex-select"
-                  className="p-2 border rounded-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  onChange={handlePokedexChange}
-                  value={selectedPokedexId || availablePokedexes[0]?.id || ''}
-                >
-                  {availablePokedexes.map((pokedex) => (
-                    <option key={pokedex.id} value={pokedex.id}>
-                      {pokedex.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Back to Selection Button */}
-            <button
-              onClick={() => router.push('/pokedex')}
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-            >
-              ← Back to Selection
-            </button>
           </div>
         </div>
 
-        {/* Generation Info */}
-        <MetricsGrid
-          metrics={[
-            {
-              label: 'Version Groups',
-              value: generationData.versionGroups.length,
-              color: 'blue',
-            },
-            {
-              label: 'Available Pokédexes',
-              value: availablePokedexes.length,
-              color: 'green',
-            },
-            {
-              label: 'Regions',
-              value: allRegions.length,
-              color: 'purple',
-            },
-          ]}
-          columns={{ default: 1, md: 3 }}
-        />
-
-        {/* Current Selection Info */}
-        {selectedVersionGroup && selectedPokedex && (
-          <div className="mb-4 text-center">
-            <h3 className="text-lg font-semibold">
-              Currently viewing:{' '}
-              {selectedVersionGroup.name
-                .split('-')
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(' ')}{' '}
-              - {selectedPokedex.name}
-            </h3>
-            {selectedPokedex.region && (
-              <p className="text-sm text-secondary">
-                Region:{' '}
-                {selectedPokedex.region.name.charAt(0).toUpperCase() +
-                  selectedPokedex.region.name.slice(1)}
-              </p>
-            )}
-          </div>
-        )}
         {/* Pokémon Display */}
-        {selectedPokedex && <PokedexDisplay pokedex={selectedPokedex} />}
+        <PokemonTabs
+          data={regionalPokemonArray}
+          tableStyle={bgOverlay}
+          containerHeight="max-h-240"
+        />
       </PageContent>
     </>
   );

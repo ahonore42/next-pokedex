@@ -21,10 +21,10 @@ const PokemonButton: React.FC<PokemonButtonProps> = ({
 }) => {
   // Handle missing or incomplete data gracefully
   const spriteUrl = pokemon.sprites?.frontDefault || '';
-  const types = pokemon.types || [];
+  const types = pokemon.types.map((type) => type.type.name) || [];
 
   const styles = {
-    container: 'p-4 w-full interactive-theme',
+    container: 'p-4 w-full interactive-theme cursor-pointer',
     imageSize: 'w-16 h-16',
     spacing: 'space-x-4',
     nameSize: 'font-semibold',
@@ -32,9 +32,7 @@ const PokemonButton: React.FC<PokemonButtonProps> = ({
   };
 
   const baseClasses = `card text-left  ${
-    isActive
-      ? 'info shadow-md'
-      : 'border border-gray-200 dark:border-gray-700 hover:border-gray-300 hover:shadow-sm'
+    isActive ? 'info shadow-md' : 'border border-border hover:border-border-hover hover:shadow-sm'
   }`;
 
   // Error handling for onClick

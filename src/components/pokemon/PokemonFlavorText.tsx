@@ -1,8 +1,8 @@
 import { useGenerationFilter, pokemonFlavorTextsConfig } from '~/hooks';
 import { PokemonSpecies } from '~/server/routers/_app';
-import { getGameColor, parseGenerationToNumber } from '~/utils/pokemon';
+import { getGameColor, parseGenerationToNumber } from '~/utils';
 import DataTable, { Column } from '~/components/ui/tables';
-import GenerationFilter from './GenerationFilter';
+import GenerationFilter from '../pokedex/GenerationFilter';
 
 type FlavorTextTableRow = {
   generation: string;

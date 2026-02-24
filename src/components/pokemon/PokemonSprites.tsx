@@ -83,7 +83,7 @@ const PokemonSprites: React.FC<PokemonSpritesProps> = ({ pokemon, isShiny }) => 
       // Show single front sprite only
       return [
         {
-          label: 'Game Sprite',
+          label: 'Front',
           position: 'center',
           normal: sprites.frontDefault,
           shiny: sprites.frontShiny,
@@ -95,7 +95,7 @@ const PokemonSprites: React.FC<PokemonSpritesProps> = ({ pokemon, isShiny }) => 
       // Show 1x2 grid with front and back sprites
       return [
         {
-          label: 'Front Sprite',
+          label: 'Front',
           position: 'left',
           normal: sprites.frontDefault,
           shiny: sprites.frontShiny,
@@ -103,7 +103,7 @@ const PokemonSprites: React.FC<PokemonSpritesProps> = ({ pokemon, isShiny }) => 
           genderColor: '',
         },
         {
-          label: 'Back Sprite',
+          label: 'Back',
           position: 'right',
           normal: sprites.backDefault,
           shiny: sprites.backShiny,
@@ -120,70 +120,47 @@ const PokemonSprites: React.FC<PokemonSpritesProps> = ({ pokemon, isShiny }) => 
   // Determine grid layout classes based on sprite availability
   const getGridClasses = () => {
     if (hasFemaleSprites) {
-      return 'inline-grid grid-cols-2 gap-3'; // 2x2 grid for gender variants
+      return 'grid grid-cols-2 gap-4'; // 2x2 grid for gender variants
     } else if (spriteGridData.length === 1) {
-      return 'flex justify-center items-center w-full'; // Single sprite - fully centered
+      return 'flex justify-center items-center'; // Single sprite - fully centered
     } else {
-      return 'inline-grid grid-cols-2 gap-3'; // 1x2 grid for front/back
+      return 'grid grid-cols-2 gap-4 items-center justify-center'; // 1x2 grid for front/back
     }
   };
 
   return (
-    <>
-      {/* Game Sprites Section */}
-      <div className="w-full flex flex-col items-center justify-center">
-        {/* Sprite Grid - Dynamic based on available sprites */}
-        <div className="flex justify-center">
-          <div
-            className={`${getGridClasses()} ${spriteGridData.length > 1 ? 'items-center justify-items-center' : ''}`}
-          >
-            {spriteGridData.map((spriteData, index) => {
-              const currentSprite = isShiny ? spriteData.shiny : spriteData.normal;
-              const hasSprite = currentSprite && currentSprite !== null;
-              const isLeftCol = index % 2 === 0;
-              const showGenderSymbol = hasFemaleSprites && spriteData.genderSymbol;
-
-              return (
-                <div key={index} className="flex flex-col items-center justify-center space-y-2">
-                  {/* Sprite Container - UNIFORM SIZING */}
-                  <div
-                    className="w-36 h-36 bg-gray-100 flex items-center justify-center dark:bg-gray-700 rounded-lg   
-                    transition-transform hover:scale-105"
-                  >
-                    {hasSprite ? (
-                      <Sprite src={currentSprite} variant="lg" />
-                    ) : (
-                      <Sprite variant="lg" fallback />
-                    )}
-                  </div>
-
-                  {/* Labels Below Images - All variants */}
-                  <div className="flex items-center space-x-1">
-                    {showGenderSymbol && (
-                      <div className="w-3 h-3 flex items-center justify-center text-xs font-bold">
-                        <span className={`${spriteData.genderColor}`}>
-                          {spriteData.genderSymbol}
-                        </span>
-                      </div>
-                    )}
-                    <div className="text-xs text-gray-600 dark:text-gray-400 font-medium text-center">
-                      {hasFemaleSprites ? (isLeftCol ? 'Front' : 'Back') : spriteData.label}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* No sprites fallback */}
-        {!availableSprites.hasAny && (
-          <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-            <p>No game sprites available</p>
-          </div>
-        )}
+    <div className="h-full flex justify-center items-center">
+      {/* Sprite Grid - Dynamic based on available sprites */}
+      <div
+        className={`${getGridClasses()} ${spriteGridData.length > 1 ? 'items-center justify-items-center' : ''}`}
+      >
+        {spriteGridData.map((spriteData, index) => {
+          const currentSprite = isShiny ? spriteData.shiny : spriteData.normal;
+          const isLeftCol = index % 2 === 0;
+          const showGenderSymbol = hasFemaleSprites && spriteData.genderSymbol;
+          return (
+            <div key={index} className="flex items-center justify-center">
+              <Sprite src={currentSprite || ''} variant="lg" className="">
+                {showGenderSymbol && (
+                  <span className={`${spriteData.genderColor} text-xs`}>
+                    {spriteData.genderSymbol}
+                  </span>
+                )}
+                <span className="text-xs text-subtle">
+                  {hasFemaleSprites ? (isLeftCol ? 'Front' : 'Back') : spriteData.label}
+                </span>
+              </Sprite>
+            </div>
+          );
+        })}
       </div>
-    </>
+      {/* No sprites fallback */}
+      {!availableSprites.hasAny && (
+        <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+          <p>No game sprites available</p>
+        </div>
+      )}
+    </div>
   );
 };
 

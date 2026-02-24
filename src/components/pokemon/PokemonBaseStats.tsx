@@ -1,6 +1,6 @@
 import React from 'react';
 import { PokemonStats } from '~/server/routers/_app';
-import { getStatName } from '~/utils/pokemon';
+import { getStatName } from '~/utils';
 import SectionCard from '../ui/SectionCard';
 import MetricsGrid from '../ui/MetricsGrid';
 import BarChart from '../ui/charts';

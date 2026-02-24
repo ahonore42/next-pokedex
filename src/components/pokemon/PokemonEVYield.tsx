@@ -1,5 +1,5 @@
 import { PokemonInSpecies, PokemonStats } from '~/server/routers/_app';
-import { getStatName } from '~/utils/pokemon';
+import { getStatName } from '~/utils';
 import SectionCard from '../ui/SectionCard';
 
 interface PokemonEVYieldProps {
