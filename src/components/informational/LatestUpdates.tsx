@@ -3,22 +3,22 @@ import SectionCard from '../ui/SectionCard';
 export default function LatestUpdates() {
   const updates = [
     {
-      date: 'July 14, 2025',
-      title: 'Completed Tailwind CSS Migration',
-      desc: 'Migrated entire UI from inline styles to comprehensive Tailwind CSS classes with theme variables, enhanced animations, and improved component consistency.',
-      type: 'major-refactor',
-    },
-    {
-      date: 'July 13, 2025',
-      title: 'Enhanced Pokemon Data Architecture',
-      desc: 'Implemented species-centric data processing, comprehensive stat calculations, and database interactions for improved Pokemon information display.',
+      date: 'February 24, 2026',
+      title: 'New Feature: Comprehensive Itemdex',
+      desc: 'Explore all in-game items with a dedicated item listing page that supports filtering and grouping by category. View detailed information for each item, including its effects and which Pokémon can hold it.',
       type: 'feature',
     },
     {
-      date: 'July 11, 2025',
-      title: 'Advanced Evolution Visualization System',
-      desc: 'Built comprehensive evolution chain system with ReactFlow desktop charts, mobile-optimized displays, and dynamic layout algorithms for complex evolution trees.',
+      date: 'February 24, 2026',
+      title: 'Ability & Move Detail Pages',
+      desc: 'Implemented dedicated pages for every Pokémon ability and move, providing detailed descriptions, stats, and lists of Pokémon that can learn or possess them.',
       type: 'feature',
+    },
+    {
+      date: 'February 24, 2026',
+      title: 'Data & Performance Enhancements',
+      desc: 'Improved the data import process to include missing item sprites and optimized backend data selectors for better performance across the application.',
+      type: 'enhancement',
     },
   ];
 
