@@ -92,7 +92,7 @@ const PokedexSelectionPage: NextPageWithLayout = () => {
       />
 
       <div className="grid grid-cols-1 justify-center items-start max-w-2xl mx-auto">
-        <SectionCard title="Regional Pokédexes" variant="compact" colorVariant="transparent">
+        <SectionCard title="Generational Pokédexes" variant="compact" colorVariant="transparent">
           {/* Generation Pokemon Data Display */}
           <div className="flex flex-wrap justify-center items-center gap-2">{regionalDexes}</div>
         </SectionCard>
