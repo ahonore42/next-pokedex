@@ -368,6 +368,24 @@ export const orderedSingleEffectTextSelect = {
   take: 1,
 };
 
+export const abilityListSelect = {
+  select: {
+    id: true,
+    name: true,
+    generationId: true,
+    isMainSeries: true,
+    _count: {
+      select: { pokemonAbilities: true },
+    },
+    names: {
+      where: { languageId: DEFAULT_LANGUAGE_ID },
+      select: { name: true },
+    },
+    effectTexts: orderedSingleEffectTextSelect,
+    flavorTexts: orderedSingleFlavorTextSelect,
+  },
+};
+
 export const versionGroupSelect = {
   select: {
     id: true,

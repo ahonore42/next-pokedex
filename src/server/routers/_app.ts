@@ -8,6 +8,7 @@ import { pokemonTypesRouter } from './pokemon-types';
 import { evolutionChainsRouter } from './evolution-chains';
 import { pokedexRouter } from './pokedex';
 import { movesRouter } from './moves';
+import { abilitiesRouter } from './abilities';
 
 export const appRouter = router({
   healthcheck: publicProcedure.query(() => 'Hello!'),
@@ -16,6 +17,7 @@ export const appRouter = router({
   evolutionChains: evolutionChainsRouter,
   pokedex: pokedexRouter,
   moves: movesRouter,
+  abilities: abilitiesRouter,
 });
 
 export const createCaller = createCallerFactory(appRouter);
@@ -95,6 +97,13 @@ export type EvolutionConditions = EvolutionSpecies['pokemonEvolutions'][number];
  */
 export type MovesRouterOutputs = RouterOutputs['moves'];
 export type MovesListOutput = MovesRouterOutputs['list'];
+
+/**
+ * ------------------------- Abilities types -----------------------------------
+ */
+export type AbilitiesRouterOutputs = RouterOutputs['abilities'];
+export type AbilitiesListOutput = AbilitiesRouterOutputs['list'];
+export type AbilityListItem = AbilitiesListOutput[number];
 
 /**
   * ------------------------- Pokémon Type types --------------------------------
