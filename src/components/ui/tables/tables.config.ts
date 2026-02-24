@@ -3,6 +3,7 @@ import { renderTableLink } from './TableLink';
 import { renderTableLinks } from './TableLinks';
 import { renderTypeBadge } from '~/components/pokemon-types/TypeBadge';
 import { renderMoveTypeBadge } from '../MoveTypeBadge';
+import { renderItemDescription } from './ItemDescription';
 import { PokemonListAbility, PokemonListData } from '~/lib/types';
 
 // Types and interfaces
@@ -395,5 +396,112 @@ export const abilityColumns: Column<AbilityTableRow>[] = [
     cellStyle: (row) => ({
       className: row.ability.isMainSeries ? 'text-center text-green-600 dark:text-green-400' : 'text-center text-muted',
     }),
+  }),
+];
+
+// ─── Item table ──────────────────────────────────────────────────────────────
+
+export type ItemColumns = {
+  name: string;
+  slug: string;
+  category: string;
+  cost: number;
+  generationId: number | null;
+  description: string;
+  effectText: string;
+  sprite: string | null;
+};
+
+export type ItemTableRow = {
+  itemId: number;
+  rowType: 'main' | 'description';
+  item: ItemColumns;
+};
+
+const createItemColumn = (config: {
+  header: string;
+  accessor: (row: ItemTableRow) => React.ReactNode;
+  sortKey?: (row: ItemTableRow) => number | string;
+  className?: string;
+  headerAlignment?: 'left' | 'center' | 'right';
+  spans2Rows?: boolean;
+  mainRowOnly?: boolean;
+  colspan?: (row: ItemTableRow) => number | undefined;
+  dividerAfter?: boolean | ((row: ItemTableRow) => boolean);
+  cellStyle?: (
+    row: ItemTableRow,
+    rowIndex: number,
+  ) => { className?: string; style?: React.CSSProperties } | undefined;
+}): Column<ItemTableRow> => ({
+  header: config.header,
+  accessor: config.accessor,
+  className: config.className,
+  headerAlignment: config.headerAlignment,
+  rowspan: config.spans2Rows
+    ? (row: ItemTableRow) => (row.rowType === 'main' ? 2 : undefined)
+    : undefined,
+  skipRender:
+    config.spans2Rows || config.mainRowOnly
+      ? (row: ItemTableRow) => row.rowType === 'description'
+      : undefined,
+  colspan: config.colspan,
+  sortable: !!config.sortKey,
+  sortKey: config.sortKey,
+  dividerAfter: config.dividerAfter,
+  cellStyle: config.cellStyle,
+});
+
+export const itemColumns: Column<ItemTableRow>[] = [
+  // Item name + sprite (spans 2 rows)
+  createItemColumn({
+    header: 'Item',
+    spans2Rows: true,
+    accessor: (row) =>
+      renderTableLink({
+        href: `/items/${row.item.slug}`,
+        src: row.item.sprite ?? undefined,
+        label: row.item.name,
+      }),
+    className: 'font-medium',
+    sortKey: (row) => row.item.name,
+    dividerAfter: true,
+  }),
+
+  // Category (main row) / Description + Effect (row 2, colspan 2)
+  createItemColumn({
+    header: 'Category',
+    accessor: (row) => {
+      if (row.rowType === 'description') {
+        return renderItemDescription({ effectText: row.item.effectText, description: row.item.description });
+      }
+      return row.item.category;
+    },
+    sortKey: (row) => row.item.category,
+    dividerAfter: (row) => row.rowType === 'main',
+    colspan: (row) => (row.rowType === 'description' ? 2 : undefined),
+    cellStyle: (row) => ({
+      className: row.rowType === 'description' ? 'text-left text-subtle text-sm' : 'text-center font-medium capitalize',
+    }),
+  }),
+
+  // Cost (main row only)
+  createItemColumn({
+    header: 'Cost',
+    mainRowOnly: true,
+    accessor: (row) => (row.item.cost > 0 ? `₽${row.item.cost.toLocaleString()}` : '—'),
+    sortKey: (row) => row.item.cost,
+    headerAlignment: 'center',
+    dividerAfter: true,
+    cellStyle: () => ({ className: 'text-center' }),
+  }),
+
+  // Generation (main row only)
+  createItemColumn({
+    header: 'Gen',
+    mainRowOnly: true,
+    accessor: (row) => (row.item.generationId ? `Gen ${row.item.generationId}` : '—'),
+    sortKey: (row) => row.item.generationId ?? 0,
+    headerAlignment: 'center',
+    cellStyle: () => ({ className: 'text-center font-medium' }),
   }),
 ];
