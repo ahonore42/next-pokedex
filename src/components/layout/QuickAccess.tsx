@@ -24,13 +24,13 @@ export default function QuickAccess() {
     {
       name: 'Abilitydex',
       desc: 'All abilities and descriptions',
-      href: '/abilitydex',
+      href: '/abilities',
       icon: '✨',
     },
     {
       name: 'Itemdex',
       desc: 'Complete item information',
-      href: '/itemdex',
+      href: '/items',
       icon: '🍬',
     },
     {
