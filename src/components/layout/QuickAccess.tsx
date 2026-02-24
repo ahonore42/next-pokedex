@@ -12,7 +12,7 @@ export default function QuickAccess() {
     {
       name: 'Movedex',
       desc: 'All moves and their effects',
-      href: '/movedex',
+      href: '/moves',
       icon: '⚔️',
     },
     {

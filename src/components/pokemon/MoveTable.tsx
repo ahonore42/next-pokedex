@@ -231,6 +231,7 @@ export default function MoveTable({ moves, learnMethod, learnMethodName }: MoveT
           columns={moveTableColumns}
           initialSortBy="Level"
           overlayHover={true}
+          virtualScroll={{ enabled: false, rowHeight: 0 }}
         />
       </div>
 

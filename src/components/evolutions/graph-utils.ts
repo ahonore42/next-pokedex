@@ -174,7 +174,7 @@ export function buildEvolutionGraph(
               label: variantLabel,
               pokemon: variety.pokemon,
               speciesId: String(targetSpecies.id),
-              types: variety.pokemon.types,
+              types: variety.pokemon.types.map((type) => type.type.name),
               hasManyDirectEvolutions,
               isStartNode: false,
               isEndNode: true,
