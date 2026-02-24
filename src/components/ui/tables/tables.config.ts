@@ -294,3 +294,104 @@ export const moveColumns: Column<MoveTableRow>[] = [
     headerAlignment: 'center',
   }),
 ];
+
+// ─── Ability table ──────────────────────────────────────────────────────────
+
+export type AbilityColumns = {
+  name: string;
+  generationId: number;
+  description: string;
+  isMainSeries: boolean;
+  pokemonCount: number;
+};
+
+export type AbilityTableRow = {
+  abilityId: number;
+  rowType: 'main' | 'description';
+  ability: AbilityColumns;
+};
+
+const createAbilityColumn = (config: {
+  header: string;
+  accessor: (row: AbilityTableRow) => React.ReactNode;
+  sortKey?: (row: AbilityTableRow) => number | string;
+  className?: string;
+  headerAlignment?: 'left' | 'center' | 'right';
+  spans2Rows?: boolean;
+  mainRowOnly?: boolean;
+  colspan?: (row: AbilityTableRow) => number | undefined;
+  dividerAfter?: boolean | ((row: AbilityTableRow) => boolean);
+  cellStyle?: (
+    row: AbilityTableRow,
+    rowIndex: number,
+  ) => { className?: string; style?: React.CSSProperties } | undefined;
+}): Column<AbilityTableRow> => ({
+  header: config.header,
+  accessor: config.accessor,
+  className: config.className,
+  headerAlignment: config.headerAlignment,
+  rowspan: config.spans2Rows
+    ? (row: AbilityTableRow) => (row.rowType === 'main' ? 2 : undefined)
+    : undefined,
+  skipRender:
+    config.spans2Rows || config.mainRowOnly
+      ? (row: AbilityTableRow) => row.rowType === 'description'
+      : undefined,
+  colspan: config.colspan,
+  sortable: !!config.sortKey,
+  sortKey: config.sortKey,
+  dividerAfter: config.dividerAfter,
+  cellStyle: config.cellStyle,
+});
+
+export const abilityColumns: Column<AbilityTableRow>[] = [
+  // Ability Name (spans 2 rows)
+  createAbilityColumn({
+    header: 'Ability',
+    spans2Rows: true,
+    accessor: (row) => row.ability.name,
+    className: 'font-medium capitalize',
+    sortKey: (row) => row.ability.name,
+    dividerAfter: true,
+  }),
+
+  // Generation (main row only) — doubles as description container on row 2
+  createAbilityColumn({
+    header: 'Gen',
+    accessor: (row) => {
+      if (row.rowType === 'description') {
+        return row.ability.description;
+      }
+      return `Gen ${row.ability.generationId}`;
+    },
+    sortKey: (row) => row.ability.generationId,
+    dividerAfter: (row) => row.rowType === 'main',
+    colspan: (row) => (row.rowType === 'description' ? 3 : undefined),
+    cellStyle: (row) => ({
+      className: row.rowType === 'description' ? 'text-left' : 'text-center font-medium',
+    }),
+  }),
+
+  // Pokémon count (main row only)
+  createAbilityColumn({
+    header: 'Pokémon',
+    mainRowOnly: true,
+    accessor: (row) => row.ability.pokemonCount,
+    sortKey: (row) => row.ability.pokemonCount,
+    headerAlignment: 'center',
+    cellStyle: () => ({ className: 'text-center' }),
+    dividerAfter: true,
+  }),
+
+  // Main Series (main row only)
+  createAbilityColumn({
+    header: 'Main Series',
+    mainRowOnly: true,
+    accessor: (row) => (row.ability.isMainSeries ? 'Yes' : 'No'),
+    sortKey: (row) => (row.ability.isMainSeries ? 1 : 0),
+    headerAlignment: 'center',
+    cellStyle: (row) => ({
+      className: row.ability.isMainSeries ? 'text-center text-green-600 dark:text-green-400' : 'text-center text-muted',
+    }),
+  }),
+];
