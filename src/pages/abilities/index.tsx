@@ -15,6 +15,7 @@ const createAbilityRows = (abilities: AbilityListItem[]): AbilityTableRow[] => {
   abilities.forEach((ability) => {
     const formatted: AbilityColumns = {
       name: ability.names[0]?.name ?? ability.name,
+      slug: ability.name,
       generationId: ability.generationId,
       description:
         ability.flavorTexts[0]?.flavorText ||
