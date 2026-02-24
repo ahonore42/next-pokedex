@@ -170,7 +170,7 @@ export class PokemonDataSeeder {
       // // PHASE 2: Game Infrastructure (safe to re-run)
       // this.log('\n\n\n=== 🧩 PHASE 2: Game Infrastructure ===\n\n');
       // await this.delay(3000);
-      await this.seedVersionGroups('premium');
+      // await this.seedVersionGroups('premium');
 
       // // PHASE 3: Supplementary Data (safe to re-run)
       // this.log('\n\n\n=== 🧩 PHASE 3: Supplementary Data ===\n\n');
@@ -198,6 +198,7 @@ export class PokemonDataSeeder {
       // await this.seedItems('premium');
       // await this.seedMachines('premium');
       // await this.seedItemAttributes('premium');
+      // await this.patchItemSprites('premium');
 
       // // PHASE 7: Additional Game Systems (safe to re-run)
       // this.log('\n\n\n=== 🧩 PHASE 7: Additional Game Systems ===\n\n');
@@ -713,13 +714,9 @@ export class PokemonDataSeeder {
 
     if (processor.getExistingIds) {
       const existingIds = await processor.getExistingIds();
-      itemsToProcess = allItems.filter((item) => {
-        const itemId = this.extractIdFromUrl(item.url);
-        return itemId
-        // return itemId && !existingIds.has(itemId);
-      });
+      itemsToProcess = allItems.filter((item) => !!this.extractIdFromUrl(item.url));
       this.log(
-        `Processing ${itemsToProcess.length} new ${categoryName} (${existingIds.size} already exist)`,
+        `Processing ${itemsToProcess.length} ${categoryName} (${existingIds.size} already in DB — completeness checked per item)`,
       );
     }
 
@@ -1761,7 +1758,7 @@ export class PokemonDataSeeder {
           // Check if item exists
           const existingItem = await prisma.item.findUnique({
             where: { id: itemId },
-            select: { id: true, name: true },
+            select: { id: true, name: true, sprite: true },
           });
 
           if (existingItem) {
@@ -1790,6 +1787,7 @@ export class PokemonDataSeeder {
             if (!hasEffectTexts) missingRelationships.push('effect-texts');
             if (!hasFlavorTexts) missingRelationships.push('flavor-texts');
             if (!hasGameIndices) missingRelationships.push('game-indices');
+            if (!existingItem.sprite) missingRelationships.push('sprite');
 
             if (missingRelationships.length > 0) {
               this.log(`Item ${existingItem.name} missing: ${missingRelationships.join(', ')}`);
@@ -1802,6 +1800,72 @@ export class PokemonDataSeeder {
         },
       },
     );
+  }
+
+  /**
+   * Targeted patch: fetches sprites from PokeAPI for any item currently
+   * missing one. Much faster than re-running seedItems since it skips all
+   * name/text/index processing and only updates the sprite column.
+   *
+   * Defaults to premium proxy for concurrent batching. Pass 'standard' to
+   * fall back to sequential requests with rate-limit delays.
+   */
+  async patchItemSprites(mode: 'premium' | 'standard' = 'premium'): Promise<void> {
+    this.log('🖼️ Patching missing item sprites...');
+
+    const itemsWithoutSprites = await prisma.item.findMany({
+      where: { sprite: null },
+      select: { id: true, name: true },
+      orderBy: { id: 'asc' },
+    });
+
+    this.log(`Found ${itemsWithoutSprites.length} items missing sprites`);
+
+    if (itemsWithoutSprites.length === 0) {
+      this.log('✅ All items already have sprites');
+      return;
+    }
+
+    let patched = 0;
+    let failed = 0;
+    const batchSize = mode === 'premium' ? CONFIG.BATCH_SIZE : 1;
+
+    const patchOne = async (item: { id: number; name: string }) => {
+      try {
+        const url = `${CONFIG.POKEAPI_BASE_URL}item/${item.id}`;
+        const itemData = await this.fetchWithProxy(url, mode);
+        const sprite = itemData.sprites?.default ?? null;
+        await prisma.item.update({ where: { id: item.id }, data: { sprite } });
+        patched++;
+      } catch (error) {
+        failed++;
+        this.log(
+          `Failed to patch sprite for "${item.name}" (id ${item.id}): ${(error as Error).message}`,
+          'error',
+        );
+      }
+    };
+
+    for (let i = 0; i < itemsWithoutSprites.length; i += batchSize) {
+      const batch = itemsWithoutSprites.slice(i, i + batchSize);
+
+      if (mode === 'premium') {
+        await Promise.all(batch.map(patchOne));
+      } else {
+        for (const item of batch) {
+          await patchOne(item);
+        }
+      }
+
+      const done = Math.min(i + batchSize, itemsWithoutSprites.length);
+      if (done % 100 === 0 || done === itemsWithoutSprites.length) {
+        this.log(
+          `Sprite patch progress: ${done}/${itemsWithoutSprites.length} (${patched} updated, ${failed} failed)`,
+        );
+      }
+    }
+
+    this.log(`✅ Sprite patch complete: ${patched} updated, ${failed} failed`);
   }
 
   async seedItemAttributes(mode: 'premium' | 'standard' = 'standard'): Promise<void> {
@@ -3418,6 +3482,7 @@ export class PokemonDataSeeder {
       name: itemData.name,
       cost: itemData.cost,
       flingPower: itemData.fling_power,
+      sprite: itemData.sprites?.default ?? null,
     };
 
     await prisma.item.upsert({
