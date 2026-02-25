@@ -1,5 +1,6 @@
 import SectionCard from '../ui/SectionCard';
 import InteractiveLink from '../ui/InteractiveLink';
+import RandomPokemonLink from '../ui/RandomPokemonLink';
 
 export default function QuickAccess() {
   const sections = [
@@ -48,7 +49,7 @@ export default function QuickAccess() {
     {
       name: 'Random Pokémon',
       desc: 'Discover something new',
-      href: '/random',
+      href: null,
       icon: '🎲',
     },
   ];
@@ -56,18 +57,28 @@ export default function QuickAccess() {
   return (
     <SectionCard title="Quick Access" colorVariant="transparent">
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {sections.map((section) => (
-          <InteractiveLink
-            key={section.href}
-            href={section.href}
-            icon={<span className="text-2xl">{section.icon}</span>}
-            title={section.name}
-            description={section.desc}
-            showArrow={true}
-            ariaLabel={`Navigate to ${section.name}: ${section.desc}`}
-            height="md"
-          />
-        ))}
+        {sections.map((section) =>
+          section.href === null ? (
+            <RandomPokemonLink
+              key={section.name}
+              icon={<span className="text-2xl">{section.icon}</span>}
+              title={section.name}
+              description={section.desc}
+              ariaLabel={`${section.name}: ${section.desc}`}
+            />
+          ) : (
+            <InteractiveLink
+              key={section.href}
+              href={section.href}
+              icon={<span className="text-2xl">{section.icon}</span>}
+              title={section.name}
+              description={section.desc}
+              showArrow={true}
+              ariaLabel={`Navigate to ${section.name}: ${section.desc}`}
+              height="md"
+            />
+          ),
+        )}
       </div>
     </SectionCard>
   );
