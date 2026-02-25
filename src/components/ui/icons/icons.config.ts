@@ -13,7 +13,9 @@ export type IconType =
   | 'search'
   | 'up'
   | 'filter'
-  | 'actions';
+  | 'actions'
+  | 'copy'
+  | 'check';
 
 // Size variant system
 export type IconSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl';

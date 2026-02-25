@@ -178,6 +178,31 @@ const ChevronUpIconInternal = ({ size = 'md', className }: BaseIconProps) => (
   </IconWrapper>
 );
 
+const CheckIconInternal = ({ size = 'md', className }: BaseIconProps) => (
+  <IconWrapper size={size} className={className}>
+    <BaseSVG>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+    </BaseSVG>
+  </IconWrapper>
+);
+
+// Two overlapping rounded squares: front rect (bottom-right) + visible L-shape of back rect (top-left)
+const CopyIconInternal = ({ size = 'md', className }: BaseIconProps) => (
+  <IconWrapper size={size} className={className}>
+    <BaseSVG>
+      {/* Front square */}
+      <rect x="9" y="9" width="13" height="13" rx="2" strokeLinejoin="round" strokeWidth={2} />
+      {/* Back square — only top and left edges visible behind front square */}
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"
+      />
+    </BaseSVG>
+  </IconWrapper>
+);
+
 // Icon mapping for the generic Icon component
 export const iconMap = {
   plus: PlusIconInternal,
@@ -195,4 +220,6 @@ export const iconMap = {
   up: UpArrowIconInternal,
   filter: FilterIconInternal,
   actions: ActionsIconInternal,
+  copy: CopyIconInternal,
+  check: CheckIconInternal,
 } as const;
