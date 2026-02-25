@@ -34,6 +34,7 @@ const AbilityDetailPage: NextPageWithLayout = () => {
     pokemonId: pa.pokemon.id,
     speciesId: pa.pokemon.pokemonSpeciesId,
     name: pa.pokemon.name,
+    genderRate: -1,
     sprites: { frontDefault: pa.pokemon.sprites?.frontDefault, frontShiny: pa.pokemon.sprites?.frontShiny },
     types: pa.pokemon.types.map((t) => t.type.name),
     abilities: pa.pokemon.abilities,

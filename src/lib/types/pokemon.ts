@@ -1,6 +1,8 @@
 export type PokemonListSprites = {
   frontDefault?: string | null;
   frontShiny?: string | null;
+  frontFemale?: string | null;
+  frontShinyFemale?: string | null;
 };
 
 export type PokemonListAbility = {
@@ -27,6 +29,7 @@ export type PokemonListData = {
   pokemonId: number;
   speciesId: number;
   name: string;
+  genderRate: number;
   sprites: PokemonListSprites;
   types: string[];
   abilities: PokemonListAbility[];

@@ -38,6 +38,7 @@ const PokemonTypeDetailPage: NextPageWithLayout = () => {
       pokemonId: pkmn.id,
       speciesId: pkmn.pokemonSpeciesId,
       name: pkmn.name,
+      genderRate: -1,
       sprites: { frontDefault: pkmn.sprites?.frontDefault, frontShiny: pkmn.sprites?.frontShiny },
       types: pkmn.types.map((t) => t.type.name),
       abilities: pkmn.abilities,
