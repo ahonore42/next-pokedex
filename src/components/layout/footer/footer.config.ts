@@ -13,7 +13,7 @@ export const footerColumns: FooterColumnLinks[] = [
   {
     title: 'Tools',
     links: [
-      { href: '/type-chart', label: 'Type Chart' },
+      { href: '/pokemon-types', label: 'Type Chart' },
       { href: '/calculator', label: 'Damage Calculator' },
       { href: '/team-builder', label: 'Team Builder' },
       { href: '/random', label: 'Random Pokémon' },
@@ -22,10 +22,10 @@ export const footerColumns: FooterColumnLinks[] = [
   {
     title: 'Generations',
     links: [
-      { href: '/generation/1', label: 'Generation I' },
-      { href: '/generation/2', label: 'Generation II' },
-      { href: '/generation/3', label: 'Generation III' },
-      { href: '/generation/4', label: 'Generation IV' },
+      { href: '/pokedex/1', label: 'Generation I' },
+      { href: '/pokedex/2', label: 'Generation II' },
+      { href: '/pokedex/3', label: 'Generation III' },
+      { href: '/pokedex/4', label: 'Generation IV' },
     ],
   },
   {
