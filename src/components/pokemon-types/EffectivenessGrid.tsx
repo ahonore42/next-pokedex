@@ -52,7 +52,7 @@ export default function EffectivenessGrid() {
   );
 
   return (
-    <SectionCard title="Type Effectiveness" variant="compact" colorVariant="transparent">
+    <SectionCard title="Type Effectiveness" colorVariant="transparent">
       <div className="grid min-h-156 sm:min-h-92 lg:min-h-60 xl:min-h-28 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {examplesWithTypes.map((item) => (
           <div key={item.multiplier} className="group">

@@ -4,7 +4,6 @@ import TypeBadgesDisplay from './TypeBadgesDisplay';
 export default function SameTypeAttackBoost() {
   return (
     <SectionCard
-      variant="compact"
       colorVariant="transparent"
       title="Same Type Attack Bonus (STAB)"
       className="xl:min-h-88"
