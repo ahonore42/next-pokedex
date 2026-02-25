@@ -3,6 +3,12 @@ import SectionCard from '../ui/SectionCard';
 export default function LatestUpdates() {
   const updates = [
     {
+      date: 'February 25, 2026',
+      title: 'New Feature: Team Builder',
+      desc: 'Introducing the Team Builder tool! Create and customize your ideal Pokémon team with an intuitive interface. Choose from all available Pokémon, assign natures, held items, and up to 4 moves each. Perfect for planning your next competitive team or just experimenting with different combinations.',
+      type: 'feature',
+    },
+    {
       date: 'February 24, 2026',
       title: 'New Feature: Comprehensive Itemdex',
       desc: 'Explore all in-game items with a dedicated item listing page that supports filtering and grouping by category. View detailed information for each item, including its effects and which Pokémon can hold it.',

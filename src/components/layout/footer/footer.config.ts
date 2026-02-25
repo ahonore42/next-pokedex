@@ -15,7 +15,7 @@ export const footerColumns: FooterColumnLinks[] = [
     links: [
       { href: '/pokemon-types', label: 'Type Chart' },
       { href: '/calculator', label: 'Damage Calculator' },
-      { href: '/team-builder', label: 'Team Builder' },
+      { href: '/teams', label: 'Teambuilder' },
       { href: '/random', label: 'Random Pokémon' },
     ],
   },
