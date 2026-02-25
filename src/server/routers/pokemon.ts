@@ -453,4 +453,46 @@ export const pokemonRouter = router({
         limit,
       };
     }),
+
+  moveset: publicProcedure
+    .input(z.object({ pokemonId: z.number().int(), generationId: z.number().int() }))
+    .query(async ({ input }) => {
+      return await prisma.move.findMany({
+        where: {
+          pokemonMoves: {
+            some: {
+              pokemonId: input.pokemonId,
+              versionGroup: { generationId: input.generationId },
+            },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          names: { where: { languageId: 9 }, select: { name: true } },
+          type: {
+            select: {
+              name: true,
+              names: { where: { languageId: 9 }, select: { name: true } },
+            },
+          },
+          moveDamageClass: { select: { name: true } },
+          power: true,
+          accuracy: true,
+          pp: true,
+          flavorTexts: {
+            where: { languageId: 9 },
+            select: { flavorText: true },
+            orderBy: { versionGroupId: 'desc' as const },
+            take: 1,
+          },
+          effectEntries: {
+            where: { languageId: 9 },
+            select: { shortEffect: true },
+            take: 1,
+          },
+        },
+        orderBy: { name: 'asc' },
+      });
+    }),
 });

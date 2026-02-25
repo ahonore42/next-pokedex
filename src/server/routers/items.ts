@@ -44,6 +44,57 @@ export const itemsRouter = router({
       });
     }),
 
+  holdable: publicProcedure
+    .input(z.object({ generationId: z.number().int() }).optional())
+    .query(async ({ input }) => {
+      return await prisma.item.findMany({
+        where: {
+          itemCategory: {
+            name: {
+              in: [
+                'held-items',
+                'choice',
+                'bad-held-items',
+                'type-enhancement',
+                'plates',
+                'mega-stones',
+                'memories',
+                'scarves',
+                'species-specific',
+                'effort-training',
+                'jewels',
+                // Berries
+                'medicine',        // Lum Berry, Sitrus Berry, Oran Berry, etc.
+                'in-a-pinch',      // Salac Berry, Petaya Berry, Liechi Berry, etc.
+                'picky-healing',   // Figy Berry, Wiki Berry, Aguav Berry, etc.
+                'type-protection', // Chople Berry, Babiri Berry, Passho Berry, etc.
+                // Gen 7
+                'z-crystals',
+              ],
+            },
+          },
+          ...(input?.generationId
+            ? {
+                OR: [
+                  // Items whose flavor text confirms they exist in this generation or earlier
+                  { flavorTexts: { some: { versionGroup: { generationId: { lte: input.generationId } } } } },
+                  // Items with no flavor texts are Gen 9+ entries with incomplete DB data;
+                  // only include them when building a Gen 9 team
+                  ...(input.generationId >= 9 ? [{ flavorTexts: { none: {} } }] : []),
+                ],
+              }
+            : undefined),
+        },
+        select: {
+          id: true,
+          name: true,
+          sprite: true,
+          names: { where: { languageId: 9 }, select: { name: true } },
+        },
+        orderBy: { name: 'asc' },
+      });
+    }),
+
   byName: publicProcedure
     .input(z.object({ name: z.string() }))
     .query(async ({ input }) => {

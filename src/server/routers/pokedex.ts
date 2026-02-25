@@ -57,6 +57,7 @@ export const pokedexRouter = router({
         id: true,
         name: true,
         order: true,
+        genderRate: true,
         names: {
           where: { languageId: DEFAULT_LANGUAGE_ID },
           select: { name: true },
@@ -72,7 +73,7 @@ export const pokedexRouter = router({
             name: true,
             isDefault: true,
             types: basicTypeSelect,
-            sprites: { select: { frontDefault: true, frontShiny: true } },
+            sprites: { select: { frontDefault: true, frontShiny: true, frontFemale: true, frontShinyFemale: true } },
             abilities: {
               select: {
                 slot: true,
@@ -186,9 +187,12 @@ export const pokedexRouter = router({
             pokemonId: defaultPokemon.id,
             speciesId: species.id,
             name: species.name, // Use species name
+            genderRate: species.genderRate,
             sprites: {
               frontDefault: defaultPokemon.sprites?.frontDefault,
               frontShiny: defaultPokemon.sprites?.frontShiny,
+              frontFemale: defaultPokemon.sprites?.frontFemale,
+              frontShinyFemale: defaultPokemon.sprites?.frontShinyFemale,
             },
             types: defaultPokemon.types.map((t) => t.type.name),
             abilities: defaultPokemon.abilities,
@@ -202,9 +206,12 @@ export const pokedexRouter = router({
         pokemonId: pokemon.id,
         speciesId: species.id,
         name: pokemon.name, // Keep individual form names
+        genderRate: species.genderRate,
         sprites: {
           frontDefault: pokemon.sprites?.frontDefault,
           frontShiny: pokemon.sprites?.frontShiny,
+          frontFemale: pokemon.sprites?.frontFemale,
+          frontShinyFemale: pokemon.sprites?.frontShinyFemale,
         },
         types: pokemon.types.map((t) => t.type.name),
         abilities: pokemon.abilities,

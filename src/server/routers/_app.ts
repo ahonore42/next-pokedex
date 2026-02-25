@@ -102,6 +102,10 @@ export type EvolutionConditions = EvolutionSpecies['pokemonEvolutions'][number];
 export type MovesRouterOutputs = RouterOutputs['moves'];
 export type MovesListOutput = MovesRouterOutputs['list'];
 export type MoveDetailOutput = MovesRouterOutputs['byName'];
+export type PokemonMovesetOutput = RouterOutputs['pokemon']['moveset'];
+export type MovesetMove = PokemonMovesetOutput[number];
+export type HoldableItemsOutput = RouterOutputs['items']['holdable'];
+export type HoldableItem = HoldableItemsOutput[number];
 
 /**
  * ------------------------- Abilities types -----------------------------------
