@@ -500,6 +500,32 @@ export const itemListSelect = {
   },
 };
 
+export const locationListSelect = {
+  select: {
+    id: true,
+    name: true,
+    regionId: true,
+    names: {
+      where: { languageId: DEFAULT_LANGUAGE_ID },
+      select: { name: true },
+    },
+    areas: {
+      select: {
+        id: true,
+        name: true,
+        names: {
+          where: { languageId: DEFAULT_LANGUAGE_ID },
+          select: { name: true },
+        },
+        _count: {
+          select: { pokemonEncounters: true },
+        },
+      },
+      orderBy: { id: 'asc' as const },
+    },
+  },
+};
+
 export const abilityListSelect = {
   select: {
     id: true,
@@ -1063,6 +1089,53 @@ const detailedEncounterConditionSelect = {
           },
         },
       },
+    },
+  },
+};
+
+/**
+ * Location detail selector (depends on versionGroupSelect, detailedEncounterMethodSelect, detailedEncounterConditionSelect)
+ */
+export const locationDetailSelect = {
+  select: {
+    id: true,
+    name: true,
+    regionId: true,
+    names: languageNameSelect,
+    areas: {
+      select: {
+        id: true,
+        name: true,
+        names: languageNameSelect,
+        pokemonEncounters: {
+          select: {
+            minLevel: true,
+            maxLevel: true,
+            chance: true,
+            pokemon: {
+              select: {
+                id: true,
+                name: true,
+                sprites: { select: { frontDefault: true } },
+              },
+            },
+            version: {
+              select: {
+                id: true,
+                name: true,
+                versionGroup: versionGroupSelect,
+              },
+            },
+            encounterMethod: detailedEncounterMethodSelect,
+            conditionValueMap: detailedEncounterConditionSelect,
+          },
+          orderBy: [
+            { version: { id: 'asc' as const } },
+            { minLevel: 'asc' as const },
+          ],
+        },
+      },
+      orderBy: { id: 'asc' as const },
     },
   },
 };

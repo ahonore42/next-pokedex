@@ -10,6 +10,7 @@ import { pokedexRouter } from './pokedex';
 import { movesRouter } from './moves';
 import { abilitiesRouter } from './abilities';
 import { itemsRouter } from './items';
+import { locationsRouter } from './locations';
 
 export const appRouter = router({
   healthcheck: publicProcedure.query(() => 'Hello!'),
@@ -20,6 +21,7 @@ export const appRouter = router({
   moves: movesRouter,
   abilities: abilitiesRouter,
   items: itemsRouter,
+  locations: locationsRouter,
 });
 
 export const createCaller = createCallerFactory(appRouter);
@@ -116,6 +118,16 @@ export type ItemsRouterOutputs = RouterOutputs['items'];
 export type ItemsListOutput = ItemsRouterOutputs['list'];
 export type ItemListItem = ItemsListOutput[number];
 export type ItemDetailOutput = ItemsRouterOutputs['byName'];
+
+/**
+ * ------------------------- Locations types -----------------------------------
+ */
+export type LocationsRouterOutputs = RouterOutputs['locations'];
+export type LocationsListOutput = LocationsRouterOutputs['list'];
+export type LocationListItem = LocationsListOutput[number];
+export type LocationDetailOutput = NonNullable<LocationsRouterOutputs['byName']>;
+export type LocationDetailArea = LocationDetailOutput['areas'][number];
+export type LocationAreaEncounter = LocationDetailArea['pokemonEncounters'][number];
 
 /**
   * ------------------------- Pokémon Type types --------------------------------
