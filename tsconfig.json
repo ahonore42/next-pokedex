@@ -1,32 +1,20 @@
 {
   "compilerOptions": {
-    /* Base Options: */
-    "skipLibCheck": true,
     "target": "es2022",
-    "allowJs": true,
-    "moduleDetection": "force",
+    "module": "esnext",
+    "moduleResolution": "node",
     "isolatedModules": true,
-    /* Strictness */
+    "skipLibCheck": true,
+    "incremental": true,
     "strict": true,
-    "checkJs": true,
-    "allowImportingTsExtensions": true,
-    /* Bundled projects */
+    "noEmit": true,
+    "jsx": "react-jsx",
     "lib": [
       "dom",
       "dom.iterable",
-      "ES2022"
+      "es2022"
     ],
-    "noEmit": true,
-    "module": "Preserve",
-    "moduleResolution": "bundler",
-    "jsx": "react-jsx",
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "incremental": true,
-    /* Path aliases */
+    "baseUrl": ".",
     "paths": {
       "~/*": [
         "./src/*"
@@ -34,15 +22,22 @@
     },
     "types": [
       "vitest/globals"
-    ]
+    ],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "resolveJsonModule": true
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "*.js",
-    ".next/types/**/*.ts",
-    "postcss.config.mjs"
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
