@@ -21,6 +21,7 @@ import PokemonAbilities from '~/components/pokemon/PokemonAbilities';
 import PokemonStatTable from '~/components/pokemon/PokemonStatTable';
 import MobileEvolutionChain from '~/components/evolutions/MobileEvolutionChain';
 import EvolutionChain from '~/components/evolutions/EvolutionChain';
+import Pokeball from '~/components/ui/Pokeball';
 
 const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
   const breakpointWidth = useBreakpointWidth();
@@ -34,44 +35,66 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
     { enabled: isReady && !Number.isNaN(id), retry: false, staleTime: 60_000 },
   );
 
+  // The active variety's ID drives the moves/encounters queries so they can
+  // fire in parallel with the main query and update when the user switches forms.
+  const activePokemonId = varietyId ?? id;
+  const queryEnabled = isReady && !Number.isNaN(id);
+
+  const { data: moves = [], isLoading: movesLoading } = trpc.pokemon.movesForPokemon.useQuery(
+    { pokemonId: activePokemonId },
+    { enabled: queryEnabled, staleTime: Infinity },
+  );
+
+  const { data: encounters = [], isLoading: encountersLoading } =
+    trpc.pokemon.encountersForPokemon.useQuery(
+      { pokemonId: activePokemonId },
+      { enabled: queryEnabled, staleTime: Infinity },
+    );
+
+  // Evolution chain loads lazily once the species ID is known.
+  // speciesId is 0 before data resolves — the query stays disabled until then.
+  const speciesId = data?.pokemonSpecies?.id ?? 0;
+  const { data: evolutionChain, isLoading: evolutionLoading } =
+    trpc.evolutionChains.bySpeciesId.useQuery(
+      { speciesId },
+      { enabled: speciesId > 0, staleTime: Infinity },
+    );
+
   // Memoised derived values
-  const { species, speciesName, evolutionChain, activePokemon, nationalDexNumber, genus } =
-    useMemo(() => {
-      if (!data) {
-        return {
-          species: null,
-          activePokemon: null,
-          nationalDexNumber: 0,
-          genus: '',
-          generationId: 0,
-        };
-      }
-
-      const species = data.pokemonSpecies;
-      const speciesName = species.names[0].name;
-      const evolutionChain = species.evolutionChain;
-      const varieties = species.pokemon;
-
-      const pokemon =
-        varieties.find((p) => p.id === (varietyId ?? id)) ??
-        varieties.find((p) => p.isDefault) ??
-        varieties[0];
-      const nationalDexNumber =
-        species.pokedexNumbers.find((e) => e.pokedex.isMainSeries && e.pokedex.name === 'national')
-          ?.pokedexNumber ?? pokemon.id;
-
-      const genus = species.names[0]?.genus ?? '';
-
+  const { species, speciesName, activePokemon, nationalDexNumber, genus } = useMemo(() => {
+    if (!data) {
       return {
-        species,
-        speciesName,
-        evolutionChain,
-        activePokemon: pokemon,
-        nationalDexNumber,
-        genus,
-        generationId: species.generationId,
+        species: null,
+        activePokemon: null,
+        nationalDexNumber: 0,
+        genus: '',
+        generationId: 0,
       };
-    }, [data, id, varietyId]);
+    }
+
+    const species = data.pokemonSpecies;
+    const speciesName = species.names[0].name;
+    const varieties = species.pokemon;
+
+    const pokemon =
+      varieties.find((p) => p.id === (varietyId ?? id)) ??
+      varieties.find((p) => p.isDefault) ??
+      varieties[0];
+    const nationalDexNumber =
+      species.pokedexNumbers.find((e) => e.pokedex.isMainSeries && e.pokedex.name === 'national')
+        ?.pokedexNumber ?? pokemon.id;
+
+    const genus = species.names[0]?.genus ?? '';
+
+    return {
+      species,
+      speciesName,
+      activePokemon: pokemon,
+      nationalDexNumber,
+      genus,
+      generationId: species.generationId,
+    };
+  }, [data, id, varietyId]);
 
   // Preload artwork
   useEffect(() => {
@@ -94,7 +117,12 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
   const activePokemonName = capitalizeName(activePokemon?.name ?? '');
   // Loading & error
   const isPageLoading = !isReady || isLoading || !activePokemon;
-  if (isPageLoading) return null;
+  if (isPageLoading)
+    return (
+      <div className="flex-grow flex items-center justify-center">
+        <Pokeball size="lg" endlessSpin spinSpeed={3} />
+      </div>
+    );
   if (error || Number.isNaN(id))
     return <NextError title={error?.message ?? 'Pokémon not found'} statusCode={404} />;
 
@@ -150,27 +178,39 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
           </SectionCard>
         </div>
         <PokemonStatTable stats={activePokemon.stats} />
-        {/* Evolution Chain - Responsive Rendering */}
-        {evolutionChain?.pokemonSpecies.length &&
-          (breakpointWidth < 640 ? (
-            <SectionCard title="Evolution Chain" variant="compact">
-              {/* Mobile Evolution Chain - Visible on smaller screens, hidden on lg+ */}
-              <MobileEvolutionChain species={species} />
-            </SectionCard>
-          ) : (
-            <div>
-              {/* Desktop Evolution Chain - Hidden on smaller screens, visible on lg+ */}
+
+        {/* Evolution Chain — deferred; skeleton shown while loading */}
+        {evolutionLoading ? (
+          <SectionCard title="Evolution Chain" variant="compact">
+            <div className="h-28 animate-pulse rounded-lg bg-surface" />
+          </SectionCard>
+        ) : evolutionChain?.pokemonSpecies.length ? (
+          <div className="animate-fade-in">
+            {breakpointWidth < 640 ? (
+              <SectionCard title="Evolution Chain" variant="compact">
+                <MobileEvolutionChain chain={evolutionChain} />
+              </SectionCard>
+            ) : (
               <SectionCard title="Evolution Chain" variant="compact">
                 <EvolutionChain chain={evolutionChain} />
               </SectionCard>
-            </div>
-          ))}
-        {/* </SectionCard> */}
+            )}
+          </div>
+        ) : null}
 
-        {activePokemon.encounters.length > 0 && (
-          <PokemonEncounters encounters={activePokemon.encounters} />
+        {/* Encounters — deferred */}
+        {!encountersLoading && encounters.length > 0 && (
+          <div className="animate-fade-in">
+            <PokemonEncounters encounters={encounters} />
+          </div>
         )}
-        {activePokemon.moves.length > 0 && <PokemonMoves moves={activePokemon.moves} />}
+
+        {/* Moves — deferred */}
+        {!movesLoading && moves.length > 0 && (
+          <div className="animate-fade-in">
+            <PokemonMoves moves={moves} />
+          </div>
+        )}
 
         <Button
           variant="brand"
