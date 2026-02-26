@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react';
+import { Suspense } from 'react';
 import { NextPageWithLayout } from './_app';
-import { usePageLoading } from '~/components/layout/DefaultLayout';
 import { trpc } from '~/utils/trpc';
 import { useBreakpointWidth } from '~/hooks';
-import { PokemonArtworkByNames, FeaturedPokemonOutput } from '~/server/routers/_app';
 import PageHeading from '~/components/layout/PageHeading';
 import PageContent from '~/components/layout/PageContent';
 import ArtworkImage from '~/components/ui/ArtworkImage';
@@ -11,34 +9,69 @@ import QuickAccess from '~/components/layout/QuickAccess';
 import FeaturedPokemonDisplay from '~/components/informational/FeaturedPokemonDisplay';
 import LatestUpdates from '~/components/informational/LatestUpdates';
 import SearchBar, { PokemonSearchResult, renderPokemonResult } from '~/components/ui/searchbars';
+import SkeletonArtwork from '~/components/ui/skeletons/SkeletonArtwork';
+import SkeletonInteractiveLink from '~/components/ui/skeletons/SkeletonInteractiveLink';
+import SectionCard from '~/components/ui/SectionCard';
+
+// ── Hero artwork (desktop only) ──────────────────────────────────────────────
+
+function HeroArtwork() {
+  const [legendaries] = trpc.pokemon.officialArtworkByNames.useSuspenseQuery(
+    { names: ['dialga', 'palkia'] },
+    { staleTime: Infinity },
+  );
+
+  return (
+    <div className="absolute inset-0 flex justify-between items-center w-full">
+      <ArtworkImage
+        src={legendaries[0] ?? undefined}
+        alt="Official Dialga Artwork"
+        size="size-48 lg:size-72 xl:size-96 2xl:size-112"
+      />
+      <ArtworkImage
+        src={legendaries[1] ?? undefined}
+        alt="Official Palkia Artwork"
+        size="size-48 lg:size-72 xl:size-96 2xl:size-112"
+      />
+    </div>
+  );
+}
+
+function HeroArtworkSkeleton() {
+  return (
+    <div className="absolute inset-0 flex justify-between items-center w-full">
+      <SkeletonArtwork size="size-48 lg:size-72 xl:size-96 2xl:size-112" />
+      <SkeletonArtwork size="size-48 lg:size-72 xl:size-96 2xl:size-112" />
+    </div>
+  );
+}
+
+// ── Featured Pokémon ─────────────────────────────────────────────────────────
+
+function FeaturedContent() {
+  const [pokemon] = trpc.pokemon.featured.useSuspenseQuery(undefined, {
+    staleTime: Infinity,
+  });
+
+  return <FeaturedPokemonDisplay pokemon={pokemon} />;
+}
+
+function FeaturedContentSkeleton() {
+  return (
+    <SectionCard title="Featured Pokémon" tags={['Daily Rotation']} colorVariant="transparent">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <SkeletonInteractiveLink key={i} height="lg" />
+        ))}
+      </div>
+    </SectionCard>
+  );
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
 
 const IndexPage: NextPageWithLayout = () => {
   const breakpointWidth = useBreakpointWidth();
-  const [pokemon, setPokemon] = useState<FeaturedPokemonOutput>([]);
-  const [legendaries, setLegendaries] = useState<PokemonArtworkByNames>([]);
-  const utils = trpc.useUtils();
-  const pokemonQuery = trpc.pokemon.featured.useQuery();
-  const artworkQuery = trpc.pokemon.officialArtworkByNames.useQuery({
-    names: ['dialga', 'palkia'],
-  });
-
-  useEffect(() => {
-    // Only update state when data is available
-    if (pokemonQuery.data && artworkQuery.data) {
-      const pokemonList = pokemonQuery.data ?? [];
-      const legendarySprites = artworkQuery.data;
-      setPokemon(pokemonList);
-      setLegendaries(legendarySprites);
-    }
-  }, [pokemonQuery.data, artworkQuery.data, utils]);
-
-  // Calculate loading state based on query states and data availability
-  const isPageLoading =
-    pokemonQuery.isLoading || artworkQuery.isLoading || !pokemon.length || !legendaries.length;
-  usePageLoading(isPageLoading);
-  if (isPageLoading) {
-    return null;
-  }
 
   return (
     <>
@@ -69,12 +102,11 @@ const IndexPage: NextPageWithLayout = () => {
         currentPage="Home"
       />
       <PageContent>
-        {/* Title outside overlay area */}
         <h1 className="text-3xl md:text-4xl xl:text-5xl 2xl:text-6xl font-bold tracking-tight xl:tracking-tighter indigo-gradient text-left">
           Evolve Pokédex
         </h1>
 
-        {/* Mobile-only layout - simple stacked */}
+        {/* Mobile layout — no artwork */}
         {breakpointWidth < 768 ? (
           <div className="px-4 py-6 space-y-6">
             <div className="max-w-sm mx-auto">
@@ -96,24 +128,13 @@ const IndexPage: NextPageWithLayout = () => {
           </div>
         ) : (
           <div className="relative flex items-center justify-center h-48 lg:h-72 xl:h-96 2xl:h-112">
-            {/* Background images layer */}
-            {legendaries[0] && legendaries[1] && (
-              <div className="absolute inset-0 flex justify-between items-center w-full">
-                <ArtworkImage
-                  src={legendaries[0]}
-                  alt="Official Dialga Artwork"
-                  size="size-48 lg:size-72 xl:size-96 2xl:size-112"
-                />
-                <ArtworkImage
-                  src={legendaries[1]}
-                  alt="Official Palkia Artwork"
-                  size="size-48 lg:size-72 xl:size-96 2xl:size-112"
-                />
-              </div>
-            )}
+            {/* Artwork loads behind the text */}
+            <Suspense fallback={<HeroArtworkSkeleton />}>
+              <HeroArtwork />
+            </Suspense>
 
-            {/* Foreground content */}
-            <div className="relative z-10 ">
+            {/* Foreground content — always visible */}
+            <div className="relative z-10">
               <div className="max-w-sm sm:max-w-md md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto px-4 sm:px-0">
                 <p className="text-xl xl:text-2xl text-muted mx-auto text-left backdrop-blur-lg rounded-lg">
                   Comprehensive and accurate online resource for Pokémon game information across
@@ -134,9 +155,12 @@ const IndexPage: NextPageWithLayout = () => {
           </div>
         )}
 
-        {/* Main Content */}
         <QuickAccess />
-        <FeaturedPokemonDisplay pokemon={pokemon} />
+
+        <Suspense fallback={<FeaturedContentSkeleton />}>
+          <FeaturedContent />
+        </Suspense>
+
         <LatestUpdates />
       </PageContent>
     </>
@@ -144,29 +168,3 @@ const IndexPage: NextPageWithLayout = () => {
 };
 
 export default IndexPage;
-
-/**
- * If you want to statically render this page
- * - Export `appRouter` & `createContext` from [trpc].ts
- * - Make the `opts` object optional on `createContext()`
- *
- * @see https://trpc.io/docs/v11/ssg
- */
-// export const getStaticProps = async (
-//   context: GetStaticPropsContext<{ filter: string }>,
-// ) => {
-//   const ssg = createServerSideHelpers({
-//     router: appRouter,
-//     ctx: await createContext(),
-//   });
-//
-//   await ssg.post.all.fetch();
-//
-//   return {
-//     props: {
-//       trpcState: ssg.dehydrate(),
-//       filter: context.params?.filter ?? 'all',
-//     },
-//     revalidate: 1,
-//   };
-// };

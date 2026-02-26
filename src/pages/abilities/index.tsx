@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, Suspense, useTransition } from 'react';
+import clsx from 'clsx';
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
-import { usePageLoading } from '~/components/layout/DefaultLayout';
 import { AbilityListItem } from '~/server/routers/_app';
 import DataTable, { abilityColumns, AbilityColumns, AbilityTableRow } from '~/components/ui/tables';
 import MetricsGrid from '~/components/ui/MetricsGrid';
@@ -9,6 +9,7 @@ import Badge from '~/components/ui/Badge';
 import SectionCard from '~/components/ui/SectionCard';
 import PageHeading from '~/components/layout/PageHeading';
 import PageContent from '~/components/layout/PageContent';
+import SkeletonTableRow from '~/components/ui/skeletons/SkeletonTableRow';
 
 const createAbilityRows = (abilities: AbilityListItem[]): AbilityTableRow[] => {
   const rows: AbilityTableRow[] = [];
@@ -33,21 +34,27 @@ const createAbilityRows = (abilities: AbilityListItem[]): AbilityTableRow[] => {
   return rows;
 };
 
-const AbilitiesPage: NextPageWithLayout = () => {
-  const [selectedGen, setSelectedGen] = useState<number | 'all'>('all');
-
-  const { data: generations } = trpc.abilities.generations.useQuery(undefined, {
-    staleTime: Infinity,
-  });
-
-  const { data, isLoading } = trpc.abilities.list.useQuery(
-    { generationId: selectedGen !== 'all' ? selectedGen : undefined },
-    { staleTime: 60_000 },
+function AbilitiesTableSkeleton() {
+  return (
+    <div className="rounded-lg overflow-scroll border-2 border-border">
+      <table className="table-fixed w-full border-collapse divide-y divide-border">
+        <tbody>
+          {Array.from({ length: 12 }).map((_, i) => (
+            <SkeletonTableRow key={i} columns={abilityColumns} rowHeight={i % 2 === 0 ? 'h-5' : 'h-4'} />
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
+}
 
-  const isPageLoading = isLoading || !data || !generations;
-  usePageLoading(isPageLoading);
-  if (isPageLoading) return null;
+type AbilitiesContentProps = { generationId?: number };
+
+function AbilitiesContent({ generationId }: AbilitiesContentProps) {
+  const [data] = trpc.abilities.list.useSuspenseQuery(
+    { generationId },
+    { staleTime: Infinity },
+  );
 
   const abilityRows = createAbilityRows(data);
 
@@ -67,6 +74,28 @@ const AbilitiesPage: NextPageWithLayout = () => {
 
   return (
     <>
+      <MetricsGrid metrics={metrics} columns={{ default: 2, sm: 3 }} />
+      <DataTable
+        data={abilityRows}
+        columns={abilityColumns}
+        border
+        rounded
+        virtualScroll={{ enabled: false, rowHeight: 0 }}
+      />
+    </>
+  );
+}
+
+const AbilitiesPage: NextPageWithLayout = () => {
+  const [selectedGen, setSelectedGen] = useState<number | 'all'>('all');
+  const [isPending, startTransition] = useTransition();
+
+  const { data: generations } = trpc.abilities.generations.useQuery(undefined, {
+    staleTime: Infinity,
+  });
+
+  return (
+    <>
       <PageHeading
         pageTitle="Pokémon Abilities - Complete Ability List"
         metaDescription="Browse all Pokémon abilities by generation. View descriptions and effects for every ability."
@@ -82,29 +111,29 @@ const AbilitiesPage: NextPageWithLayout = () => {
           <div className="flex flex-wrap justify-center items-center gap-2">
             <Badge
               className={selectedGen === 'all' ? 'bg-indigo-600 dark:bg-indigo-700' : 'bg-slate-500 dark:bg-slate-600'}
-              onClick={() => setSelectedGen('all')}
+              onClick={() => startTransition(() => setSelectedGen('all'))}
             >
               All
             </Badge>
-            {generations.map((gen) => (
+            {generations?.map((gen) => (
               <Badge
                 key={gen}
                 className={selectedGen === gen ? 'bg-indigo-600 dark:bg-indigo-700' : 'bg-slate-500 dark:bg-slate-600'}
-                onClick={() => setSelectedGen(gen)}
+                onClick={() => startTransition(() => setSelectedGen(gen))}
               >
                 {`Gen ${gen}`}
               </Badge>
             ))}
           </div>
         </SectionCard>
-        <MetricsGrid metrics={metrics} columns={{ default: 2, sm: 3 }} />
-        <DataTable
-          data={abilityRows}
-          columns={abilityColumns}
-          border
-          rounded
-          virtualScroll={{ enabled: false, rowHeight: 0 }}
-        />
+
+        <div className={clsx('transition-opacity duration-200', isPending && 'opacity-50')}>
+          <Suspense fallback={<AbilitiesTableSkeleton />}>
+            <AbilitiesContent
+              generationId={selectedGen !== 'all' ? selectedGen : undefined}
+            />
+          </Suspense>
+        </div>
       </PageContent>
     </>
   );

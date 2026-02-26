@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, Suspense, useTransition } from 'react';
+import clsx from 'clsx';
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
-import { usePageLoading } from '~/components/layout/DefaultLayout';
 import { TypeMoveData } from '~/server/routers/_app';
 import DataTable, { moveColumns, MoveColumns, MoveTableRow } from '~/components/ui/tables';
 import TypeFilter from '~/components/pokemon-types/TypeFilter';
@@ -10,6 +10,7 @@ import Badge from '~/components/ui/Badge';
 import SectionCard from '~/components/ui/SectionCard';
 import PageHeading from '~/components/layout/PageHeading';
 import PageContent from '~/components/layout/PageContent';
+import SkeletonTableRow from '~/components/ui/skeletons/SkeletonTableRow';
 
 const createMoveRows = (moves: TypeMoveData[]): MoveTableRow[] => {
   const rows: MoveTableRow[] = [];
@@ -46,21 +47,29 @@ const createMoveRows = (moves: TypeMoveData[]): MoveTableRow[] => {
 
 const GENERATIONS = Array.from({ length: 9 }, (_, i) => i + 1);
 
-const MovesPage: NextPageWithLayout = () => {
-  const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [selectedGen, setSelectedGen] = useState<number | 'all'>('all');
-
-  const { data, isLoading } = trpc.moves.list.useQuery(
-    {
-      typeName: selectedType ?? undefined,
-      generationId: selectedGen !== 'all' ? selectedGen : undefined,
-    },
-    { staleTime: 60_000 },
+// Skeleton fallback – mirrors the table structure using the actual column definitions
+function MovesTableSkeleton() {
+  return (
+    <div className="rounded-lg overflow-scroll border-2 border-border">
+      <table className="table-fixed w-full border-collapse divide-y divide-border">
+        <tbody>
+          {Array.from({ length: 12 }).map((_, i) => (
+            <SkeletonTableRow key={i} columns={moveColumns} rowHeight={i % 2 === 0 ? 'h-7' : 'h-4'} />
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
+}
 
-  const isPageLoading = isLoading || !data;
-  usePageLoading(isPageLoading);
-  if (isPageLoading) return null;
+// Inner component – suspends until the query resolves
+type MovesContentProps = { typeName?: string; generationId?: number };
+
+function MovesContent({ typeName, generationId }: MovesContentProps) {
+  const [data] = trpc.moves.list.useSuspenseQuery(
+    { typeName, generationId },
+    { staleTime: Infinity },
+  );
 
   const moveRows = createMoveRows(data);
 
@@ -85,6 +94,25 @@ const MovesPage: NextPageWithLayout = () => {
 
   return (
     <>
+      <MetricsGrid metrics={metrics} columns={{ default: 2, sm: 4 }} />
+      <DataTable
+        data={moveRows}
+        columns={moveColumns}
+        border
+        rounded
+        virtualScroll={{ enabled: false, rowHeight: 0 }}
+      />
+    </>
+  );
+}
+
+const MovesPage: NextPageWithLayout = () => {
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedGen, setSelectedGen] = useState<number | 'all'>('all');
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <>
       <PageHeading
         pageTitle="Pokémon Moves - Complete Move List"
         metaDescription="Browse all Pokémon moves filtered by type. View power, accuracy, PP, and more."
@@ -100,7 +128,7 @@ const MovesPage: NextPageWithLayout = () => {
           <div className="flex flex-wrap justify-center items-center gap-2">
             <Badge
               className={selectedGen === 'all' ? 'bg-indigo-600 dark:bg-indigo-700' : 'bg-slate-500 dark:bg-slate-600'}
-              onClick={() => setSelectedGen('all')}
+              onClick={() => startTransition(() => setSelectedGen('all'))}
             >
               All
             </Badge>
@@ -108,7 +136,7 @@ const MovesPage: NextPageWithLayout = () => {
               <Badge
                 key={gen}
                 className={selectedGen === gen ? 'bg-indigo-600 dark:bg-indigo-700' : 'bg-slate-500 dark:bg-slate-600'}
-                onClick={() => setSelectedGen(gen)}
+                onClick={() => startTransition(() => setSelectedGen(gen))}
               >
                 {`Gen ${gen}`}
               </Badge>
@@ -116,16 +144,20 @@ const MovesPage: NextPageWithLayout = () => {
           </div>
         </SectionCard>
         <SectionCard title="Filter by Type" variant="compact" colorVariant="transparent">
-          <TypeFilter selectedType={selectedType} onTypeChange={setSelectedType} />
+          <TypeFilter
+            selectedType={selectedType}
+            onTypeChange={(type) => startTransition(() => setSelectedType(type))}
+          />
         </SectionCard>
-        <MetricsGrid metrics={metrics} columns={{ default: 2, sm: 4 }} />
-        <DataTable
-          data={moveRows}
-          columns={moveColumns}
-          border
-          rounded
-          virtualScroll={{ enabled: false, rowHeight: 0 }}
-        />
+
+        <div className={clsx('transition-opacity duration-200', isPending && 'opacity-50')}>
+          <Suspense fallback={<MovesTableSkeleton />}>
+            <MovesContent
+              typeName={selectedType ?? undefined}
+              generationId={selectedGen !== 'all' ? selectedGen : undefined}
+            />
+          </Suspense>
+        </div>
       </PageContent>
     </>
   );

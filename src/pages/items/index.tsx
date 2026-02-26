@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, Suspense, useTransition } from 'react';
+import clsx from 'clsx';
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
-import { usePageLoading } from '~/components/layout/DefaultLayout';
 import { ItemListItem } from '~/server/routers/_app';
 import DataTable, { itemColumns, ItemColumns, ItemTableRow } from '~/components/ui/tables';
 import Badge from '~/components/ui/Badge';
@@ -9,6 +9,7 @@ import SectionCard from '~/components/ui/SectionCard';
 import PageHeading from '~/components/layout/PageHeading';
 import PageContent from '~/components/layout/PageContent';
 import { capitalizeName } from '~/utils/text';
+import SkeletonTableRow from '~/components/ui/skeletons/SkeletonTableRow';
 
 const createItemRows = (items: ItemListItem[]): ItemTableRow[] => {
   const rows: ItemTableRow[] = [];
@@ -77,23 +78,68 @@ const groupByPocketAndCategory = (items: ItemListItem[]): GroupedItems => {
     }));
 };
 
+function ItemsTableSkeleton() {
+  return (
+    <div className="rounded-lg overflow-scroll border-2 border-border">
+      <table className="table-fixed w-full border-collapse divide-y divide-border">
+        <tbody>
+          {Array.from({ length: 12 }).map((_, i) => (
+            <SkeletonTableRow key={i} columns={itemColumns} rowHeight={i % 2 === 0 ? 'h-12' : 'h-4'} />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+type ItemsContentProps = { generationId?: number };
+
+function ItemsContent({ generationId }: ItemsContentProps) {
+  const [data] = trpc.items.list.useSuspenseQuery(
+    { generationId },
+    { staleTime: Infinity },
+  );
+
+  const grouped = groupByPocketAndCategory(data);
+
+  return (
+    <>
+      {grouped.map((pocket) => (
+        <div key={pocket.pocketId} className="mb-8">
+          <h2 className="text-2xl font-bold text-primary mb-4 border-b border-border pb-2">
+            {pocket.pocketName}
+          </h2>
+
+          {pocket.categories.map((category) => (
+            <div key={category.categoryId} className="mb-6">
+              <h3 className="text-base font-semibold text-subtle mb-2 ml-1">
+                {category.categoryName}
+                <span className="ml-2 text-xs font-normal text-subtle opacity-70">
+                  ({category.items.length})
+                </span>
+              </h3>
+              <DataTable
+                data={createItemRows(category.items)}
+                columns={itemColumns}
+                border
+                rounded
+                virtualScroll={{ enabled: false, rowHeight: 0 }}
+              />
+            </div>
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
 const ItemsPage: NextPageWithLayout = () => {
   const [selectedGen, setSelectedGen] = useState<number | 'all'>('all');
+  const [isPending, startTransition] = useTransition();
 
   const { data: generations } = trpc.items.generations.useQuery(undefined, {
     staleTime: Infinity,
   });
-
-  const { data, isLoading } = trpc.items.list.useQuery(
-    { generationId: selectedGen !== 'all' ? selectedGen : undefined },
-    { staleTime: 60_000 },
-  );
-
-  const isPageLoading = isLoading || !data || !generations;
-  usePageLoading(isPageLoading);
-  if (isPageLoading) return null;
-
-  const grouped = groupByPocketAndCategory(data);
 
   return (
     <>
@@ -112,15 +158,15 @@ const ItemsPage: NextPageWithLayout = () => {
           <div className="flex flex-wrap justify-center items-center gap-2">
             <Badge
               className={selectedGen === 'all' ? 'bg-indigo-600 dark:bg-indigo-700' : 'bg-slate-500 dark:bg-slate-600'}
-              onClick={() => setSelectedGen('all')}
+              onClick={() => startTransition(() => setSelectedGen('all'))}
             >
               All
             </Badge>
-            {generations.map((gen) => (
+            {generations?.map((gen) => (
               <Badge
                 key={gen}
                 className={selectedGen === gen ? 'bg-indigo-600 dark:bg-indigo-700' : 'bg-slate-500 dark:bg-slate-600'}
-                onClick={() => setSelectedGen(gen)}
+                onClick={() => startTransition(() => setSelectedGen(gen))}
               >
                 {`Gen ${gen}`}
               </Badge>
@@ -128,31 +174,13 @@ const ItemsPage: NextPageWithLayout = () => {
           </div>
         </SectionCard>
 
-        {grouped.map((pocket) => (
-          <div key={pocket.pocketId} className="mb-8">
-            <h2 className="text-2xl font-bold text-primary mb-4 border-b border-border pb-2">
-              {pocket.pocketName}
-            </h2>
-
-            {pocket.categories.map((category) => (
-              <div key={category.categoryId} className="mb-6">
-                <h3 className="text-base font-semibold text-subtle mb-2 ml-1">
-                  {category.categoryName}
-                  <span className="ml-2 text-xs font-normal text-subtle opacity-70">
-                    ({category.items.length})
-                  </span>
-                </h3>
-                <DataTable
-                  data={createItemRows(category.items)}
-                  columns={itemColumns}
-                  border
-                  rounded
-                  virtualScroll={{ enabled: false, rowHeight: 0 }}
-                />
-              </div>
-            ))}
-          </div>
-        ))}
+        <div className={clsx('transition-opacity duration-200', isPending && 'opacity-50')}>
+          <Suspense fallback={<ItemsTableSkeleton />}>
+            <ItemsContent
+              generationId={selectedGen !== 'all' ? selectedGen : undefined}
+            />
+          </Suspense>
+        </div>
       </PageContent>
     </>
   );
