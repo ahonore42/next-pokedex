@@ -374,7 +374,7 @@ describe('pokedex.pokedexByGeneration', () => {
   it('national dex contains Bulbasaur', async () => {
     const caller = await getCaller();
     const result = await caller.pokedex.pokedexByGeneration();
-    const names = result.national.pokemonSpecies.map((s: any) => s.name);
+    const names = result!.national.pokemonSpecies.map((s: any) => s.name);
     expect(names).toContain('bulbasaur');
   });
 });
