@@ -10,7 +10,7 @@ import ThemeToggle from '../ui/ThemeToggle';
 import Modal from '../ui/Modal';
 
 export default function HeaderMenu() {
-  const { pokemonDataArray } = usePokemonCache();
+  const { pokemonDataArray, ensureCacheLoaded } = usePokemonCache();
 
   const navigationItems = [
     { href: '/pokedex', label: 'Pokédex' },
@@ -69,6 +69,7 @@ export default function HeaderMenu() {
                 modalTitle="Search Pokémon"
                 maxWidth="2xl"
                 triggerClassName="w-8 h-8 bg-surface hover:bg-indigo-50 hover:text-brand dark:hover:bg-indigo-900/30 mr-2"
+                onOpen={ensureCacheLoaded}
               >
                 <SearchBar
                   data={pokemonDataArray}
@@ -95,6 +96,7 @@ export default function HeaderMenu() {
                 modalTitle="Search Pokémon"
                 maxWidth="lg"
                 triggerClassName="w-8 h-8 bg-surface hover:bg-indigo-50 hover:text-brand dark:hover:bg-indigo-900/30 mr-2"
+                onOpen={ensureCacheLoaded}
               >
                 <SearchBar
                   data={pokemonDataArray}

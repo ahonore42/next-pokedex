@@ -1,9 +1,11 @@
 'use client';
 
 import { useRouter } from 'next/router';
-import { usePokemonCache } from '~/lib/contexts/PokedexCacheContext';
 import Icon from './icons';
 import { ReactNode } from 'react';
+
+// Gen 1–9 national dex ceiling (covers all current species)
+const MAX_NATIONAL_DEX_ID = 1025;
 
 interface RandomPokemonLinkProps {
   icon?: ReactNode;
@@ -19,19 +21,15 @@ export default function RandomPokemonLink({
   ariaLabel,
 }: RandomPokemonLinkProps) {
   const router = useRouter();
-  const { pokemonDataArray } = usePokemonCache();
 
   const handleClick = () => {
-    if (pokemonDataArray.length === 0) return;
-    const maxSpeciesId = Math.max(...pokemonDataArray.map((p) => p.speciesId));
-    const randomId = Math.floor(Math.random() * maxSpeciesId) + 1;
+    const randomId = Math.floor(Math.random() * MAX_NATIONAL_DEX_ID) + 1;
     router.push(`/pokemon/${randomId}`);
   };
 
   return (
     <button
       onClick={handleClick}
-      disabled={pokemonDataArray.length === 0}
       aria-label={ariaLabel}
       className="
         min-h-24

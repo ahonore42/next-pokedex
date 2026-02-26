@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import type { PokemonListData, PokemonListAbility } from '~/lib/types/pokemon';
 import TeamGrid from './TeamGrid';
 import SlotEditor from './SlotEditor';
@@ -37,7 +37,9 @@ export default function TeamBuilder() {
   const [activeSlot, setActiveSlot] = useState<number | null>(0);
   const [generation, setGeneration] = useState(9);
 
-  const { getPokemonByGeneration } = usePokemonCache();
+  const { getPokemonByGeneration, ensureCacheLoaded } = usePokemonCache();
+
+  useEffect(() => { ensureCacheLoaded(); }, [ensureCacheLoaded]);
 
   const usedSpeciesIds = useMemo(
     () => new Set(team.filter(Boolean).map((m) => m!.speciesId)),

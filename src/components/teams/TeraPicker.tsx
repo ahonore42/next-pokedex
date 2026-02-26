@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { pokemonTypes } from '~/utils/pokemon-types';
 import { getTypeColor, truncateTypeName } from '~/utils';
-import type { PokemonTypeName } from '~/server/routers/_app';
 
 // All valid Tera Types: the 18 standard types + Stellar
 const TERA_TYPES: string[] = [...pokemonTypes, 'stellar'];
@@ -76,7 +75,7 @@ export default function TeraPicker({ value, onChange }: TeraPickerProps) {
                   style={{ backgroundColor: color }}
                   title={t.charAt(0).toUpperCase() + t.slice(1)}
                 >
-                  {truncateTypeName(t as PokemonTypeName, 'short')}
+                  {truncateTypeName(t, 'short')}
                 </button>
               );
             })}

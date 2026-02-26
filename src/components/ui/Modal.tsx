@@ -8,6 +8,7 @@ interface ModalProps {
   children: ReactNode;
   isOpen?: boolean; // External control
   onClose?: () => void; // External control
+  onOpen?: () => void; // Called when the trigger button opens the modal
   showTrigger?: boolean; // Whether to render trigger button
   triggerIcon?: IconType;
   triggerLabel?: string;
@@ -22,6 +23,7 @@ export default function Modal({
   children,
   isOpen: externalIsOpen,
   onClose: externalOnClose,
+  onOpen,
   showTrigger = true,
   triggerIcon = 'search',
   triggerLabel = 'Open modal',
@@ -91,7 +93,7 @@ export default function Modal({
       {/* Trigger Button - only render if showTrigger is true */}
       {showTrigger && (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => { onOpen?.(); setIsOpen(true); }}
           className={clsx(
             'inline-flex items-center justify-center border border-border',
             'w-10 h-10 rounded-lg cursor-pointer',

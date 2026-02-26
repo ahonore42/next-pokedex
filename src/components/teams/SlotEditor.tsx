@@ -130,7 +130,7 @@ export default function SlotEditor({
       );
     });
     while (resolved.length < 4) resolved.push(null);
-    onResolvePendingMoves(resolved.slice(0, 4) as (TeamMove | null)[]);
+    onResolvePendingMoves(resolved.slice(0, 4));
   }, [moveset, member?.pendingMoveNames]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Resolve pending item name from an imported PokePaste when holdable items load

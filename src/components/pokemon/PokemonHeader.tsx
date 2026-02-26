@@ -14,6 +14,7 @@ import PokemonInfo from './PokemonInfo';
 interface PokemonHeaderProps {
   pokemon: PokemonSpecies['pokemon'][number];
   species: PokemonSpecies;
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   evolutionChain?: PokemonSpeciesEvolutionChain | null;
   onPokemonSwitch: (pokemonId: number) => void;
 }
