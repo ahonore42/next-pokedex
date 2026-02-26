@@ -8,6 +8,7 @@ interface SkeletonTableRowProps<T> {
   noPadding?: boolean;
   animation?: 'shimmer' | 'pulse';
   className?: string;
+  rowHeight?: string;
 }
 
 export default function SkeletonTableRow<T>({
@@ -15,6 +16,7 @@ export default function SkeletonTableRow<T>({
   noPadding = false,
   animation = 'shimmer',
   className = '',
+  rowHeight = 'h-4',
 }: SkeletonTableRowProps<T>) {
   return (
     <tr 
@@ -34,9 +36,9 @@ export default function SkeletonTableRow<T>({
             column.className || 'font-medium text-center',
           )}
         >
-          <Skeleton 
-            className="h-4 w-full rounded" 
-            animation={animation} 
+          <Skeleton
+            className={`${rowHeight} w-full rounded`}
+            animation={animation}
           />
         </td>
       ))}
