@@ -1,16 +1,21 @@
 // @ts-check
 
-import NextConfig from 'next';
+import type { NextConfig } from 'next/dist/server/config';
 
-/**
- * @see https://nextjs.org/docs/api-reference/next.config.js/introduction
- */
-export default {
+const nextConfig: NextConfig = {
   /** We run typechecking as a separate task in CI */
   typescript: {
     ignoreBuildErrors: true,
   },
   images: {
-    remotePatterns: [ {protocol: 'https', hostname: 'raw.githubusercontent.com', pathname: '/**'} ],
-  }
-} satisfies NextConfig;
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'raw.githubusercontent.com',
+        pathname: '/**',
+      },
+    ],
+  },
+};
+
+export default nextConfig;
