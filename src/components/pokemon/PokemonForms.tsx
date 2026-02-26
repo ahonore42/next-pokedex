@@ -1,8 +1,16 @@
-import type { PokemonInSpecies } from '~/server/routers/_app';
 import TypeBadgesDisplay from '../pokemon-types/TypeBadgesDisplay';
 
+interface FormItem {
+  id: number;
+  name: string;
+  isDefault: boolean;
+  names: { name: string; pokemonName: string }[];
+  types: { type: { name: string } }[];
+  sprites: { frontDefault: string | null } | null;
+}
+
 interface ComponentProps {
-  pokemonForms: PokemonInSpecies['forms'];
+  pokemonForms: FormItem[];
 }
 
 // Pokemon Forms Component

@@ -1,6 +1,6 @@
 import EvolutionChain from '../evolutions/EvolutionChain';
 import PokemonArtwork from './PokemonArtwork';
-import { PokemonSpecies } from '~/server/routers/_app';
+import { PokemonSpecies, PokemonSpeciesEvolutionChain } from '~/server/routers/_app';
 import SectionCard from '../ui/SectionCard';
 import PokemonAbilities from './PokemonAbilities';
 import MobileEvolutionChain from '../evolutions/MobileEvolutionChain';
@@ -14,13 +14,18 @@ import PokemonInfo from './PokemonInfo';
 interface PokemonHeaderProps {
   pokemon: PokemonSpecies['pokemon'][number];
   species: PokemonSpecies;
+  evolutionChain?: PokemonSpeciesEvolutionChain | null;
   onPokemonSwitch: (pokemonId: number) => void;
 }
 
-const PokemonHeader: React.FC<PokemonHeaderProps> = ({ pokemon, species, onPokemonSwitch }) => {
+const PokemonHeader: React.FC<PokemonHeaderProps> = ({
+  pokemon,
+  species,
+  evolutionChain,
+  onPokemonSwitch,
+}) => {
   const breakpointWidth = useBreakpointWidth();
   const speciesName = species.names[0]?.name || pokemon.name;
-  const evolutionChain = species.evolutionChain;
 
   return (
     <div className="">
@@ -59,12 +64,10 @@ const PokemonHeader: React.FC<PokemonHeaderProps> = ({ pokemon, species, onPokem
         {evolutionChain?.pokemonSpecies.length &&
           (breakpointWidth < 640 ? (
             <SectionCard title="Evolution Chain" variant="compact">
-              {/* Mobile Evolution Chain - Visible on smaller screens, hidden on lg+ */}
-              <MobileEvolutionChain species={species} />
+              <MobileEvolutionChain chain={evolutionChain} />
             </SectionCard>
           ) : (
             <div>
-              {/* Desktop Evolution Chain - Hidden on smaller screens, visible on lg+ */}
               <SectionCard title="Evolution Chain" variant="compact">
                 <EvolutionChain chain={evolutionChain} />
               </SectionCard>

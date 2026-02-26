@@ -19,23 +19,19 @@ interface EvolutionChain {
   pokemonSpecies: EvolutionSpecies[];
 }
 
-interface Species {
-  evolutionChain?: EvolutionChain | null;
-}
-
 interface MobileEvolutionChainProps {
-  species: Species;
+  chain: EvolutionChain | null | undefined;
   className?: string;
 }
 
-const MobileEvolutionChain: React.FC<MobileEvolutionChainProps> = ({ species }) => {
+const MobileEvolutionChain: React.FC<MobileEvolutionChainProps> = ({ chain }) => {
   // Don't render if there's no evolution chain
-  if (!species.evolutionChain?.pokemonSpecies.length) {
+  if (!chain?.pokemonSpecies.length) {
     return null;
   }
 
   const organizeEvolutionChain = () => {
-    const allSpecies = species.evolutionChain!.pokemonSpecies;
+    const allSpecies = chain.pokemonSpecies;
 
     // Group by what they evolve from
     const evolutionGroups = new Map<number | null, EvolutionSpecies[]>();

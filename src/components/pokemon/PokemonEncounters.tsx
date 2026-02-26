@@ -1,6 +1,6 @@
 import React from 'react';
 import type {
-  PokemonInSpecies,
+  PokemonEncounters as PokemonEncountersType,
   EncounterConditions,
   PokemonEncounter,
 } from '~/server/routers/_app';
@@ -20,7 +20,7 @@ import {
 
 // Props
 interface PokemonEncounterProps {
-  encounters: PokemonInSpecies['encounters'];
+  encounters: PokemonEncountersType;
 }
 
 // Flat interfaces

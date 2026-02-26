@@ -1,10 +1,8 @@
 import { useMemo } from 'react';
 import { getDamageClassIcon, getDamageClassColor } from '~/utils';
-import type { PokemonWithSpeciesOutput } from '~/server/routers/_app';
+import type { PokemonMove } from '~/server/routers/_app';
 import DataTable, { Column } from '~/components/ui/tables';
 import TypeBadge from '../pokemon-types/TypeBadge';
-
-type PokemonMove = PokemonWithSpeciesOutput['moves'][number];
 
 interface MoveTableProps {
   moves: PokemonMove[];
