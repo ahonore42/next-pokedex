@@ -18,6 +18,7 @@ interface PokemonTabsProps {
     itemsPerPage?: number; // How many sprites to show per page (default: 100)
   };
   tableStyle?: string;
+  disableVirtualScroll?: boolean;
 }
 
 export default function PokemonTabs({
@@ -29,6 +30,7 @@ export default function PokemonTabs({
   columns = pokemonColumns,
   spriteViewConfig = {},
   tableStyle = '',
+  disableVirtualScroll = false,
 }: PokemonTabsProps) {
   const { itemsPerPage: spriteItemsPerPage = 100 } = spriteViewConfig;
 
@@ -50,10 +52,15 @@ export default function PokemonTabs({
     },
   });
 
+  // When virtual scroll is disabled the table and sprite grid should expand
+  // to their full height, so we clear the fixed container height on TabView.
+  const tabContainerHeight = disableVirtualScroll ? '' : containerHeight;
+  const tableData = disableVirtualScroll ? data : displayedPokemon;
+
   return (
     <TabView
       initialTab={initialTab}
-      containerHeight={containerHeight}
+      containerHeight={tabContainerHeight}
       tabs={[
         {
           label: 'Table View',
@@ -63,21 +70,20 @@ export default function PokemonTabs({
               style={tableStyle ? { backgroundColor: tableStyle } : {}}
             >
               <DataTable
-                data={displayedPokemon}
+                data={tableData}
                 columns={columns}
                 border={true}
                 rounded={true}
-                stickyHeader={{
-                  enabled: true,
-                  maxHeight: containerHeight,
-                }}
-                infiniteScroll={{
-                  onLoadMore: loadMore,
-                  hasMore,
-                  isLoading: isAutoLoading,
-                  eagerLoad: true,
-                  skeletonRows: 5,
-                }}
+                {...(!disableVirtualScroll && {
+                  stickyHeader: { enabled: true, maxHeight: containerHeight },
+                  infiniteScroll: {
+                    onLoadMore: loadMore,
+                    hasMore,
+                    isLoading: isAutoLoading,
+                    eagerLoad: true,
+                    skeletonRows: 5,
+                  },
+                })}
                 layoutStabilization={{
                   enabled: true,
                   fixedLayout: true,
@@ -96,12 +102,11 @@ export default function PokemonTabs({
                     'w-18',
                   ],
                 }}
-                virtualScroll={{
-                  enabled: true,
-                  rowHeight: 65,
-                  overscan: 10,
-                  threshold: 100,
-                }}
+                virtualScroll={
+                  disableVirtualScroll
+                    ? { enabled: false, rowHeight: 0 }
+                    : { enabled: true, rowHeight: 65, overscan: 10, threshold: 100 }
+                }
               />
             </div>
           ),
@@ -110,7 +115,10 @@ export default function PokemonTabs({
           label: 'Sprite View',
           content: (
             <div className="pt-4">
-              <PokedexDisplay pokemon={displayedPokemon} itemsPerPage={spriteItemsPerPage} />
+              <PokedexDisplay
+                pokemon={tableData}
+                itemsPerPage={disableVirtualScroll ? data.length || 1 : spriteItemsPerPage}
+              />
             </div>
           ),
         },

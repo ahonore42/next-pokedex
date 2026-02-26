@@ -41,7 +41,7 @@ export default function TabView({
       </div>
 
       {/* Tab content */}
-      <div className={`${containerHeight} overflow-y-auto`}>
+      <div className={containerHeight ? `${containerHeight} overflow-y-auto` : undefined}>
         {tabs.find((tab) => tab.label === selectedTab)?.content}
       </div>
     </div>
