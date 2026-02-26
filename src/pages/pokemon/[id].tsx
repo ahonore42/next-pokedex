@@ -22,7 +22,11 @@ import PokemonAbilities from '~/components/pokemon/PokemonAbilities';
 import PokemonStatTable from '~/components/pokemon/PokemonStatTable';
 import MobileEvolutionChain from '~/components/evolutions/MobileEvolutionChain';
 import EvolutionChain from '~/components/evolutions/EvolutionChain';
-import { EvolutionChainSkeleton, SecondaryCardSkeleton, PokemonDetailSkeleton } from '~/components/ui/skeletons';
+import {
+  EvolutionChainSkeleton,
+  SecondaryCardSkeleton,
+  PokemonDetailSkeleton,
+} from '~/components/ui/skeletons';
 
 // ── Secondary section inner components ──────────────────────────────────────
 
@@ -43,11 +47,13 @@ function PokemonEvolutionContent({
   return (
     <div className="animate-fade-in">
       <SectionCard title="Evolution Chain" variant="compact">
-        {breakpointWidth < 640 ? (
-          <MobileEvolutionChain chain={evolutionChain} />
-        ) : (
-          <EvolutionChain chain={evolutionChain} />
-        )}
+        <div className="w-full flex justify-center items-center">
+          {breakpointWidth < 640 ? (
+            <MobileEvolutionChain chain={evolutionChain} />
+          ) : (
+            <EvolutionChain chain={evolutionChain} />
+          )}
+        </div>
       </SectionCard>
     </div>
   );
@@ -101,7 +107,14 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
 
   const { species, speciesName, activePokemon, nationalDexNumber, genus } = useMemo(() => {
     if (!data) {
-      return { species: null, speciesName: '', activePokemon: null, nationalDexNumber: 0, genus: '', generationId: 0 };
+      return {
+        species: null,
+        speciesName: '',
+        activePokemon: null,
+        nationalDexNumber: 0,
+        genus: '',
+        generationId: 0,
+      };
     }
 
     const species = data.pokemonSpecies;
@@ -116,7 +129,14 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
         ?.pokedexNumber ?? pokemon.id;
     const genus = species.names[0]?.genus ?? '';
 
-    return { species, speciesName, activePokemon: pokemon, nationalDexNumber, genus, generationId: species.generationId };
+    return {
+      species,
+      speciesName,
+      activePokemon: pokemon,
+      nationalDexNumber,
+      genus,
+      generationId: species.generationId,
+    };
   }, [data, id, varietyId]);
 
   // Preload artwork for snappy shiny toggle
@@ -157,12 +177,12 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
           { label: 'Home', href: '/' },
           { label: 'Pokédex', href: '/pokedex' },
         ]}
-        currentPage={activePokemonName || `#${id}`}
-        title={activePokemonName || `#${id}`}
+        currentPage={activePokemonName || `#${id.toString().padStart(3, '0')}`}
+        title={activePokemonName || `Pokémon #${id.toString().padStart(3, '0')}`}
         subtitle={
           activePokemon
             ? `#${nationalDexNumber.toString().padStart(3, '0')} • ${genus}`
-            : `#${id.toString().padStart(3, '0')}`
+            : `Catching pokémon... `
         }
       />
       {isLoading || !activePokemon ? (
@@ -196,7 +216,12 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
           <PokemonStatTable stats={activePokemon.stats} />
 
           {/* Secondary sections — each deferred independently */}
-          <div className={clsx('flex flex-col gap-4 transition-opacity duration-200', isPending && 'opacity-50')}>
+          <div
+            className={clsx(
+              'flex flex-col gap-4 transition-opacity duration-200',
+              isPending && 'opacity-50',
+            )}
+          >
             <Suspense fallback={<EvolutionChainSkeleton />}>
               <PokemonEvolutionContent speciesId={speciesId} breakpointWidth={breakpointWidth} />
             </Suspense>
