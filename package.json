@@ -4,7 +4,7 @@
   "private": true,
   "author": "Adam Honore",
   "scripts": {
-    "generate": "prisma generate",
+    "generate": "prisma generate --data-proxy",
     "prisma-studio": "prisma studio",
     "db-seed": "prisma db seed",
     "db-reset": "prisma migrate dev reset",
@@ -22,7 +22,7 @@
     "test-unit": "vitest",
     "test-e2e": "playwright test",
     "test-start": "run-s test-unit test-e2e",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate --data-proxy"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
