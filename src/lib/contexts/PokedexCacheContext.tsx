@@ -28,6 +28,9 @@ interface PokedexCacheContextValue {
   getCachedPokemon: (ids: number[]) => PokemonListData[];
   getCacheSize: () => number;
 
+  // Lazy loading — call this on pages that need the cache
+  ensureCacheLoaded: () => void;
+
   // Generations
   generationsData: GenerationWithPokemonIds[] | undefined;
   generationsLoading: boolean;
@@ -75,26 +78,42 @@ export function PokedexCacheProvider({ children }: PokedexCacheProviderProps) {
   // Boolean state to track if regional pokedex cache has been populated
   const [regionalPokedexCacheReady, setRegionalPokedexCacheReady] = useState(false);
 
+  // Lazy-load flag — queries stay disabled until a page that needs them calls ensureCacheLoaded()
+  const [cacheEnabled, setCacheEnabled] = useState(false);
+
+  const ensureCacheLoaded = useCallback(() => {
+    setCacheEnabled(true);
+  }, []);
+
   // tRPC query for Pokemon and Species IDs by generation
   const {
     data: generationsData,
     isLoading: generationsLoading,
     error: generationsError,
-  } = trpc.pokedex.generationPokemonIds.useQuery();
+  } = trpc.pokedex.generationPokemonIds.useQuery(undefined, {
+    enabled: cacheEnabled,
+    staleTime: Infinity,
+  });
 
   // tRPC query for Pokemon data
   const {
     data: pokemonData,
     isLoading: pokemonDataIsLoading,
     error: pokemonError,
-  } = trpc.pokedex.pokedexByGeneration.useQuery();
+  } = trpc.pokedex.pokedexByGeneration.useQuery(undefined, {
+    enabled: cacheEnabled,
+    staleTime: Infinity,
+  });
 
   // tRPC query for regional Pokédex data
   const {
     data: regionalPokedexData,
     isLoading: regionalPokedexIsLoading,
     error: regionalPokedexError,
-  } = trpc.pokedex.regionalPokedexes.useQuery();
+  } = trpc.pokedex.regionalPokedexes.useQuery(undefined, {
+    enabled: cacheEnabled,
+    staleTime: Infinity,
+  });
 
   // Smart cache update logic with change detection
   useEffect(() => {
@@ -252,6 +271,7 @@ export function PokedexCacheProvider({ children }: PokedexCacheProviderProps) {
     clearCache,
     getCachedPokemon,
     getCacheSize,
+    ensureCacheLoaded,
 
     // Generation properties
     generationsData,
