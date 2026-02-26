@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
+import { usePageLoading } from '~/components/layout/DefaultLayout';
 import { LocationListItem } from '~/server/routers/_app';
 import Badge from '~/components/ui/Badge';
 import SectionCard from '~/components/ui/SectionCard';
@@ -93,7 +94,9 @@ const LocationsPage: NextPageWithLayout = () => {
     { staleTime: 60_000 },
   );
 
-  if (isLoading || !data || !generations) return null;
+  const isPageLoading = isLoading || !data || !generations;
+  usePageLoading(isPageLoading);
+  if (isPageLoading) return null;
 
   const grouped = groupByRegion(data);
 

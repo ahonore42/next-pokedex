@@ -1,5 +1,6 @@
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
+import { usePageLoading } from '~/components/layout/DefaultLayout';
 import type { EvolutionChainsPaginatedOutput } from '~/server/routers/_app';
 import EvolutionChain from '~/components/evolutions/EvolutionChain';
 import InfiniteScroll from '~/components/ui/InfiniteScroll';
@@ -17,13 +18,14 @@ const EvolutionChainsPage: NextPageWithLayout = () => {
     );
 
   const isPageLoading = isLoading || !data?.pages;
+  usePageLoading(isPageLoading);
 
   if (error) {
     return <div>Error: {error.message}</div>;
   }
 
   if (isPageLoading) {
-    return null; // Let DefaultLayout handle the loading display
+    return null;
   }
 
   const allChains = data.pages.flatMap((page) => page.chains) ?? [];

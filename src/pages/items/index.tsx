@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
+import { usePageLoading } from '~/components/layout/DefaultLayout';
 import { ItemListItem } from '~/server/routers/_app';
 import DataTable, { itemColumns, ItemColumns, ItemTableRow } from '~/components/ui/tables';
 import Badge from '~/components/ui/Badge';
@@ -88,7 +89,9 @@ const ItemsPage: NextPageWithLayout = () => {
     { staleTime: 60_000 },
   );
 
-  if (isLoading || !data || !generations) return null;
+  const isPageLoading = isLoading || !data || !generations;
+  usePageLoading(isPageLoading);
+  if (isPageLoading) return null;
 
   const grouped = groupByPocketAndCategory(data);
 

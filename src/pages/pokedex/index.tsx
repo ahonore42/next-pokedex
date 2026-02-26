@@ -1,5 +1,6 @@
 import { NextPageWithLayout } from '../_app';
 import { useMemo, useState, useEffect } from 'react';
+import { usePageLoading } from '~/components/layout/DefaultLayout';
 import SectionCard from '~/components/ui/SectionCard';
 import PageHeading from '~/components/layout/PageHeading';
 import PageContent from '~/components/layout/PageContent';
@@ -48,9 +49,10 @@ const PokedexSelectionPage: NextPageWithLayout = () => {
     generationsLoading ||
     !pokemonDataArray.length ||
     !generationsData?.length;
+  usePageLoading(isPageLoading);
 
   if (isPageLoading) {
-    return null; // Let DefaultLayout handle the loading display
+    return null;
   }
 
   const handleDexFilter = (genFilter: number | 'all') => {

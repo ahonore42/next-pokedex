@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NextPageWithLayout } from './_app';
+import { usePageLoading } from '~/components/layout/DefaultLayout';
 import { trpc } from '~/utils/trpc';
 import { useBreakpointWidth } from '~/hooks';
 import { PokemonArtworkByNames, FeaturedPokemonOutput } from '~/server/routers/_app';
@@ -34,8 +35,9 @@ const IndexPage: NextPageWithLayout = () => {
   // Calculate loading state based on query states and data availability
   const isPageLoading =
     pokemonQuery.isLoading || artworkQuery.isLoading || !pokemon.length || !legendaries.length;
+  usePageLoading(isPageLoading);
   if (isPageLoading) {
-    return null; // Let DefaultLayout handle the loading display
+    return null;
   }
 
   return (

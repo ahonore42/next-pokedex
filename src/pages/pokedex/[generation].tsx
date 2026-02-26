@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useState, useMemo, useEffect } from 'react';
 import { NextPageWithLayout } from '../_app';
+import { usePageLoading } from '~/components/layout/DefaultLayout';
 import { usePokemonCache } from '~/lib/contexts/PokedexCacheContext';
 import SectionCard from '~/components/ui/SectionCard';
 import PageHeading from '~/components/layout/PageHeading';
@@ -83,6 +84,7 @@ const PokedexGenerationPage: NextPageWithLayout = () => {
     !generationId ||
     !generationsData ||
     regionalPokemonArray.length === 0;
+  usePageLoading(isPageLoading);
 
   if (isPageLoading) return null;
 

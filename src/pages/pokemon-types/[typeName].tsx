@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
+import { usePageLoading } from '~/components/layout/DefaultLayout';
 import { TypeMoveData } from '~/server/routers/_app';
 import DataTable, {
   moveColumns,
@@ -28,8 +29,9 @@ const PokemonTypeDetailPage: NextPageWithLayout = () => {
   );
 
   const isPageLoading = isLoading || !data?.type || !data?.pokemon?.length || !data?.moves?.length;
+  usePageLoading(isPageLoading);
   if (isPageLoading) {
-    return null; // Let DefaultLayout handle the loading display
+    return null;
   }
   const { type, pokemon, moves } = data;
 

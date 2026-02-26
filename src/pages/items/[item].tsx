@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
+import { usePageLoading } from '~/components/layout/DefaultLayout';
 import SectionCard from '~/components/ui/SectionCard';
 import PageHeading from '~/components/layout/PageHeading';
 import PageContent from '~/components/layout/PageContent';
@@ -94,7 +95,9 @@ const ItemDetailPage: NextPageWithLayout = () => {
     { enabled: !!itemName && typeof itemName === 'string', staleTime: 60_000 },
   );
 
-  if (isLoading || !item) return null;
+  const isPageLoading = isLoading || !item;
+  usePageLoading(isPageLoading);
+  if (isPageLoading) return null;
 
   const displayName = item.names[0]?.name ?? capitalizeName(item.name);
   const categoryName = item.itemCategory.names[0]?.name ?? capitalizeName(item.itemCategory.name);

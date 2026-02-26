@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
+import { usePageLoading } from '~/components/layout/DefaultLayout';
 import { TypeMoveData } from '~/server/routers/_app';
 import DataTable, { moveColumns, MoveColumns, MoveTableRow } from '~/components/ui/tables';
 import TypeFilter from '~/components/pokemon-types/TypeFilter';
@@ -57,7 +58,9 @@ const MovesPage: NextPageWithLayout = () => {
     { staleTime: 60_000 },
   );
 
-  if (isLoading || !data) return null;
+  const isPageLoading = isLoading || !data;
+  usePageLoading(isPageLoading);
+  if (isPageLoading) return null;
 
   const moveRows = createMoveRows(data);
 

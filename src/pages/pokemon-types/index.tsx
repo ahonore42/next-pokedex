@@ -1,5 +1,6 @@
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
+import { usePageLoading } from '~/components/layout/DefaultLayout';
 import { useBreakpointWidth } from '~/hooks';
 import SectionCard from '~/components/ui/SectionCard';
 import TypeEffectivenessChart from '~/components/pokemon-types/TypeEffectivenessChart';
@@ -17,8 +18,9 @@ const TypesPage: NextPageWithLayout = () => {
   const { data: allEfficacies, isLoading } = trpc.types.getAllTypeEfficacies.useQuery();
 
   const isPageLoading = isLoading || !allEfficacies?.length;
+  usePageLoading(isPageLoading);
   if (isPageLoading) {
-    return null; // Let DefaultLayout handle the loading display
+    return null;
   }
 
   return (

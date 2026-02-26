@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
+import { usePageLoading } from '~/components/layout/DefaultLayout';
 import DataTable, { pokemonColumns } from '~/components/ui/tables';
 import SectionCard from '~/components/ui/SectionCard';
 import PageHeading from '~/components/layout/PageHeading';
@@ -19,7 +20,9 @@ const MoveDetailPage: NextPageWithLayout = () => {
     { enabled: !!moveName && typeof moveName === 'string', staleTime: 60_000 },
   );
 
-  if (isLoading || !data) return null;
+  const isPageLoading = isLoading || !data;
+  usePageLoading(isPageLoading);
+  if (isPageLoading) return null;
 
   const { move, pokemon } = data;
 

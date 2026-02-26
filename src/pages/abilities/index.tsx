@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NextPageWithLayout } from '../_app';
 import { trpc } from '~/utils/trpc';
+import { usePageLoading } from '~/components/layout/DefaultLayout';
 import { AbilityListItem } from '~/server/routers/_app';
 import DataTable, { abilityColumns, AbilityColumns, AbilityTableRow } from '~/components/ui/tables';
 import MetricsGrid from '~/components/ui/MetricsGrid';
@@ -44,7 +45,9 @@ const AbilitiesPage: NextPageWithLayout = () => {
     { staleTime: 60_000 },
   );
 
-  if (isLoading || !data || !generations) return null;
+  const isPageLoading = isLoading || !data || !generations;
+  usePageLoading(isPageLoading);
+  if (isPageLoading) return null;
 
   const abilityRows = createAbilityRows(data);
 
