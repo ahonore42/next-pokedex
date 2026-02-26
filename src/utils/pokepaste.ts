@@ -30,7 +30,7 @@ const STAT_ABBR_MAP: Record<string, keyof StatValues> = {
 function parseStatLine(line: string): Partial<StatValues> {
   const result: Partial<StatValues> = {};
   for (const part of line.split('/').map((s) => s.trim())) {
-    const match = part.match(/^(\d+)\s+(\w+)$/);
+    const match = /^(\d+)\s+(\w+)$/.exec(part);
     if (!match) continue;
     const key = STAT_ABBR_MAP[match[2].toLowerCase()];
     if (key) result[key] = parseInt(match[1], 10);
@@ -70,14 +70,14 @@ function parseFirstLine(line: string): {
   }
 
   let gender: TeamGender = null;
-  const genderMatch = rest.match(/\s+\((M|F)\)$/);
+  const genderMatch = /\s+\((M|F)\)$/.exec(rest);
   if (genderMatch) {
     gender = genderMatch[1] === 'M' ? 'male' : 'female';
     rest = rest.slice(0, rest.length - genderMatch[0].length).trim();
   }
 
   // Detect `Nickname (Species)` pattern — the last parenthetical group
-  const parenMatch = rest.match(/^(.*)\(([^)]+)\)$/);
+  const parenMatch = /^(.*)\(([^)]+)\)$/.exec(rest);
   if (parenMatch && parenMatch[1].trim().length > 0) {
     return {
       speciesName: parenMatch[2].trim(),

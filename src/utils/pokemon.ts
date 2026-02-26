@@ -160,10 +160,7 @@ const methodOrder = [
 // -------------------- Functions -------------------------
 
 // Get learn method display name
-export const getMethodDisplayName = (method: string, moves: PokemonMoves) => {
-  const methodData = moves[0]?.moveLearnMethod;
-  const displayName = methodData?.names[0]?.name || method;
-  // Add specific handling for common methods
+export const getMethodDisplayName = (method: string, _moves: PokemonMoves) => {
   switch (method) {
     case 'level-up':
       return 'Level Up';
@@ -176,7 +173,7 @@ export const getMethodDisplayName = (method: string, moves: PokemonMoves) => {
     case 'transfer':
       return 'Transfer Only';
     default:
-      return displayName.replaceAll('-', ' ');
+      return method.replaceAll('-', ' ');
   }
 };
 
