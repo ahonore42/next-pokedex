@@ -21,7 +21,7 @@ import PokemonAbilities from '~/components/pokemon/PokemonAbilities';
 import PokemonStatTable from '~/components/pokemon/PokemonStatTable';
 import MobileEvolutionChain from '~/components/evolutions/MobileEvolutionChain';
 import EvolutionChain from '~/components/evolutions/EvolutionChain';
-import Pokeball from '~/components/ui/Pokeball';
+import { usePageLoading } from '~/components/layout/DefaultLayout';
 
 const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
   const breakpointWidth = useBreakpointWidth();
@@ -114,17 +114,16 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
     setVarietyId(nextId);
   };
 
-  const activePokemonName = capitalizeName(activePokemon?.name ?? '');
-  // Loading & error
   const isPageLoading = !isReady || isLoading || !activePokemon;
-  if (isPageLoading)
-    return (
-      <div className="flex-grow flex items-center justify-center">
-        <Pokeball size="lg" endlessSpin spinSpeed={3} />
-      </div>
-    );
+  usePageLoading(isPageLoading);
+
   if (error || Number.isNaN(id))
     return <NextError title={error?.message ?? 'Pokémon not found'} statusCode={404} />;
+
+  // Guard: keep hooks above, render nothing while layout shows the spinner
+  if (isPageLoading) return null;
+
+  const activePokemonName = capitalizeName(activePokemon.name);
 
   return (
     <>

@@ -9,7 +9,6 @@ import TypeBadge from '~/components/pokemon-types/TypeBadge';
 import MoveTypeBadge from '~/components/ui/MoveTypeBadge';
 import { capitalizeName } from '~/utils/text';
 import { PokemonListData } from '~/lib/types';
-import { PokemonTypeName } from '~/server/routers/_app';
 
 const MoveDetailPage: NextPageWithLayout = () => {
   const router = useRouter();
@@ -66,7 +65,7 @@ const MoveDetailPage: NextPageWithLayout = () => {
       <PageContent>
         <SectionCard title="Move Info" variant="compact" colorVariant="transparent">
           <div className="flex items-center gap-3 mb-4">
-            <TypeBadge type={move.type.name as PokemonTypeName} link />
+            <TypeBadge type={move.type.name} link />
             <MoveTypeBadge damageClass={move.moveDamageClass.name} />
           </div>
           <div className="flex flex-row justify-around text-center gap-4">

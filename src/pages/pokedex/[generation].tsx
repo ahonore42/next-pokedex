@@ -4,7 +4,6 @@ import { NextPageWithLayout } from '../_app';
 import { usePokemonCache } from '~/lib/contexts/PokedexCacheContext';
 import SectionCard from '~/components/ui/SectionCard';
 import PageHeading from '~/components/layout/PageHeading';
-import MetricsGrid from '~/components/ui/MetricsGrid';
 import PageContent from '~/components/layout/PageContent';
 import FilterOptions, { FilterOption } from '~/components/ui/FilterOptions';
 import PokemonTabs from '~/components/pokedex/PokemonTabs';
@@ -26,7 +25,10 @@ const PokedexGenerationPage: NextPageWithLayout = () => {
     pokemonDataIsLoading,
     pokemonError,
     regionalPokedexIsLoading,
+    ensureCacheLoaded,
   } = usePokemonCache();
+
+  useEffect(() => { ensureCacheLoaded(); }, [ensureCacheLoaded]);
 
   const [selectedPokedexId, setSelectedPokedexId] = useState<number | null>(null);
   const [currentTypeFilter, setCurrentTypeFilter] = useState<string | null>(null);

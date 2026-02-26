@@ -1,5 +1,5 @@
 import { NextPageWithLayout } from '../_app';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import SectionCard from '~/components/ui/SectionCard';
 import PageHeading from '~/components/layout/PageHeading';
 import PageContent from '~/components/layout/PageContent';
@@ -19,8 +19,11 @@ const PokedexSelectionPage: NextPageWithLayout = () => {
     generationsData,
     generationsLoading,
     getPokemonByGeneration,
+    ensureCacheLoaded,
     // getAllGenerations,
   } = usePokemonCache();
+
+  useEffect(() => { ensureCacheLoaded(); }, [ensureCacheLoaded]);
   const [currentGenFilter, setCurrentGenFilter] = useState<number | 'all'>('all');
   const [currentTypeFilter, setCurrentTypeFilter] = useState<string | null>(null);
 
