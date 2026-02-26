@@ -10,6 +10,8 @@ import {
   pokemonSearchSelect,
   pokemonWithSpeciesSelect,
   featuredPokemonSelect,
+  movesetSelect,
+  detailedEncounterSelect,
 } from './selectors';
 import type { inferRouterOutputs } from '@trpc/server';
 import { evolutionChainsRouter } from './evolution-chains';
@@ -273,60 +275,42 @@ export const pokemonRouter = router({
       return x - Math.floor(x);
     };
 
+    const WINDOW = 6;
+    // Compute only the last WINDOW + 6 hours so the used-set is well-primed
+    // before the live window — O(12) instead of O(hours-since-epoch).
+    const LOOKBACK = WINDOW * 2;
+    const startHour = Math.max(0, currentHour - LOOKBACK);
+
     const queue: number[] = [];
     const used = new Set<number>();
 
-    // Simulate queue state up to current hour
-    for (let hour = 0; hour <= currentHour; hour++) {
-      // Only create initial queue if queue is empty
-      if (queue.length === 0) {
-        // Create initial queue of 6 pokemon
-        for (let i = 0; i < 6; i++) {
-          let pokemonId: number;
-          let attempts = 0;
-          do {
-            const randomIndex = Math.floor(
-              seedRandom(12345 + i + attempts * 1000) * significantPokemonIds.length,
-            );
-            pokemonId = significantPokemonIds[randomIndex];
-            attempts++;
-          } while (used.has(pokemonId) && attempts < 100);
-
-          used.add(pokemonId);
-          queue.push(pokemonId);
-        }
-      } else {
-        // Pop one pokemon and add a new one
-        const removedId = queue.shift();
-        if (removedId) {
-          used.delete(removedId);
-        }
-
-        let newPokemonId: number;
-        let attempts = 0;
-        do {
-          const randomIndex = Math.floor(
-            seedRandom(12345 + hour + attempts * 1000) * significantPokemonIds.length,
-          );
-          newPokemonId = significantPokemonIds[randomIndex];
-          attempts++;
-        } while (used.has(newPokemonId) && attempts < 100);
-
-        used.add(newPokemonId);
-        queue.push(newPokemonId);
+    for (let hour = startHour; hour <= currentHour; hour++) {
+      if (queue.length >= WINDOW) {
+        const removedId = queue.shift()!;
+        used.delete(removedId);
       }
+
+      let pokemonId: number;
+      let attempts = 0;
+      do {
+        const randomIndex = Math.floor(
+          seedRandom(12345 + hour + attempts * 1000) * significantPokemonIds.length,
+        );
+        pokemonId = significantPokemonIds[randomIndex];
+        attempts++;
+      } while (used.has(pokemonId) && attempts < 100);
+
+      used.add(pokemonId);
+      queue.push(pokemonId);
     }
 
-    // Query the current queue pokemon
     const pokemon = await prisma.pokemon.findMany({
-      where: {
-        id: { in: queue },
-      },
+      where: { id: { in: queue } },
       select: featuredPokemonSelect,
     });
 
     // Return pokemon in queue order
-    return pokemon;
+    return queue.map((id) => pokemon.find((p) => p.id === id)).filter(Boolean) as typeof pokemon;
   }),
   pokemonWithSpecies: publicProcedure
     .input(
@@ -348,13 +332,7 @@ export const pokemonRouter = router({
         : { name: input.name?.toLowerCase() };
 
       try {
-        // Get Pokemon with complete species data
-        const pokemon = await findOnePokemonWithSpecies(where);
-
-        // Apply evolution chain enhancement to preserve existing logic
-        const enhancedPokemon = await enhanceEvolutionChainWithAdditionalSpecies(pokemon);
-
-        return enhancedPokemon;
+        return await findOnePokemonWithSpecies(where);
       } catch (error) {
         // Re-throw TRPCError as-is, convert others to TRPCError
         if (error instanceof TRPCError) {
@@ -493,6 +471,28 @@ export const pokemonRouter = router({
           },
         },
         orderBy: { name: 'asc' },
+      });
+    }),
+
+  // Full learnset for a single Pokémon (all versions/methods) — used by the detail page
+  movesForPokemon: publicProcedure
+    .input(z.object({ pokemonId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      return await prisma.pokemonMove.findMany({
+        where: { pokemonId: input.pokemonId },
+        select: movesetSelect.select,
+        orderBy: movesetSelect.orderBy,
+      });
+    }),
+
+  // All wild encounters for a single Pokémon — used by the detail page
+  encountersForPokemon: publicProcedure
+    .input(z.object({ pokemonId: z.number().int().positive() }))
+    .query(async ({ input }) => {
+      return await prisma.pokemonEncounter.findMany({
+        where: { pokemonId: input.pokemonId },
+        select: detailedEncounterSelect.select,
+        orderBy: detailedEncounterSelect.orderBy,
       });
     }),
 });

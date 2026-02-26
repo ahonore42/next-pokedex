@@ -1,57 +1,21 @@
 import { router, publicProcedure } from '../trpc';
 import { prisma } from '~/server/prisma';
 import { z } from 'zod';
-import {
-  evolutionBabyTriggerItemSelect,
-  evolutionSpeciesSelect,
-  pokemonEvolutionsSelect,
-} from './selectors';
+import { evolutionBabyTriggerItemSelect, evolutionSpeciesSelect } from './selectors';
 
 /**
- * Helper function to fix pokemonEvolutions data for a single evolution chain
- * Ensures every species has complete pokemonEvolutions data showing how THAT species evolves
+ * Remaps pokemonEvolutions in-memory so each species carries the conditions
+ * needed to evolve FROM it (sourced from evolvesToSpecies[i].pokemonEvolutions,
+ * which is already fetched by evolutionSpeciesSelect — no extra DB query needed).
  */
-async function enhanceEvolutionChainPokemonEvolutions(chain: any) {
-  const allSpecies = chain.pokemonSpecies;
-  const allSpeciesIds = allSpecies.map((s: any) => s.id);
-
-  // Fetch evolution data where pokemonSpeciesId is the TARGET species
-  const evolutionRecords = await prisma.pokemonEvolution.findMany({
-    where: {
-      pokemonSpeciesId: { in: allSpeciesIds },
-    },
-    ...pokemonEvolutionsSelect,
-  });
-
-  // Map evolution conditions to SOURCE species
-  const evolutionsBySourceSpecies = new Map<number, any[]>();
-
-  evolutionRecords.forEach((evolution) => {
-    const { pokemonSpeciesId: targetSpeciesId, ...evolutionConditions } = evolution;
-
-    // Find which species evolves TO this target
-    const sourceSpecies = allSpecies.find((s: any) =>
-      s.evolvesToSpecies?.some((evolvesTo: any) => evolvesTo.id === targetSpeciesId),
-    );
-
-    if (sourceSpecies) {
-      if (!evolutionsBySourceSpecies.has(sourceSpecies.id)) {
-        evolutionsBySourceSpecies.set(sourceSpecies.id, []);
-      }
-      evolutionsBySourceSpecies.get(sourceSpecies.id)!.push(evolutionConditions);
-    }
-  });
-
-  // Enhance each species with correct pokemonEvolutions
-  const enhancedSpecies = allSpecies.map((speciesItem: any) => ({
-    ...speciesItem,
-    pokemonEvolutions: evolutionsBySourceSpecies.get(speciesItem.id) || [],
+function remapEvolutionConditions(chain: any) {
+  const enhancedSpecies = chain.pokemonSpecies.map((species: any) => ({
+    ...species,
+    pokemonEvolutions: (species.evolvesToSpecies ?? []).flatMap(
+      (evolvesTo: any) => evolvesTo.pokemonEvolutions ?? [],
+    ),
   }));
-
-  return {
-    ...chain,
-    pokemonSpecies: enhancedSpecies,
-  };
+  return { ...chain, pokemonSpecies: enhancedSpecies };
 }
 
 export const evolutionChainsRouter = router({
@@ -149,7 +113,7 @@ export const evolutionChainsRouter = router({
         };
 
         // Enhance pokemonEvolutions data
-        const enhancedChain = await enhanceEvolutionChainPokemonEvolutions(chainWithSpecies);
+        const enhancedChain = await remapEvolutionConditions(chainWithSpecies);
 
         return {
           ...enhancedChain,
@@ -193,19 +157,9 @@ export const evolutionChainsRouter = router({
     .query(async ({ input }) => {
       const { speciesId } = input;
 
-      // First, find the evolution chain ID for this species
-      const speciesWithChain = await prisma.pokemonSpecies.findUnique({
-        where: { id: speciesId },
-        select: { evolutionChainId: true },
-      });
-
-      if (!speciesWithChain?.evolutionChainId) {
-        return null;
-      }
-
-      // Get the complete evolution chain with all species in one query
-      const chain = await prisma.evolutionChain.findUnique({
-        where: { id: speciesWithChain.evolutionChainId },
+      // Single query: find the chain that contains this species
+      const chain = await prisma.evolutionChain.findFirst({
+        where: { pokemonSpecies: { some: { id: speciesId } } },
         select: {
           id: true,
           pokemonSpecies: {
@@ -219,7 +173,7 @@ export const evolutionChainsRouter = router({
         return null;
       }
 
-      // Collect required additional species IDs from evolution conditions
+      // Collect any party/trade species that live outside this chain
       const requiredSpeciesIds = new Set<number>();
       chain.pokemonSpecies.forEach((species) => {
         species.evolvesToSpecies.forEach((evolvesTo) => {
@@ -230,28 +184,23 @@ export const evolutionChainsRouter = router({
         });
       });
 
-      // Only fetch additional species if there are any required
+      // Remove IDs already present in the chain
+      const chainIds = new Set(chain.pokemonSpecies.map((s) => s.id));
+      chainIds.forEach((id) => requiredSpeciesIds.delete(id));
+
       let additionalSpecies: any[] = [];
       if (requiredSpeciesIds.size > 0) {
         additionalSpecies = await prisma.pokemonSpecies.findMany({
-          where: {
-            id: { in: Array.from(requiredSpeciesIds) },
-          },
+          where: { id: { in: Array.from(requiredSpeciesIds) } },
           select: evolutionSpeciesSelect,
         });
       }
 
-      // Combine chain species with additional species, removing duplicates
       const finalSpecies = [...chain.pokemonSpecies, ...additionalSpecies];
       const uniqueSpecies = Array.from(new Map(finalSpecies.map((s) => [s.id, s])).values());
 
-      const chainWithSpecies = {
-        ...chain,
-        pokemonSpecies: uniqueSpecies,
-      };
-
-      // Enhance pokemonEvolutions data
-      return await enhanceEvolutionChainPokemonEvolutions(chainWithSpecies);
+      // Remap pokemonEvolutions to source species — no extra DB query needed
+      return remapEvolutionConditions({ ...chain, pokemonSpecies: uniqueSpecies });
     }),
   paginated: publicProcedure
     .input(
@@ -369,7 +318,7 @@ export const evolutionChainsRouter = router({
           };
 
           // Enhance pokemonEvolutions data
-          const enhancedChain = await enhanceEvolutionChainPokemonEvolutions(chainWithSpecies);
+          const enhancedChain = await remapEvolutionConditions(chainWithSpecies);
 
           return {
             ...enhancedChain,

@@ -641,11 +641,12 @@ export const detailedFlavorTextSelect = {
       select: {
         id: true,
         name: true,
-        names: {
-          where: { languageId: DEFAULT_LANGUAGE_ID },
-          select: { name: true },
+        versionGroup: {
+          select: {
+            id: true,
+            generation: { select: { id: true, name: true } },
+          },
         },
-        versionGroup: versionGroupSelect,
       },
     },
   },
@@ -1143,7 +1144,7 @@ export const locationDetailSelect = {
 /**
  * Enhanced encounter selection
  */
-const detailedEncounterSelect = {
+export const detailedEncounterSelect = {
   select: {
     minLevel: true,
     maxLevel: true,
@@ -1254,37 +1255,10 @@ const pokemonVarietySelect = {
   isDefault: true,
   criesLatest: true,
   criesLegacy: true,
-  createdAt: true,
-  updatedAt: true,
   sprites: extendedSpriteSelect,
   types: orderedTypeSelect,
-  typePast: typePastSelect,
   abilities: detailedAbilitySelect,
-  abilityPast: abilityPastSelect,
   stats: detailedStatSelect,
-  forms: pokemonFormsSelect,
-  moves: movesetSelect,
-  gameIndices: {
-    select: { gameIndex: true, version: { select: idAndNameSelect } },
-    orderBy: { version: { id: 'asc' } },
-  },
-  heldItems: {
-    select: {
-      rarity: true,
-      version: { select: idAndNameSelect },
-      item: {
-        select: {
-          id: true,
-          name: true,
-          cost: true,
-          sprite: true,
-          names: languageNameSelect,
-        },
-      },
-    },
-    orderBy: [{ version: { id: 'asc' } }, { rarity: 'desc' }],
-  },
-  encounters: detailedEncounterSelect,
 } satisfies Prisma.PokemonSelect;
 
 // Lightweight species sub-tree
@@ -1332,7 +1306,6 @@ export const pokemonWithSpeciesSelect = {
   abilityPast: abilityPastSelect,
   stats: detailedStatSelect,
   forms: pokemonFormsSelect,
-  moves: movesetSelect,
   gameIndices: {
     select: {
       gameIndex: true,
@@ -1362,7 +1335,6 @@ export const pokemonWithSpeciesSelect = {
     },
     orderBy: [{ version: { id: 'asc' } }, { rarity: 'desc' }],
   },
-  encounters: detailedEncounterSelect,
 
   // Species with lightweight sub-tree
   pokemonSpecies: {
@@ -1378,9 +1350,7 @@ export const pokemonWithSpeciesSelect = {
       eggGroups: eggGroupSelect,
       pokedexNumbers: detailedPokedexSelect,
       palParkEncounters: palParkEncountersSelect,
-      evolutionChain: detailedEvolutionChainSelect,
       evolvesFromSpecies: detailedEvolutionRelationshipsSelect,
-      evolvesToSpecies: evolvesToSpeciesSelect,
       // varieties
       pokemon: {
         select: pokemonVarietySelect,

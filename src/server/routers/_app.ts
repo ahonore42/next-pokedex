@@ -54,18 +54,18 @@ export type PokemonArtworkByNames = NonNullable<PokemonRouterOutputs['officialAr
  */
 // Complete pokemon species data
 export type PokemonSpecies = PokemonWithSpeciesOutput['pokemonSpecies'];
-export type PokemonSpeciesEvolutionChain = NonNullable<PokemonSpecies['evolutionChain']>;
+// Evolution chain is now loaded via evolutionChains.bySpeciesId (deferred query)
+export type PokemonSpeciesEvolutionChain = NonNullable<RouterOutputs['evolutionChains']['bySpeciesId']>;
 export type PokemonInSpecies = PokemonSpecies['pokemon'][number];
-export type PokemonMoves = PokemonInSpecies['moves'];
-export type PokemonMove = PokemonMoves[number];
 export type PokemonFlavorText = PokemonSpecies['flavorTexts'][number];
 
-
 /**
- * ----------- PokemonEncounters types (subset of PokemonInSpecies) ------------
+ * ----------- Moves / Encounters — sourced from dedicated procedures ----------
  */
-export type PokemonEncounters = PokemonInSpecies['encounters'];
-export type PokemonEncounter = PokemonInSpecies['encounters'][number];
+export type PokemonMoves = RouterOutputs['pokemon']['movesForPokemon'];
+export type PokemonMove = PokemonMoves[number];
+export type PokemonEncounters = RouterOutputs['pokemon']['encountersForPokemon'];
+export type PokemonEncounter = PokemonEncounters[number];
 export type EncounterLocationArea = PokemonEncounters[number]['locationArea'];
 export type EncounterLocation = EncounterLocationArea['location'];
 export type EncounterVersionGroup = PokemonEncounters[number]['version']['versionGroup'];
