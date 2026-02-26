@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/dist/client/router';
 import Icon from './icons';
 import { ReactNode } from 'react';
 

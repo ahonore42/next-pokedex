@@ -1,5 +1,5 @@
 import { Edge, Node } from '@xyflow/react';
-import * as dagre from '@dagrejs/dagre';
+import dagre from '@dagrejs/dagre';
 import {
   computeNodesep,
   computeRanksep,

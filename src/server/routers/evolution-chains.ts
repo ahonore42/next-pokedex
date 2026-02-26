@@ -7,15 +7,23 @@ import { evolutionBabyTriggerItemSelect, evolutionSpeciesSelect } from './select
  * Remaps pokemonEvolutions in-memory so each species carries the conditions
  * needed to evolve FROM it (sourced from evolvesToSpecies[i].pokemonEvolutions,
  * which is already fetched by evolutionSpeciesSelect — no extra DB query needed).
+ *
+ * Generic so the chain type (including babyTriggerItem etc.) is preserved in
+ * the return type, letting tRPC infer a proper output type for the procedure.
  */
-function remapEvolutionConditions(chain: any) {
-  const enhancedSpecies = chain.pokemonSpecies.map((species: any) => ({
-    ...species,
-    pokemonEvolutions: (species.evolvesToSpecies ?? []).flatMap(
-      (evolvesTo: any) => evolvesTo.pokemonEvolutions ?? [],
-    ),
-  }));
-  return { ...chain, pokemonSpecies: enhancedSpecies };
+function remapEvolutionConditions<
+  TEvo,
+  TSpecies extends { evolvesToSpecies: Array<{ pokemonEvolutions: TEvo[] }>; pokemonEvolutions: TEvo[] },
+  TChain extends { pokemonSpecies: TSpecies[] },
+>(chain: TChain): TChain {
+  const enhancedSpecies = chain.pokemonSpecies.map(
+    (species) =>
+      ({
+        ...species,
+        pokemonEvolutions: species.evolvesToSpecies.flatMap((et) => et.pokemonEvolutions),
+      }) as TSpecies,
+  );
+  return { ...chain, pokemonSpecies: enhancedSpecies } as TChain;
 }
 
 export const evolutionChainsRouter = router({
@@ -188,7 +196,7 @@ export const evolutionChainsRouter = router({
       const chainIds = new Set(chain.pokemonSpecies.map((s) => s.id));
       chainIds.forEach((id) => requiredSpeciesIds.delete(id));
 
-      let additionalSpecies: any[] = [];
+      let additionalSpecies: typeof chain.pokemonSpecies = [];
       if (requiredSpeciesIds.size > 0) {
         additionalSpecies = await prisma.pokemonSpecies.findMany({
           where: { id: { in: Array.from(requiredSpeciesIds) } },

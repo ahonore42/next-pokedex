@@ -1,5 +1,5 @@
-import { GetServerSideProps } from 'next';
-import { useRouter } from 'next/router';
+import { GetServerSideProps } from 'next/types';
+import { useRouter } from 'next/dist/client/router';
 import NextError from 'next/error';
 import { useState, useMemo, useEffect } from 'react';
 import type { NextPageWithLayout } from '~/pages/_app';
@@ -31,7 +31,7 @@ const PokemonSpeciesDetailPage: NextPageWithLayout = () => {
   const { query, isReady } = useRouter();
   const id = Number(query.id);
   const { data, error, isLoading } = trpc.pokemon.pokemonWithSpecies.useQuery(
-    { id },
+    { id, name: undefined },
     { enabled: isReady && !Number.isNaN(id), retry: false, staleTime: 60_000 },
   );
 
