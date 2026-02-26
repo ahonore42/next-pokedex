@@ -40,7 +40,6 @@ export type PokemonRouterOutputs = RouterOutputs['pokemon'];
 export type PokemonListOutput = PokemonRouterOutputs['list'];
 // Complete pokemon data
 export type PokemonWithSpeciesOutput = PokemonRouterOutputs['pokemonWithSpecies'];
-export type PokemonStats = PokemonWithSpeciesOutput['stats'];
 // Random pokemon
 export type FeaturedPokemonOutput = PokemonRouterOutputs['featured'];
 export type FeaturedPokemon = FeaturedPokemonOutput[number];
@@ -57,6 +56,7 @@ export type PokemonSpecies = PokemonWithSpeciesOutput['pokemonSpecies'];
 // Evolution chain is now loaded via evolutionChains.bySpeciesId (deferred query)
 export type PokemonSpeciesEvolutionChain = NonNullable<RouterOutputs['evolutionChains']['bySpeciesId']>;
 export type PokemonInSpecies = PokemonSpecies['pokemon'][number];
+export type PokemonStats = PokemonInSpecies['stats'];
 export type PokemonFlavorText = PokemonSpecies['flavorTexts'][number];
 
 /**

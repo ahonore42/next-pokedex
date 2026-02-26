@@ -474,13 +474,60 @@ export const pokemonRouter = router({
       });
     }),
 
-  // Full learnset for a single Pokémon (all versions/methods) — used by the detail page
+  // Full learnset for a single Pokémon (all versions/methods) — used by the detail page.
+  // Uses a lean inline select — only fields consumed by MoveTable / useGenerationFilter.
   movesForPokemon: publicProcedure
     .input(z.object({ pokemonId: z.number().int().positive() }))
     .query(async ({ input }) => {
       return await prisma.pokemonMove.findMany({
         where: { pokemonId: input.pokemonId },
-        select: movesetSelect.select,
+        select: {
+          levelLearnedAt: true,
+          versionGroup: {
+            select: {
+              order: true,
+              generation: { select: { id: true } },
+            },
+          },
+          moveLearnMethod: {
+            select: { id: true, name: true },
+          },
+          move: {
+            select: {
+              id: true,
+              name: true,
+              power: true,
+              pp: true,
+              accuracy: true,
+              priority: true,
+              effectChance: true,
+              names: { where: { languageId: 9 }, select: { name: true } },
+              type: {
+                select: {
+                  name: true,
+                  names: { where: { languageId: 9 }, select: { name: true } },
+                },
+              },
+              moveDamageClass: {
+                select: {
+                  name: true,
+                  names: { where: { languageId: 9 }, select: { name: true } },
+                },
+              },
+              effectEntries: {
+                where: { languageId: 9 },
+                select: { shortEffect: true },
+                take: 1,
+              },
+              flavorTexts: {
+                where: { languageId: 9 },
+                select: { flavorText: true },
+                orderBy: { versionGroupId: 'desc' as const },
+                take: 1,
+              },
+            },
+          },
+        },
         orderBy: movesetSelect.orderBy,
       });
     }),

@@ -2,19 +2,9 @@ import { Prisma } from '@prisma/client';
 
 const DEFAULT_LANGUAGE_ID = 9; // English
 
-const idAndNameSelect = { id: true, name: true } as const;
-
 const languageNameSelect = {
   where: { languageId: DEFAULT_LANGUAGE_ID },
   select: { name: true },
-} as const;
-
-const versionSelect = {
-  select: {
-    id: true,
-    name: true,
-    names: languageNameSelect,
-  },
 } as const;
 
 // Type Selectors
@@ -1196,25 +1186,6 @@ export const gameIndicesSelect = {
 };
 
 /**
- * Enhanced evolution chain selection building on your existing selectors
- */
-const detailedEvolutionChainSelect = {
-  select: {
-    id: true,
-    babyTriggerItem: evolutionBabyTriggerItemSelect,
-    // Get all species in this evolution chain with enhanced data
-    pokemonSpecies: {
-      select: {
-        ...evolutionSpeciesSelect,
-        // Add evolution relationships using your existing selector
-        evolvesToSpecies: evolvesToSpeciesSelect,
-      },
-      orderBy: { order: 'asc' as const },
-    },
-  },
-};
-
-/**
  * Enhanced gender details selection
  */
 const detailedGenderDetailsSelect = {
@@ -1290,51 +1261,6 @@ const speciesCoreSelect = {
 export const pokemonWithSpeciesSelect = {
   id: true,
   name: true,
-  height: true,
-  weight: true,
-  baseExperience: true,
-  order: true,
-  isDefault: true,
-  criesLatest: true,
-  criesLegacy: true,
-  createdAt: true,
-  updatedAt: true,
-  sprites: extendedSpriteSelect,
-  types: orderedTypeSelect,
-  typePast: typePastSelect,
-  abilities: detailedAbilitySelect,
-  abilityPast: abilityPastSelect,
-  stats: detailedStatSelect,
-  forms: pokemonFormsSelect,
-  gameIndices: {
-    select: {
-      gameIndex: true,
-      version: versionSelect,
-    },
-    orderBy: { version: { id: 'asc' } },
-  },
-  heldItems: {
-    select: {
-      rarity: true,
-      version: versionSelect,
-      item: {
-        select: {
-          id: true,
-          name: true,
-          cost: true,
-          flingPower: true,
-          names: languageNameSelect,
-          flavorTexts: {
-            where: { languageId: DEFAULT_LANGUAGE_ID },
-            select: { flavorText: true },
-            take: 1,
-          },
-          sprite: true,
-        },
-      },
-    },
-    orderBy: [{ version: { id: 'asc' } }, { rarity: 'desc' }],
-  },
 
   // Species with lightweight sub-tree
   pokemonSpecies: {
