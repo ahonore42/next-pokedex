@@ -1684,6 +1684,7 @@ model VersionGroup {
   pokedexes          VersionGroupPokedex[]
   abilityChangeLogs  AbilityChangeLog[]
 
+  @@index([generationId], name: "idx_version_group_generation")
   @@map("version_groups")
 }
 
