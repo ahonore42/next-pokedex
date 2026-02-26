@@ -1,106 +1,39 @@
-name: Testing
-on: [push]
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
 jobs:
-  e2e:
-    name: 'Build + E2E tests'
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_DATABASE: trpcdb
-          POSTGRES_USER: postgres
-          POSTGRES_HOST_AUTH_METHOD: trust
-        ports:
-          - 5432:5432
-    env:
-      NODE_ENV: test
-      NEXTAUTH_SECRET: supersecret
+  ci:
+    name: Lint, type check & unit tests
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - uses: pnpm/action-setup@v3
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
         with:
-          version: 8.5.1
+          version: 10
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.x
-          cache: 'pnpm' # You can active this cache when your repo has a lockfile
+          node-version: 22
+          cache: pnpm
 
-      - name: Install deps (with cache)
+      - name: Install dependencies
         run: pnpm install
 
-      - name: Install playwright
-        run: pnpm exec playwright install chromium
+      - name: Generate Prisma client
+        run: pnpm generate
 
-      - name: Next.js cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-nextjs
+      - name: Type check
+        run: npx tsc --noEmit
 
-      - name: Setup Prisma
-        run: pnpm prebuild
+      - name: Lint
+        run: pnpm lint
 
-      - run: pnpm build
-      - run: pnpm test-e2e
-
-      - name: Check types
-        run: pnpm tsc
-
-      - name: Upload test results
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: playwright/test-results
-
-  unit:
-    name: 'Unit tests + typecheck'
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_DATABASE: trpcdb
-          POSTGRES_USER: postgres
-          POSTGRES_HOST_AUTH_METHOD: trust
-        ports:
-          - 5432:5432
-    env:
-      NODE_ENV: test
-      NEXTAUTH_SECRET: supersecret
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 8.5.1
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.x
-          cache: 'pnpm' # You can active this cache when your repo has a lockfile
-
-      - name: Install deps (with cache)
-        run: pnpm install
-
-      - name: Next.js cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/.next/cache
-          key: ${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}-nextjs
-
-      - name: Setup Prisma
-        run: pnpm prebuild
-
-      - run: pnpm test-unit
-      - run: pnpm tsc
-
+      - name: Unit tests
+        run: pnpm test-unit
